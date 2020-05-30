@@ -179,9 +179,11 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     // Adorned predicate structure
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
     auto getAdornmentID = [&](const adorned_predicate& pred) {
-        std::stringstream result;
-        result << pred.first << "_{" << pred.second << "}";
-        return result.str();
+        AstQualifiedName adornmentID(pred.first);
+        std::stringstream adornmentMarker;
+        adornmentMarker << "{" << pred.second << "}";
+        adornmentID.append(adornmentMarker.str());
+        return adornmentID;
     };
 
     // Process data-structures
@@ -189,7 +191,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     std::vector<const AstClause*> redundantClauses;
 
     std::set<adorned_predicate> headAdornmentsToDo;
-    std::set<std::string> headAdornmentsSeen;
+    std::set<AstQualifiedName> headAdornmentsSeen;
 
     // Output relations trigger the adornment process
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
@@ -215,7 +217,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         const auto& adornmentMarker = headAdornment.second;
 
         // Adorn every clause correspondingly
-        for (const AstClause* clause : getClauses(program, headAdornment.first)) {
+        for (const AstClause* clause : getClauses(program, relName)) {
             const auto* headAtom = clause->getHead();
             const auto& headArguments = headAtom->getArguments();
             std::set<std::string> boundVariables;
@@ -298,7 +300,15 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 }
 
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
-    return false;
+    auto& program = *translationUnit.getProgram();
+    std::set<AstClause*> clausesToRemove;
+    std::set<AstClause*> clausesToAdd;
+    std::set<AstQualifiedName> magicPredicatesToAdd;
+
+    for (const auto* clause : program.getClauses()) {
+    }
+
+    return !clausesToRemove.empty() || !clausesToAdd.empty();
 }
 
 }  // namespace souffle
