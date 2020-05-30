@@ -38,26 +38,27 @@
 namespace souffle {
 
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
-    auto& program = *translationUnit.getProgram();
     bool changed = false;
 
     /** (1) Separate the IDB and EDB */
-    changed |= splitDB(program);
+    changed |= splitDB(translationUnit);
 
     /** (2) Move constants into new equality constraints */
-    changed |= nameConstants(program);
+    changed |= nameConstants(translationUnit);
 
     /** (3) Querify output relations */
-    changed |= querifyOutputRelations(program);
+    changed |= querifyOutputRelations(translationUnit);
 
     return changed;
 }
 
-bool NormaliseDatabaseTransformer::splitDB(AstProgram& program) {
+bool NormaliseDatabaseTransformer::splitDB(AstTranslationUnit& translationUnit) {
     return false;
 }
 
-bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
+bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+
     // Replace all constants and underscores with named variables
     struct constant_normaliser : public AstNodeMapper {
         std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
@@ -105,8 +106,71 @@ bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
     return changed;
 }
 
-bool NormaliseDatabaseTransformer::querifyOutputRelations(AstProgram& program) {
-    return false;
+bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+
+    // Get all output relations
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    std::set<AstQualifiedName> outputRelationNames;
+    std::set<AstRelation*> outputRelations;
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes->isOutput(rel)) {
+            auto name = rel->getQualifiedName();
+            auto queryName = rel->getQualifiedName();
+            queryName.prepend("@intermediate");
+
+            auto* newRelation = rel->clone();
+            newRelation->setQualifiedName(queryName);
+            program.addRelation(std::unique_ptr<AstRelation>(newRelation));
+
+            outputRelations.insert(rel);
+            outputRelationNames.insert(name);
+        }
+    }
+
+    // Rename them systematically
+    struct rename_relation : public AstNodeMapper {
+        const std::set<AstQualifiedName>& relations;
+
+        rename_relation(const std::set<AstQualifiedName>& relations) : relations(relations) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                if (contains(relations, atom->getQualifiedName())) {
+                    auto newName = atom->getQualifiedName();
+                    newName.prepend("@intermediate");
+                    auto* renamedAtom = atom->clone();
+                    renamedAtom->setQualifiedName(newName);
+                    return std::unique_ptr<AstAtom>(renamedAtom);
+                }
+            }
+            node->apply(*this);
+            return node;
+        }
+    };
+    rename_relation update(outputRelationNames);
+    program.apply(update);
+
+    // Add the new simple query output relations
+    for (auto* rel : outputRelations) {
+        auto name = rel->getQualifiedName();
+        auto newName = rel->getQualifiedName();
+        newName.prepend("@intermediate");
+
+        auto queryHead = std::make_unique<AstAtom>(name);
+        auto queryLiteral = std::make_unique<AstAtom>(newName);
+        for (size_t i = 0; i < rel->getArity(); i++) {
+            std::stringstream var;
+            var << "@query_x" << i;
+            queryHead->addArgument(std::make_unique<AstVariable>(var.str()));
+            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
+        }
+        auto query = std::make_unique<AstClause>(std::move(queryHead));
+        query->addToBody(std::move(queryLiteral));
+        program.addClause(std::move(query));
+    }
+
+    return !outputRelationNames.empty();
 }
 
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
@@ -132,7 +196,8 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     for (const auto* rel : program.getRelations()) {
         if (ioTypes->isOutput(rel)) {
             std::stringstream adornmentMarker;
-            for (size_t i = 0; i < rel->getArity(); i++) adornmentMarker << "f";
+            for (size_t i = 0; i < rel->getArity(); i++)
+                adornmentMarker << "f";
             auto adornment = std::make_pair(rel->getQualifiedName(), adornmentMarker.str());
             auto adornmentID = getAdornmentID(adornment);
             assert(!contains(headAdornmentsSeen, adornmentID) && "unexpected repeat output relation");

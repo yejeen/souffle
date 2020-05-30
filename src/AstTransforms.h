@@ -401,9 +401,21 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    bool splitDB(AstProgram& program);
-    bool nameConstants(AstProgram& program);
-    bool querifyOutputRelations(AstProgram& program);
+    /**
+     * Splits the EDB and IDB into disjoint sets.
+     */
+    bool splitDB(AstTranslationUnit& translationUnit);
+
+    /**
+     * Names all constants and unnamed variables.
+     */
+    bool nameConstants(AstTranslationUnit& translationUnit);
+
+    /**
+     * Extracts output relations into separate simple query relations,
+     * so that they are unused in any other rules.
+     */
+    bool querifyOutputRelations(AstTranslationUnit& translationUnit);
 };
 
 /**
