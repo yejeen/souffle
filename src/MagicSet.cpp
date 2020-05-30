@@ -74,6 +74,11 @@ bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
                         std::unique_ptr<AstArgument>(constant->clone())));
                 return std::make_unique<AstVariable>(name.str());
             }
+            if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
+                std::stringstream name;
+                name << "@abdul_unnamed" << changeCount++;
+                return std::make_unique<AstVariable>(name.str());
+            }
             node->apply(*this);
             return node;
         }
@@ -125,7 +130,9 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     for (const auto* rel : program.getRelations()) {
         if (ioTypes->isOutput(rel)) {
-            auto adornment = std::make_pair(rel->getQualifiedName(), "");
+            std::stringstream adornmentMarker;
+            for (size_t i = 0; i < rel->getArity(); i++) adornmentMarker << "f";
+            auto adornment = std::make_pair(rel->getQualifiedName(), adornmentMarker.str());
             auto adornmentID = getAdornmentID(adornment);
             assert(!contains(headAdornmentsSeen, adornmentID) && "unexpected repeat output relation");
             headAdornmentsToDo.insert(adornment);
