@@ -68,7 +68,7 @@ bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             if (auto* constant = dynamic_cast<AstConstant*>(node.get())) {
                 std::stringstream name;
-                name << "+abdul" << changeCount++;
+                name << "@abdul" << changeCount++;
                 constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
                         std::make_unique<AstVariable>(name.str()),
                         std::unique_ptr<AstArgument>(constant->clone())));
@@ -104,14 +104,124 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstProgram& program) {
 }
 
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
-    return false;
+    auto& program = *translationUnit.getProgram();
+
+    // Adorned predicate structure
+    using adorned_predicate = std::pair<AstQualifiedName, std::string>;
+    auto getAdornmentID = [&](const adorned_predicate& pred) {
+        std::stringstream result;
+        result << pred.first << "_{" << pred.second << "}";
+        return result.str();
+    };
+
+    // Process data-structures
+    std::vector<std::unique_ptr<AstClause>> adornedClauses;
+    std::vector<const AstClause*> redundantClauses;
+
+    std::set<adorned_predicate> headAdornmentsToDo;
+    std::set<std::string> headAdornmentsSeen;
+
+    // Output relations trigger the adornment process
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    for (const auto* rel : program.getRelations()) {
+        if (ioTypes->isOutput(rel)) {
+            auto adornment = std::make_pair(rel->getQualifiedName(), "");
+            auto adornmentID = getAdornmentID(adornment);
+            assert(!contains(headAdornmentsSeen, adornmentID) && "unexpected repeat output relation");
+            headAdornmentsToDo.insert(adornment);
+            headAdornmentsSeen.insert(adornmentID);
+        }
+    }
+
+    // Keep going while there's things to adorn
+    while (!headAdornmentsToDo.empty()) {
+        // Pop off the next head adornment to do
+        auto headAdornment = *(headAdornmentsToDo.begin());
+        headAdornmentsToDo.erase(headAdornmentsToDo.begin());
+        const auto& relName = headAdornment.first;
+        const auto& adornmentMarker = headAdornment.second;
+
+        // Adorn every clause correspondingly
+        for (const AstClause* clause : getClauses(program, headAdornment.first)) {
+            const auto* headAtom = clause->getHead();
+            const auto& headArguments = headAtom->getArguments();
+            std::set<std::string> boundVariables;
+
+            // Create the adorned clause with an empty body
+            auto adornedClause = std::make_unique<AstClause>();
+            auto adornedHeadAtom = std::make_unique<AstAtom>(getAdornmentID(headAdornment));
+            assert(headAtom->getArity() == adornmentMarker.length() &&
+                    "adornment marker should correspond to head atom variables");
+            for (size_t i = 0; i < adornmentMarker.length(); i++) {
+                const auto* var = dynamic_cast<AstVariable*>(headArguments[i]);
+                assert(var != nullptr && "expected only variables in head");
+
+                if (adornmentMarker[i] == 'b') {
+                    boundVariables.insert(var->getName());
+                }
+                adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
+            }
+            adornedClause->setHead(std::move(adornedHeadAtom));
+
+            // Check through for variables bound in the body
+            visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
+                if (constr.getOperator() == BinaryConstraintOp::EQ &&
+                        dynamic_cast<AstVariable*>(constr.getLHS()) &&
+                        dynamic_cast<AstConstant*>(constr.getRHS())) {
+                    const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
+                    boundVariables.insert(var->getName());
+                }
+            });
+
+            // Add in adorned body literals
+            std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
+            for (const auto* lit : clause->getBodyLiterals()) {
+                if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
+                    std::stringstream atomAdornment;
+                    for (const auto* arg : atom->getArguments()) {
+                        const auto* var = dynamic_cast<const AstVariable*>(arg);
+                        assert(var != nullptr && "expected only variables in atom");
+                        atomAdornment << (contains(boundVariables, var->getName()) ? "b" : "f");
+                    }
+                    for (const auto* arg : atom->getArguments()) {
+                        const auto* var = dynamic_cast<const AstVariable*>(arg);
+                        assert(var != nullptr && "expected only variables in atom");
+                        boundVariables.insert(var->getName());
+                    }
+                    auto currAtomAdornment = std::make_pair(atom->getQualifiedName(), atomAdornment.str());
+                    auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
+                    if (!contains(headAdornmentsSeen, currAtomAdornmentID)) {
+                        headAdornmentsSeen.insert(currAtomAdornmentID);
+                        headAdornmentsToDo.insert(currAtomAdornment);
+                    }
+                    auto adornedBodyAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
+                    adornedBodyLiterals.push_back(std::move(adornedBodyAtom));
+                } else {
+                    adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
+                }
+            }
+            adornedClause->setBodyLiterals(std::move(adornedBodyLiterals));
+            adornedClauses.push_back(std::move(adornedClause));
+        }
+    }
+
+    // Swap over the redundant clauses with the adorned clauses
+    for (const auto* clause : redundantClauses) {
+        program.removeClause(clause);
+    }
+    for (auto& clause : adornedClauses) {
+        program.addClause(std::move(clause));
+    }
+
+    return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     return false;
 }
 
-}
+}  // namespace souffle
 
 namespace souffle {
 
