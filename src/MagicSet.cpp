@@ -14,7 +14,8 @@
  *
  ***********************************************************************/
 
-#include "MagicSet.h"
+#include "AstQualifiedName.h"
+
 #include "AstAttribute.h"
 #include "AstIO.h"
 #include "AstIOTypeAnalysis.h"
@@ -26,6 +27,7 @@
 #include "AstUtils.h"
 #include "BinaryConstraintOps.h"
 #include "Global.h"
+#include "MagicSet.h"
 #include "RamTypes.h"
 #include "SrcLocation.h"
 #include "utility/ContainerUtil.h"
@@ -36,6 +38,7 @@
 namespace souffle {
 
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
     bool changed = false;
 
     /** (1) Separate the IDB and EDB */
@@ -55,7 +58,45 @@ bool NormaliseDatabaseTransformer::splitDB(AstProgram& program) {
 }
 
 bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
-    return false;
+    struct constant_normaliser : public AstNodeMapper {
+        std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
+        int& changeCount;
+
+        constant_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
+                : constraints(constraints), changeCount(changeCount) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            if (auto* constant = dynamic_cast<AstConstant*>(node.get())) {
+                std::stringstream name;
+                name << "+abdul" << changeCount++;
+                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                        std::make_unique<AstVariable>(name.str()),
+                        std::unique_ptr<AstArgument>(constant->clone())));
+                return std::make_unique<AstVariable>(name.str());
+            }
+            node->apply(*this);
+            return node;
+        }
+    };
+
+    bool changed = false;
+    for (auto* clause : program.getClauses()) {
+        int changeCount = 0;
+        std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
+        constant_normaliser update(constraintsToAdd, changeCount);
+        clause->getHead()->apply(update);
+        for (auto* literal : clause->getBodyLiterals()) {
+            if (dynamic_cast<AstAtom*>(literal) != nullptr) {
+                literal->apply(update);
+            }
+        }
+        changed |= changeCount != 0;
+        for (auto& constraint : constraintsToAdd) {
+            clause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
+        }
+    }
+
+    return changed;
 }
 
 bool NormaliseDatabaseTransformer::querifyOutputRelations(AstProgram& program) {
