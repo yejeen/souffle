@@ -58,6 +58,7 @@ bool NormaliseDatabaseTransformer::splitDB(AstProgram& program) {
 }
 
 bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
+    // Replace all constants and underscores with named variables
     struct constant_normaliser : public AstNodeMapper {
         std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
         int& changeCount;
@@ -184,26 +185,33 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
             for (const auto* lit : clause->getBodyLiterals()) {
                 if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
+                    // Form the appropriate adornment marker
                     std::stringstream atomAdornment;
                     for (const auto* arg : atom->getArguments()) {
                         const auto* var = dynamic_cast<const AstVariable*>(arg);
                         assert(var != nullptr && "expected only variables in atom");
                         atomAdornment << (contains(boundVariables, var->getName()) ? "b" : "f");
                     }
+                    auto currAtomAdornment = std::make_pair(atom->getQualifiedName(), atomAdornment.str());
+                    auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
+
+                    // Add the adorned version to the clause
+                    auto adornedBodyAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
+                    adornedBodyLiterals.push_back(std::move(adornedBodyAtom));
+
+                    // Add to the ToDo queue if needed
+                    if (!contains(headAdornmentsSeen, currAtomAdornmentID)) {
+                        headAdornmentsSeen.insert(currAtomAdornmentID);
+                        headAdornmentsToDo.insert(currAtomAdornment);
+                    }
+
+                    // All arguments are now bound
                     for (const auto* arg : atom->getArguments()) {
                         const auto* var = dynamic_cast<const AstVariable*>(arg);
                         assert(var != nullptr && "expected only variables in atom");
                         boundVariables.insert(var->getName());
                     }
-                    auto currAtomAdornment = std::make_pair(atom->getQualifiedName(), atomAdornment.str());
-                    auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
-                    if (!contains(headAdornmentsSeen, currAtomAdornmentID)) {
-                        headAdornmentsSeen.insert(currAtomAdornmentID);
-                        headAdornmentsToDo.insert(currAtomAdornment);
-                    }
-                    auto adornedBodyAtom = std::unique_ptr<AstAtom>(atom->clone());
-                    adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
-                    adornedBodyLiterals.push_back(std::move(adornedBodyAtom));
                 } else {
                     adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 }
@@ -727,46 +735,6 @@ int getNextAtomMaxBoundSIPS(std::vector<AstAtom*>& atoms, const std::set<std::st
         } else if (!maxIsEDB && numBound == maxBound && contains(edb, currAtom->getQualifiedName())) {
             // prioritise EDB predicates
             maxIsEDB = true;
-            maxIndex = i;
-        }
-    }
-
-    return maxIndex;
-}
-
-// Choose the atom with the maximum ratio of bound arguments to total arguments
-int getNextAtomMaxRatioSIPS(std::vector<AstAtom*>& atoms, const std::set<std::string>& boundArgs,
-        const std::set<AstQualifiedName>& /* edb */, BindingStore& compositeBindings) {
-    double maxRatio = -1;
-    int maxIndex = 0;
-
-    for (size_t i = 0; i < atoms.size(); i++) {
-        AstAtom* currAtom = atoms[i];
-        if (currAtom == nullptr) {
-            // already done - move on
-            continue;
-        }
-
-        int numArguments = currAtom->getArity();
-        if (numArguments == 0) {
-            return i;  // no arguments!
-        }
-
-        int numBound = 0;
-        for (AstArgument* arg : currAtom->getArguments()) {
-            if (isBoundArgument(arg, boundArgs, compositeBindings)) {
-                numBound++;
-            }
-        }
-
-        double currRatio = numBound * 1.0 / numArguments;
-
-        if (currRatio == 1) {
-            return i;  // all bound, not going to get better than this
-        }
-
-        if (currRatio > maxRatio) {
-            maxRatio = currRatio;
             maxIndex = i;
         }
     }
