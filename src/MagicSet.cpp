@@ -36,6 +36,29 @@
 namespace souffle {
 
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+
+    /** (1) Separate the IDB and EDB */
+    changed |= splitDB(program);
+
+    /** (2) Move constants into new equality constraints */
+    changed |= nameConstants(program);
+
+    /** (3) Querify output relations */
+    changed |= querifyOutputRelations(program);
+
+    return changed;
+}
+
+bool NormaliseDatabaseTransformer::splitDB(AstProgram& program) {
+    return false;
+}
+
+bool NormaliseDatabaseTransformer::nameConstants(AstProgram& program) {
+    return false;
+}
+
+bool NormaliseDatabaseTransformer::querifyOutputRelations(AstProgram& program) {
     return false;
 }
 
@@ -48,7 +71,6 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 }
 
 }
-
 
 namespace souffle {
 

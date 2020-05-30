@@ -400,6 +400,10 @@ public:
 
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
+
+    bool splitDB(AstProgram& program);
+    bool nameConstants(AstProgram& program);
+    bool querifyOutputRelations(AstProgram& program);
 };
 
 /**
