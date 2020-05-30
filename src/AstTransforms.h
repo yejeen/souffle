@@ -385,12 +385,58 @@ private:
 };
 
 /**
- * Magic Set Transformation
+ * Database normaliser.
+ * Effects:
+ *  - Separates the EDB and IDB
+ *  - Constants moved into equality atoms
+ *  - Output relations extracted into queries
+ * Prerequisite for adornment.
+ */
+class NormaliseDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "NormaliseDatabaseTransformer";
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+};
+
+/**
+ * Database adornment.
+ * Adorns the rules of a database with variable binding information.
+ * Prerequisite for the magic set transformation.
+ */
+class AdornDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "AdornDatabaseTransformer";
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+};
+
+/**
+ * Magic Set Transformation.
  */
 class MagicSetTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "MagicSetTransformer";
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+};
+
+/**
+ * Magic Set Transformation (OLD)
+ */
+class OldMagicSetTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "OldMagicSetTransformer";
     }
 
 private:

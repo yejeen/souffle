@@ -35,6 +35,23 @@
 
 namespace souffle {
 
+bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    return false;
+}
+
+bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    return false;
+}
+
+bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
+    return false;
+}
+
+}
+
+
+namespace souffle {
+
 /* general functions */
 
 // checks whether the adorned version of two predicates is equal
@@ -1042,7 +1059,7 @@ void replaceUnderscores(AstProgram* program) {
 // -- -- Replace the clause with H :- mag(H), T.
 // -- Add the fact m_G_f...f to S
 // Remove all old idb rules
-bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
+bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     AstProgram* program = translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
