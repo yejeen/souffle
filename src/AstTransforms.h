@@ -402,9 +402,9 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
     /**
-     * Splits the EDB and IDB into disjoint sets.
+     * Separates the IDB from the EDB, so that they are disjoint.
      */
-    bool splitDB(AstTranslationUnit& translationUnit);
+    bool extractIDB(AstTranslationUnit& translationUnit);
 
     /**
      * Names all constants and unnamed variables.

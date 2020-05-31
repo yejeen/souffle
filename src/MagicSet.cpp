@@ -40,8 +40,8 @@ namespace souffle {
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
-    /** (1) Separate the IDB and EDB */
-    changed |= splitDB(translationUnit);
+    /** Separate the IDB from the EDB */
+    changed |= extractIDB(translationUnit);
 
     /** (2) Move constants into new equality constraints */
     changed |= nameConstants(translationUnit);
@@ -52,8 +52,72 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
     return changed;
 }
 
-bool NormaliseDatabaseTransformer::splitDB(AstTranslationUnit& translationUnit) {
-    return false;
+// TODO: output or printsize
+bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+
+    // Get all input relations
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    std::set<AstQualifiedName> inputRelationNames;
+    std::set<AstRelation*> inputRelations;
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes->isInput(rel)) {
+            auto name = rel->getQualifiedName();
+            auto usedName = rel->getQualifiedName();
+            usedName.prepend("@interm_in");
+
+            auto* newRelation = rel->clone();
+            newRelation->setQualifiedName(usedName);
+            program.addRelation(std::unique_ptr<AstRelation>(newRelation));
+
+            inputRelations.insert(rel);
+            inputRelationNames.insert(name);
+        }
+    }
+
+    // Rename them systematically
+    struct rename_relation : public AstNodeMapper {
+        const std::set<AstQualifiedName>& relations;
+
+        rename_relation(const std::set<AstQualifiedName>& relations) : relations(relations) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                if (contains(relations, atom->getQualifiedName())) {
+                    auto newName = atom->getQualifiedName();
+                    newName.prepend("@interm_in");
+                    auto* renamedAtom = atom->clone();
+                    renamedAtom->setQualifiedName(newName);
+                    return std::unique_ptr<AstAtom>(renamedAtom);
+                }
+            }
+            node->apply(*this);
+            return node;
+        }
+    };
+    rename_relation update(inputRelationNames);
+    program.apply(update);
+
+    // Add the new simple query output relations
+    for (auto* rel : inputRelations) {
+        auto name = rel->getQualifiedName();
+        auto newName = rel->getQualifiedName();
+        newName.prepend("@interm_in");
+
+        auto queryHead = std::make_unique<AstAtom>(newName);
+        auto queryLiteral = std::make_unique<AstAtom>(name);
+        for (size_t i = 0; i < rel->getArity(); i++) {
+            std::stringstream var;
+            var << "@query_x" << i;
+            queryHead->addArgument(std::make_unique<AstVariable>(var.str()));
+            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
+        }
+        auto query = std::make_unique<AstClause>(std::move(queryHead));
+        query->addToBody(std::move(queryLiteral));
+        program.addClause(std::move(query));
+    }
+
+    return !inputRelationNames.empty();
 }
 
 bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translationUnit) {
@@ -117,7 +181,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
         if (ioTypes->isOutput(rel)) {
             auto name = rel->getQualifiedName();
             auto queryName = rel->getQualifiedName();
-            queryName.prepend("@intermediate");
+            queryName.prepend("@interm_out");
 
             auto* newRelation = rel->clone();
             newRelation->setQualifiedName(queryName);
@@ -138,7 +202,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 if (contains(relations, atom->getQualifiedName())) {
                     auto newName = atom->getQualifiedName();
-                    newName.prepend("@intermediate");
+                    newName.prepend("@interm_out");
                     auto* renamedAtom = atom->clone();
                     renamedAtom->setQualifiedName(newName);
                     return std::unique_ptr<AstAtom>(renamedAtom);
@@ -155,7 +219,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     for (auto* rel : outputRelations) {
         auto name = rel->getQualifiedName();
         auto newName = rel->getQualifiedName();
-        newName.prepend("@intermediate");
+        newName.prepend("@interm_out");
 
         auto queryHead = std::make_unique<AstAtom>(name);
         auto queryLiteral = std::make_unique<AstAtom>(newName);
