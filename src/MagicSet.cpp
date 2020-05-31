@@ -52,7 +52,6 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
     return changed;
 }
 
-// TODO: output or printsize
 bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
@@ -178,7 +177,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     std::set<AstQualifiedName> outputRelationNames;
     std::set<AstRelation*> outputRelations;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isOutput(rel)) {
+        if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
             auto name = rel->getQualifiedName();
             auto queryName = rel->getQualifiedName();
             queryName.prepend("@interm_out");
@@ -260,7 +259,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     // Output relations trigger the adornment process
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     for (const auto* rel : program.getRelations()) {
-        if (ioTypes->isOutput(rel)) {
+        if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
             std::stringstream adornmentMarker;
             for (size_t i = 0; i < rel->getArity(); i++)
                 adornmentMarker << "f";
@@ -1010,7 +1009,7 @@ void Adornment::run(const AstTranslationUnit& translationUnit) {
         AstQualifiedName relName = rel->getQualifiedName();
 
         // find computed relations for the topdown part
-        if (ioTypes->isOutput(rel)) {
+        if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
             outputQueries.push_back(rel->getQualifiedName());
             // add relation to adornment
             adornmentRelations.push_back(rel->getQualifiedName());
