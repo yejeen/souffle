@@ -239,6 +239,15 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
+    // Pick up all relations to ignore
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    std::set<AstQualifiedName> relationsToIgnore;
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes->isInput(rel)) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+        }
+    }
+
     // Adorned predicate structure
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
     auto getAdornmentID = [&](const adorned_predicate& pred) {
@@ -255,9 +264,9 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
     std::set<adorned_predicate> headAdornmentsToDo;
     std::set<AstQualifiedName> headAdornmentsSeen;
+    std::set<AstQualifiedName> outputRelations;
 
     // Output relations trigger the adornment process
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     for (const auto* rel : program.getRelations()) {
         if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
             std::stringstream adornmentMarker;
@@ -268,6 +277,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             assert(!contains(headAdornmentsSeen, adornmentID) && "unexpected repeat output relation");
             headAdornmentsToDo.insert(adornment);
             headAdornmentsSeen.insert(adornmentID);
+            outputRelations.insert(rel->getQualifiedName());
         }
     }
 
@@ -314,7 +324,8 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             // Add in adorned body literals
             std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
             for (const auto* lit : clause->getBodyLiterals()) {
-                if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
+                const auto* atom = dynamic_cast<const AstAtom*>(lit);
+                if (atom != nullptr && !contains(relationsToIgnore, atom->getQualifiedName())) {
                     // Form the appropriate adornment marker
                     std::stringstream atomAdornment;
                     for (const auto* arg : atom->getArguments()) {
@@ -357,6 +368,33 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     }
     for (auto& clause : adornedClauses) {
         program.addClause(std::move(clause));
+    }
+
+    // Replace the query with the adorned version
+    for (auto relName : outputRelations) {
+        auto* rel = getRelation(program, relName);
+        std::stringstream adornmentMarker;
+        for (size_t i = 0; i < rel->getArity(); i++)
+            adornmentMarker << "f";
+        auto freeRelName = getAdornmentID(std::make_pair(relName, adornmentMarker.str()));
+
+        // Delete the old clauses
+        for (auto* clause : getClauses(program, relName)) {
+            program.removeClause(clause);
+        }
+
+        // Add the new query clause
+        auto newQueryHead = std::make_unique<AstAtom>(relName);
+        auto queryLiteral = std::make_unique<AstAtom>(freeRelName);
+        for (size_t i = 0; i < rel->getArity(); i++) {
+            std::stringstream var;
+            var << "@query_x" << i;
+            newQueryHead->addArgument(std::make_unique<AstVariable>(var.str()));
+            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
+        }
+        auto newQueryClause = std::make_unique<AstClause>(std::move(newQueryHead));
+        newQueryClause->addToBody(std::move(queryLiteral));
+        program.addClause(std::move(newQueryClause));
     }
 
     return !adornedClauses.empty() || !redundantClauses.empty();

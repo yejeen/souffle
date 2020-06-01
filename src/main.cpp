@@ -396,9 +396,9 @@ int main(int argc, char** argv) {
     //                 std::make_unique<RemoveRelationCopiesTransformer>(),
     //                 std::make_unique<RemoveEmptyRelationsTransformer>(),
     //                 std::make_unique<RemoveRedundantRelationsTransformer>()));
-    auto magicPipeline =
-            std::make_unique<PipelineTransformer>(std::make_unique<NormaliseDatabaseTransformer>(),
-                    std::make_unique<AdornDatabaseTransformer>(), std::make_unique<MagicSetTransformer>());
+    auto magicPipeline = std::make_unique<PipelineTransformer>(
+            std::make_unique<NormaliseDatabaseTransformer>(), std::make_unique<AdornDatabaseTransformer>(),
+            std::make_unique<MagicSetTransformer>(), std::make_unique<RemoveRedundantRelationsTransformer>());
 
     // Equivalence pipeline
     auto equivalencePipeline =
