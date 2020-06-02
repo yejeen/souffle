@@ -492,13 +492,17 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         std::vector<const AstAtom*> atomsToTheLeft;
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* atom = dynamic_cast<const AstAtom*>(lit);
-            if (atom == nullptr || !isAdorned(atom->getQualifiedName())) continue;
+            if (atom == nullptr) continue;
+            if (!isAdorned(atom->getQualifiedName())) {
+                atomsToTheLeft.push_back(atom);
+                continue;
+            }
             auto adornmentMarker = getAdornment(atom->getQualifiedName());
             auto magicHead = createMagicAtom(atom->getQualifiedName(), adornmentMarker, atom->getArguments());
 
             auto magicClause = std::make_unique<AstClause>();
             magicClause->setHead(std::move(magicHead));
-            magicClause->addToBody(std::unique_ptr<AstAtom>(head->clone()));
+            magicClause->addToBody(std::unique_ptr<AstAtom>(magicAtom->clone()));
             for (const auto* bindingAtom : atomsToTheLeft) {
                 magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
             }
