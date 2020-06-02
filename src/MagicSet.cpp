@@ -316,6 +316,8 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         auto headAdornment = *(headAdornmentsToDo.begin());
         headAdornmentsToDo.erase(headAdornmentsToDo.begin());
         const auto& relName = headAdornment.first;
+        const auto* rel = getRelation(program, relName);
+        bool isOutput = ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel);
         const auto& adornmentMarker = headAdornment.second;
 
         // Adorn every clause correspondingly
@@ -326,7 +328,9 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
             // Create the adorned clause with an empty body
             auto adornedClause = std::make_unique<AstClause>();
-            auto adornedHeadAtom = std::make_unique<AstAtom>(getAdornmentID(headAdornment));
+            auto adornedHeadAtomName = isOutput ? relName : getAdornmentID(headAdornment);
+            if (isOutput) redundantClauses.push_back(clause);
+            auto adornedHeadAtom = std::make_unique<AstAtom>(adornedHeadAtomName);
             assert(headAtom->getArity() == adornmentMarker.length() &&
                     "adornment marker should correspond to head atom variables");
             for (size_t i = 0; i < adornmentMarker.length(); i++) {
@@ -382,6 +386,14 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                         assert(var != nullptr && "expected only variables in atom");
                         boundVariables.insert(var->getName());
                     }
+                } else if (atom != nullptr) {
+                    // All arguments are now bound
+                    for (const auto* arg : atom->getArguments()) {
+                        const auto* var = dynamic_cast<const AstVariable*>(arg);
+                        assert(var != nullptr && "expected only variables in atom");
+                        boundVariables.insert(var->getName());
+                    }
+                    adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(atom->clone()));
                 } else {
                     adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 }
@@ -395,35 +407,9 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     for (const auto* clause : redundantClauses) {
         program.removeClause(clause);
     }
+
     for (auto& clause : adornedClauses) {
-        program.addClause(std::move(clause));
-    }
-
-    // Replace the query with the adorned version
-    for (auto relName : outputRelations) {
-        auto* rel = getRelation(program, relName);
-        std::stringstream adornmentMarker;
-        for (size_t i = 0; i < rel->getArity(); i++)
-            adornmentMarker << "f";
-        auto freeRelName = getAdornmentID(std::make_pair(relName, adornmentMarker.str()));
-
-        // Delete the old clauses
-        for (auto* clause : getClauses(program, relName)) {
-            program.removeClause(clause);
-        }
-
-        // Add the new query clause
-        auto newQueryHead = std::make_unique<AstAtom>(relName);
-        auto queryLiteral = std::make_unique<AstAtom>(freeRelName);
-        for (size_t i = 0; i < rel->getArity(); i++) {
-            std::stringstream var;
-            var << "@query_x" << i;
-            newQueryHead->addArgument(std::make_unique<AstVariable>(var.str()));
-            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
-        }
-        auto newQueryClause = std::make_unique<AstClause>(std::move(newQueryHead));
-        newQueryClause->addToBody(std::move(queryLiteral));
-        program.addClause(std::move(newQueryClause));
+        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
     }
 
     return !adornedClauses.empty() || !redundantClauses.empty();
@@ -519,6 +505,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             for (const auto* eqConstraint : eqConstraints) {
                 magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
             }
+            atomsToTheLeft.push_back(atom);
             clausesToAdd.insert(std::move(magicClause));
         }
     }
