@@ -402,11 +402,103 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    std::set<AstClause*> clausesToRemove;
-    std::set<AstClause*> clausesToAdd;
+    std::set<const AstClause*> clausesToRemove;
+    std::set<std::unique_ptr<AstClause>> clausesToAdd;
     std::set<AstQualifiedName> magicPredicatesToAdd;
 
+    auto isAdorned = [&](const AstQualifiedName& name) {
+        auto qualifiers = name.getQualifiers();
+        assert(!qualifiers.empty() && "unexpected empty qualifier list");
+        auto finalQualifier = qualifiers[qualifiers.size() - 1];
+        assert(finalQualifier.length() > 0 && "unexpected empty qualifier");
+        if (finalQualifier[0] == '{') {
+            assert(finalQualifier[finalQualifier.length() - 1] == '}' && "unterminated adornment string");
+            for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
+                char curBindingType = finalQualifier[i];
+                assert((curBindingType == 'b' || curBindingType == 'f') &&
+                        "unexpected binding type in adornment");
+            }
+            return true;
+        }
+        return false;
+    };
+
+    auto getAdornment = [&](const AstQualifiedName& name) {
+        assert(isAdorned(name) && "relation not adorned");
+        auto qualifiers = name.getQualifiers();
+        auto finalQualifier = qualifiers[qualifiers.size() - 1];
+        std::stringstream binding;
+        for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
+            binding << finalQualifier[i];
+        }
+        return binding.str();
+    };
+
+    auto createMagicAtom = [&](const AstQualifiedName& name, std::string adornmentMarker,
+                                   const std::vector<AstArgument*>& arguments) {
+        auto magicRelName = AstQualifiedName(name);
+        magicRelName.prepend("@magic");
+
+        auto magicHead = std::make_unique<AstAtom>(magicRelName);
+        for (size_t i = 0; i < arguments.size(); i++) {
+            if (adornmentMarker[i] == 'b') {
+                magicHead->addArgument(std::unique_ptr<AstArgument>(arguments[i]->clone()));
+            }
+        }
+        return magicHead;
+    };
+
     for (const auto* clause : program.getClauses()) {
+        clausesToRemove.insert(clause);
+
+        const auto* head = clause->getHead();
+        auto relName = head->getQualifiedName();
+        if (!isAdorned(relName)) {
+            continue;
+        }
+        auto adornmentMarker = getAdornment(relName);
+        auto magicAtom = createMagicAtom(relName, adornmentMarker, head->getArguments());
+
+        auto refinedClause = std::make_unique<AstClause>();
+        refinedClause->setHead(std::unique_ptr<AstAtom>(head->clone()));
+        refinedClause->addToBody(std::unique_ptr<AstAtom>(magicAtom->clone()));
+        for (auto* literal : clause->getBodyLiterals()) {
+            refinedClause->addToBody(std::unique_ptr<AstLiteral>(literal->clone()));
+        }
+        clausesToAdd.insert(std::move(refinedClause));
+
+        std::vector<const AstBinaryConstraint*> eqConstraints;
+        for (const auto* lit : clause->getBodyLiterals()) {
+            const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
+            if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
+            eqConstraints.push_back(bc);
+        }
+
+        std::vector<const AstAtom*> atomsToTheLeft;
+        for (const auto* lit : clause->getBodyLiterals()) {
+            const auto* atom = dynamic_cast<const AstAtom*>(lit);
+            if (atom == nullptr || !isAdorned(atom->getQualifiedName())) continue;
+            auto adornmentMarker = getAdornment(atom->getQualifiedName());
+            auto magicHead = createMagicAtom(atom->getQualifiedName(), adornmentMarker, atom->getArguments());
+
+            auto magicClause = std::make_unique<AstClause>();
+            magicClause->setHead(std::move(magicHead));
+            magicClause->addToBody(std::unique_ptr<AstAtom>(head->clone()));
+            for (const auto* bindingAtom : atomsToTheLeft) {
+                magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
+            }
+            for (const auto* eqConstraint : eqConstraints) {
+                magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+            }
+            clausesToAdd.insert(std::move(magicClause));
+        }
+    }
+
+    for (auto& clause : clausesToAdd) {
+        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
+    }
+    for (const auto* clause : clausesToRemove) {
+        program.removeClause(clause);
     }
 
     return !clausesToRemove.empty() || !clausesToAdd.empty();
