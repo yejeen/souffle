@@ -182,12 +182,31 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
 bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
+    auto isStrictlyOutput = [&](const AstRelation* rel) {
+        bool strictlyOutput = true;
+        size_t ruleCount = 0;
+
+        for (const auto* clause : program.getClauses()) {
+            visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& atom) {
+                if (atom.getQualifiedName() == rel->getQualifiedName()) {
+                    strictlyOutput = false;
+                }
+            });
+            if (clause->getHead()->getQualifiedName() == rel->getQualifiedName()) {
+                ruleCount++;
+            }
+        }
+
+        return strictlyOutput && ruleCount <= 1;
+    };
+
     // Get all output relations
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> outputRelationNames;
     std::set<AstRelation*> outputRelations;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
+        if ((ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel))
+                && !isStrictlyOutput(rel)) {
             auto name = rel->getQualifiedName();
             auto queryName = rel->getQualifiedName();
             queryName.prepend("@interm_out");
