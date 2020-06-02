@@ -55,12 +55,22 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
 bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
+    auto isStrictlyIDB = [&](const AstRelation* rel) {
+        for (const auto* clause : program.getClauses()) {
+            if (clause->getHead()->getQualifiedName() == rel->getQualifiedName() &&
+                    !clause->getBodyLiterals().empty()) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     // Get all input relations
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> inputRelationNames;
     std::set<AstRelation*> inputRelations;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isInput(rel)) {
+        if (ioTypes->isInput(rel) && !isStrictlyIDB(rel)) {
             auto name = rel->getQualifiedName();
             auto usedName = rel->getQualifiedName();
             usedName.prepend("@interm_in");
