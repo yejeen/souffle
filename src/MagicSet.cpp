@@ -290,6 +290,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     // Process data-structures
     std::vector<std::unique_ptr<AstClause>> adornedClauses;
     std::vector<const AstClause*> redundantClauses;
+    std::vector<std::unique_ptr<AstRelation>> relationsToAdd;
 
     std::set<adorned_predicate> headAdornmentsToDo;
     std::set<AstQualifiedName> headAdornmentsSeen;
@@ -319,6 +320,15 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         const auto* rel = getRelation(program, relName);
         bool isOutput = ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel);
         const auto& adornmentMarker = headAdornment.second;
+
+        // Add the adorned relation if needed
+        if (!isOutput) {
+            auto adornedRelation = std::make_unique<AstRelation>(getAdornmentID(headAdornment));
+            for (const auto* attr : rel->getAttributes()) {
+                adornedRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+            }
+            program.addRelation(std::move(adornedRelation));
+        }
 
         // Adorn every clause correspondingly
         for (const AstClause* clause : getClauses(program, relName)) {
@@ -420,7 +430,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<const AstClause*> clausesToRemove;
     std::set<std::unique_ptr<AstClause>> clausesToAdd;
-    std::set<AstQualifiedName> magicPredicatesToAdd;
+
+    std::set<AstQualifiedName> magicPredicatesSeen;
 
     auto isAdorned = [&](const AstQualifiedName& name) {
         auto qualifiers = name.getQualifiers();
@@ -450,8 +461,9 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         return binding.str();
     };
 
-    auto createMagicAtom = [&](const AstQualifiedName& name, std::string adornmentMarker,
+    auto createMagicAtom = [&](const AstRelation* rel, std::string adornmentMarker,
                                    const std::vector<AstArgument*>& arguments) {
+        auto name = rel->getQualifiedName();
         auto magicRelName = AstQualifiedName(name);
         magicRelName.prepend("@magic");
 
@@ -461,6 +473,19 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 magicHead->addArgument(std::unique_ptr<AstArgument>(arguments[i]->clone()));
             }
         }
+
+        if (!contains(magicPredicatesSeen, magicRelName)) {
+            magicPredicatesSeen.insert(magicRelName);
+            auto attributes = rel->getAttributes();
+            auto magicRelation = std::make_unique<AstRelation>(magicRelName);
+            for (size_t i = 0; i < attributes.size(); i++) {
+                if (adornmentMarker[i] == 'b') {
+                    magicRelation->addAttribute(std::unique_ptr<AstAttribute>(attributes[i]->clone()));
+                }
+            }
+            program.addRelation(std::move(magicRelation));
+        }
+
         return magicHead;
     };
 
@@ -495,7 +520,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                     continue;
                 }
                 auto adornmentMarker = getAdornment(atom->getQualifiedName());
-                auto magicHead = createMagicAtom(atom->getQualifiedName(), adornmentMarker, atom->getArguments());
+                auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()), adornmentMarker, atom->getArguments());
                 auto magicClause = std::make_unique<AstClause>();
                 magicClause->setHead(std::move(magicHead));
                 for (const auto* bindingAtom : atomsToTheLeft) {
@@ -514,7 +539,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
         // Refine the clause with a prepended magic atom
         auto adornmentMarker = getAdornment(relName);
-        auto magicAtom = createMagicAtom(relName, adornmentMarker, head->getArguments());
+        auto magicAtom = createMagicAtom(rel, adornmentMarker, head->getArguments());
 
         auto refinedClause = std::make_unique<AstClause>();
         refinedClause->setHead(std::unique_ptr<AstAtom>(head->clone()));
@@ -542,7 +567,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 continue;
             }
             auto adornmentMarker = getAdornment(atom->getQualifiedName());
-            auto magicHead = createMagicAtom(atom->getQualifiedName(), adornmentMarker, atom->getArguments());
+            auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()), adornmentMarker, atom->getArguments());
 
             auto magicClause = std::make_unique<AstClause>();
             magicClause->setHead(std::move(magicHead));
