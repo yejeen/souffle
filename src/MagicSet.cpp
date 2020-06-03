@@ -417,6 +417,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<const AstClause*> clausesToRemove;
     std::set<std::unique_ptr<AstClause>> clausesToAdd;
     std::set<AstQualifiedName> magicPredicatesToAdd;
@@ -468,9 +469,50 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
         const auto* head = clause->getHead();
         auto relName = head->getQualifiedName();
-        if (!isAdorned(relName)) {
+        auto rel = getRelation(program, relName);
+        auto isOutput = ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel);
+        if (!isAdorned(relName) && !isOutput) {
             continue;
         }
+
+        if (isOutput) {
+            // Output relations need not be refined, as every possible tuple is relevant
+            // For the same reason, the head does not contribute to the SIPS/specialisation
+            std::vector<const AstBinaryConstraint*> eqConstraints;
+            std::vector<const AstAtom*> atomsToTheLeft;
+
+            for (const auto* lit : clause->getBodyLiterals()) {
+                const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
+                if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
+                eqConstraints.push_back(bc);
+            }
+
+            for (const auto* lit : clause->getBodyLiterals()) {
+                const auto* atom = dynamic_cast<const AstAtom*>(lit);
+                if (atom == nullptr) continue;
+                if (!isAdorned(atom->getQualifiedName())) {
+                    atomsToTheLeft.push_back(atom);
+                    continue;
+                }
+                auto adornmentMarker = getAdornment(atom->getQualifiedName());
+                auto magicHead = createMagicAtom(atom->getQualifiedName(), adornmentMarker, atom->getArguments());
+                auto magicClause = std::make_unique<AstClause>();
+                magicClause->setHead(std::move(magicHead));
+                for (const auto* bindingAtom : atomsToTheLeft) {
+                    magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
+                }
+                for (const auto* eqConstraint : eqConstraints) {
+                    magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+                }
+                atomsToTheLeft.push_back(atom);
+                clausesToAdd.insert(std::move(magicClause));
+            }
+
+            clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
+            continue;
+        }
+
+        // Refine the clause with a prepended magic atom
         auto adornmentMarker = getAdornment(relName);
         auto magicAtom = createMagicAtom(relName, adornmentMarker, head->getArguments());
 
@@ -482,14 +524,16 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         }
         clausesToAdd.insert(std::move(refinedClause));
 
+        // Create the magic rules associated with this rule
         std::vector<const AstBinaryConstraint*> eqConstraints;
+        std::vector<const AstAtom*> atomsToTheLeft;
+
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
             if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
             eqConstraints.push_back(bc);
         }
 
-        std::vector<const AstAtom*> atomsToTheLeft;
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* atom = dynamic_cast<const AstAtom*>(lit);
             if (atom == nullptr) continue;
