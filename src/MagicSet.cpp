@@ -270,6 +270,8 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::findDependencyClosure(const
     std::set<AstQualifiedName> result;
 
     for (const auto& baseName : baseRelations) {
+        result.insert(baseName);
+
         // Add in all the relations that it needs to use
         for (const auto* clause : getClauses(program, baseName)) {
             visitDepthFirst(*clause, [&](const AstAtom& dependency) {
