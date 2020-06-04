@@ -265,17 +265,45 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     return !outputRelationNames.empty();
 }
 
+std::set<AstQualifiedName> AdornDatabaseTransformer::findDependencyClosure(const AstProgram& program, const std::set<AstQualifiedName>& baseRelations) {
+    bool fixpointReached = true;
+    std::set<AstQualifiedName> result;
+
+    for (const auto& baseName : baseRelations) {
+        // Add in all the relations that it needs to use
+        for (const auto* clause : getClauses(program, baseName)) {
+            visitDepthFirst(*clause, [&](const AstAtom& dependency) {
+                auto dependencyName = dependency.getQualifiedName();
+                result.insert(dependencyName);
+                fixpointReached &= contains(baseRelations, dependencyName);
+            });
+        }
+    }
+
+    return fixpointReached ? result : findDependencyClosure(program, result);
+}
+
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
     // Pick up all relations to ignore
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> relationsToIgnore;
+
+    // - Any input relations
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     for (auto* rel : program.getRelations()) {
         if (ioTypes->isInput(rel)) {
             relationsToIgnore.insert(rel->getQualifiedName());
         }
     }
+
+    // - Any relation that appears negated
+    visitDepthFirst(program, [&](const AstNegation& neg) {
+        relationsToIgnore.insert(neg.getAtom()->getQualifiedName());
+    });
+
+    // - Any atom that appears in the dependency graph of ignored atoms
+    relationsToIgnore = findDependencyClosure(program, relationsToIgnore);
 
     // Adorned predicate structure
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
@@ -497,6 +525,9 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         auto rel = getRelation(program, relName);
         auto isOutput = ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel);
         if (!isAdorned(relName) && !isOutput) {
+            for (const auto* clause : getClauses(program, relName)) {
+                clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
+            }
             continue;
         }
 

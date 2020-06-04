@@ -36,6 +36,7 @@ class AstProgram;
 class AstRecordInit;
 class AstRelation;
 class AstTranslationUnit;
+class AstQualifiedName;
 
 /**
  * Transformation pass to eliminate grounded aliases.
@@ -431,6 +432,8 @@ public:
 
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
+
+    std::set<AstQualifiedName> findDependencyClosure(const AstProgram& program, const std::set<AstQualifiedName>& baseRelations);
 };
 
 /**

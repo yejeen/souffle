@@ -397,7 +397,8 @@ int main(int argc, char** argv) {
                     std::make_unique<ResolveAliasesTransformer>(),
                     std::make_unique<RemoveRelationCopiesTransformer>(),
                     std::make_unique<RemoveEmptyRelationsTransformer>(),
-                    std::make_unique<RemoveRedundantRelationsTransformer>()))
+                    std::make_unique<RemoveRedundantRelationsTransformer>(),
+                    std::make_unique<MinimiseProgramTransformer>()))
         :
         std::make_unique<ConditionalTransformer>(Global::config().has("magic-transform"),
             std::make_unique<PipelineTransformer>(std::make_unique<NormaliseDatabaseTransformer>(),
@@ -405,9 +406,19 @@ int main(int argc, char** argv) {
                     std::make_unique<ResolveAliasesTransformer>(),
                     std::make_unique<RemoveRelationCopiesTransformer>(),
                     std::make_unique<RemoveEmptyRelationsTransformer>(),
-                    std::make_unique<RemoveRedundantRelationsTransformer>()));
+                    std::make_unique<RemoveRedundantRelationsTransformer>(),
+                    std::make_unique<MinimiseProgramTransformer>()));
+
     // Equivalence pipeline
     auto equivalencePipeline =
+            std::make_unique<PipelineTransformer>(std::make_unique<NameUnnamedVariablesTransformer>(),
+                    std::make_unique<FixpointTransformer>(std::make_unique<MinimiseProgramTransformer>()),
+                    std::make_unique<ReplaceSingletonVariablesTransformer>(),
+                    std::make_unique<RemoveRelationCopiesTransformer>(),
+                    std::make_unique<RemoveEmptyRelationsTransformer>(),
+                    std::make_unique<RemoveRedundantRelationsTransformer>());
+
+    auto ep2 =
             std::make_unique<PipelineTransformer>(std::make_unique<NameUnnamedVariablesTransformer>(),
                     std::make_unique<FixpointTransformer>(std::make_unique<MinimiseProgramTransformer>()),
                     std::make_unique<ReplaceSingletonVariablesTransformer>(),
@@ -449,13 +460,14 @@ int main(int argc, char** argv) {
                             std::make_unique<RemoveRedundantRelationsTransformer>())),
             std::make_unique<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
             std::move(equivalencePipeline), std::make_unique<RemoveRelationCopiesTransformer>(),
+            std::move(magicPipeline), std::move(ep2),
             std::make_unique<ReorderLiteralsTransformer>(),
             std::make_unique<PipelineTransformer>(std::make_unique<ResolveAliasesTransformer>(),
                     std::make_unique<MaterializeAggregationQueriesTransformer>()),
             std::make_unique<RemoveRedundantSumsTransformer>(),
             std::make_unique<RemoveEmptyRelationsTransformer>(),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<ReorderLiteralsTransformer>(),
-            std::move(magicPipeline), std::make_unique<AstExecutionPlanChecker>(),
+            std::make_unique<AstExecutionPlanChecker>(),
             std::move(provenancePipeline));
 
     // Disable unwanted transformations
