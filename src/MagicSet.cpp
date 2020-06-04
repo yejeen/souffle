@@ -154,6 +154,14 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
                 name << "@abdul_unnamed" << changeCount++;
                 return std::make_unique<AstVariable>(name.str());
             }
+            if (auto* aggr = dynamic_cast<AstAggregator*>(node.get())) {
+                std::stringstream name;
+                name << "@abdul" << changeCount++;
+                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                        std::make_unique<AstVariable>(name.str()),
+                        std::unique_ptr<AstArgument>(aggr->clone())));
+                return std::make_unique<AstVariable>(name.str());
+            }
             node->apply(*this);
             return node;
         }
