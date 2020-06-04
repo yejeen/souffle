@@ -162,6 +162,14 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
                         std::unique_ptr<AstArgument>(aggr->clone())));
                 return std::make_unique<AstVariable>(name.str());
             }
+            if (auto* func = dynamic_cast<AstFunctor*>(node.get())) {
+                std::stringstream name;
+                name << "@abdul" << changeCount++;
+                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                        std::make_unique<AstVariable>(name.str()),
+                        std::unique_ptr<AstArgument>(func->clone())));
+                return std::make_unique<AstVariable>(name.str());
+            }
             node->apply(*this);
             return node;
         }
@@ -213,8 +221,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     std::set<AstQualifiedName> outputRelationNames;
     std::set<AstRelation*> outputRelations;
     for (auto* rel : program.getRelations()) {
-        if ((ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel))
-                && !isStrictlyOutput(rel)) {
+        if ((ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) && !isStrictlyOutput(rel)) {
             auto name = rel->getQualifiedName();
             auto queryName = rel->getQualifiedName();
             queryName.prepend("@interm_out");
@@ -273,7 +280,8 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     return !outputRelationNames.empty();
 }
 
-std::set<AstQualifiedName> AdornDatabaseTransformer::findDependencyClosure(const AstProgram& program, const std::set<AstQualifiedName>& baseRelations) {
+std::set<AstQualifiedName> AdornDatabaseTransformer::findDependencyClosure(
+        const AstProgram& program, const std::set<AstQualifiedName>& baseRelations) {
     bool fixpointReached = true;
     std::set<AstQualifiedName> result;
 
@@ -308,15 +316,13 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     }
 
     // - Any relation that appears negated
-    visitDepthFirst(program, [&](const AstNegation& neg) {
-        relationsToIgnore.insert(neg.getAtom()->getQualifiedName());
-    });
+    visitDepthFirst(program,
+            [&](const AstNegation& neg) { relationsToIgnore.insert(neg.getAtom()->getQualifiedName()); });
 
     // - Any relation that appears within an aggregate
     visitDepthFirst(program, [&](const AstAggregator& aggr) {
-        visitDepthFirst(aggr, [&](const AstAtom& atom) {
-            relationsToIgnore.insert(atom.getQualifiedName());
-        });
+        visitDepthFirst(
+                aggr, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
     });
 
     // - Any atom that appears in the dependency graph of ignored atoms
@@ -557,7 +563,10 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             for (const auto* lit : clause->getBodyLiterals()) {
                 const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
                 if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
-                eqConstraints.push_back(bc);
+                if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr &&
+                        dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
+                    eqConstraints.push_back(bc);
+                }
             }
 
             for (const auto* lit : clause->getBodyLiterals()) {
@@ -568,7 +577,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                     continue;
                 }
                 auto adornmentMarker = getAdornment(atom->getQualifiedName());
-                auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()), adornmentMarker, atom->getArguments());
+                auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()),
+                        adornmentMarker, atom->getArguments());
                 auto magicClause = std::make_unique<AstClause>();
                 magicClause->setHead(std::move(magicHead));
                 for (const auto* bindingAtom : atomsToTheLeft) {
@@ -604,7 +614,10 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
             if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
-            eqConstraints.push_back(bc);
+            if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr &&
+                    dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
+                eqConstraints.push_back(bc);
+            }
         }
 
         for (const auto* lit : clause->getBodyLiterals()) {
@@ -615,7 +628,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 continue;
             }
             auto adornmentMarker = getAdornment(atom->getQualifiedName());
-            auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()), adornmentMarker, atom->getArguments());
+            auto magicHead = createMagicAtom(
+                    getRelation(program, atom->getQualifiedName()), adornmentMarker, atom->getArguments());
 
             auto magicClause = std::make_unique<AstClause>();
             magicClause->setHead(std::move(magicHead));
