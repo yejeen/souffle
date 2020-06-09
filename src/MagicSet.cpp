@@ -189,6 +189,15 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
         std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
         constant_normaliser update(constraintsToAdd, changeCount);
         clause->getHead()->apply(update);
+        for (AstLiteral* lit : clause->getBodyLiterals()) {
+            if (auto* bc = dynamic_cast<AstBinaryConstraint*>(lit)) {
+                if (bc->getOperator() == BinaryConstraintOp::EQ &&
+                        dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr) {
+                    continue;
+                }
+            }
+            lit->apply(update);
+        }
         visitDepthFirst(*clause, [&](const AstAtom& atom) { const_cast<AstAtom&>(atom).apply(update); });
         changed |= changeCount != 0;
         for (auto& constraint : constraintsToAdd) {
