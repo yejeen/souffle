@@ -142,42 +142,15 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             node->apply(*this);
-            if (auto* constant = dynamic_cast<AstConstant*>(node.get())) {
-                std::stringstream name;
-                name << "@abdul" << changeCount++;
-                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                        std::make_unique<AstVariable>(name.str()),
-                        std::unique_ptr<AstArgument>(constant->clone())));
-                return std::make_unique<AstVariable>(name.str());
-            }
-            if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
-                std::stringstream name;
-                name << "@abdul_unnamed" << changeCount++;
-                return std::make_unique<AstVariable>(name.str());
-            }
-            if (auto* aggr = dynamic_cast<AstAggregator*>(node.get())) {
-                std::stringstream name;
-                name << "@abdul" << changeCount++;
-                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                        std::make_unique<AstVariable>(name.str()),
-                        std::unique_ptr<AstArgument>(aggr->clone())));
-                return std::make_unique<AstVariable>(name.str());
-            }
-            if (auto* func = dynamic_cast<AstFunctor*>(node.get())) {
-                std::stringstream name;
-                name << "@abdul" << changeCount++;
-                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                        std::make_unique<AstVariable>(name.str()),
-                        std::unique_ptr<AstArgument>(func->clone())));
-                return std::make_unique<AstVariable>(name.str());
-            }
-            if (auto* record = dynamic_cast<AstRecordInit*>(node.get())) {
-                std::stringstream name;
-                name << "@abdul" << changeCount++;
-                constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                        std::make_unique<AstVariable>(name.str()),
-                        std::unique_ptr<AstArgument>(record->clone())));
-                return std::make_unique<AstVariable>(name.str());
+            if (auto* arg = dynamic_cast<AstArgument*>(node.get())) {
+                if (dynamic_cast<AstVariable*>(arg) == nullptr) {
+                    std::stringstream name;
+                    name << "@abdul" << changeCount++;
+                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                            std::make_unique<AstVariable>(name.str()),
+                            std::unique_ptr<AstArgument>(arg->clone())));
+                    return std::make_unique<AstVariable>(name.str());
+                }
             }
             return node;
         }
