@@ -630,6 +630,29 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 clausesToAdd.insert(std::move(magicClause));
             }
 
+            visitDepthFirst(*clause, [&](const AstAggregator& aggr) {
+                assert(aggr.getBodyLiterals().size() == 1 &&
+                        "expected aggregator body to only contain 1 body literal");
+                const auto* atom = dynamic_cast<AstAtom*>(aggr.getBodyLiterals()[0]);
+                assert(atom != nullptr && "expected aggregator body to contain exactly one atom");
+
+                if (!isAdorned(atom->getQualifiedName())) {
+                    return;
+                }
+                auto adornmentMarker = getAdornment(atom->getQualifiedName());
+                auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()),
+                        adornmentMarker, atom->getArguments());
+
+                auto magicClause = std::make_unique<AstClause>();
+                magicClause->setHead(std::move(magicHead));
+                for (const auto* bindingAtom : atomsToTheLeft) {
+                    magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
+                }
+                for (const auto* eqConstraint : eqConstraints) {
+                    magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+                }
+                clausesToAdd.insert(std::move(magicClause));
+            });
             clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
             continue;
         }
