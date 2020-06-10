@@ -342,7 +342,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
     // Process data-structures
     std::vector<std::unique_ptr<AstClause>> adornedClauses;
-    std::vector<const AstClause*> redundantClauses;
+    std::vector<std::unique_ptr<AstClause>> redundantClauses;
     std::vector<std::unique_ptr<AstRelation>> relationsToAdd;
 
     std::set<adorned_predicate> headAdornmentsToDo;
@@ -392,7 +392,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             // Create the adorned clause with an empty body
             auto adornedClause = std::make_unique<AstClause>();
             auto adornedHeadAtomName = isOutput ? relName : getAdornmentID(headAdornment);
-            if (isOutput) redundantClauses.push_back(clause);
+            if (isOutput) redundantClauses.push_back(std::unique_ptr<AstClause>(clause->clone()));
             auto adornedHeadAtom = std::make_unique<AstAtom>(adornedHeadAtomName);
             assert(headAtom->getArity() == adornmentMarker.length() &&
                     "adornment marker should correspond to head atom variables");
@@ -508,8 +508,8 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     }
 
     // Swap over the redundant clauses with the adorned clauses
-    for (const auto* clause : redundantClauses) {
-        program.removeClause(clause);
+    for (const auto& clause : redundantClauses) {
+        program.removeClause(clause.get());
     }
 
     for (auto& clause : adornedClauses) {
@@ -522,7 +522,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
-    std::set<const AstClause*> clausesToRemove;
+    std::set<std::unique_ptr<AstClause>> clausesToRemove;
     std::set<std::unique_ptr<AstClause>> clausesToAdd;
 
     std::set<AstQualifiedName> magicPredicatesSeen;
@@ -584,7 +584,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     };
 
     for (const auto* clause : program.getClauses()) {
-        clausesToRemove.insert(clause);
+        clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
 
         const auto* head = clause->getHead();
         auto relName = head->getQualifiedName();
@@ -739,8 +739,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     for (auto& clause : clausesToAdd) {
         program.addClause(std::unique_ptr<AstClause>(clause->clone()));
     }
-    for (const auto* clause : clausesToRemove) {
-        program.removeClause(clause);
+    for (const auto& clause : clausesToRemove) {
+        program.removeClause(clause.get());
     }
 
     return !clausesToRemove.empty() || !clausesToAdd.empty();
