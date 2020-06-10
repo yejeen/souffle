@@ -305,6 +305,12 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     visitDepthFirst(program,
             [&](const AstNegation& neg) { relationsToIgnore.insert(neg.getAtom()->getQualifiedName()); });
 
+    // - Any relation that appears in an aggregator
+    visitDepthFirst(program, [&](const AstAggregator& aggr) {
+        visitDepthFirst(
+                aggr, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
+    });
+
     // - Any atom that appears in the dependency graph of ignored atoms
     relationsToIgnore = findDependencyClosure(program, relationsToIgnore);
 
