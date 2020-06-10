@@ -320,6 +320,13 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         }
     }
 
+    // - Any relation with execution plans
+    for (auto* clause : program.getClauses()) {
+        if (clause->getExecutionPlan() != nullptr) {
+            relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+        }
+    }
+
     // - Any atom that appears in the dependency graph of ignored atoms
     relationsToIgnore = findDependencyClosure(program, relationsToIgnore);
 
