@@ -146,9 +146,11 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
                 if (dynamic_cast<AstVariable*>(arg) == nullptr) {
                     std::stringstream name;
                     name << "@abdul" << changeCount++;
-                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                            std::make_unique<AstVariable>(name.str()),
-                            std::unique_ptr<AstArgument>(arg->clone())));
+                    if (dynamic_cast<AstUnnamedVariable*>(arg) == nullptr) {
+                        constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                                std::make_unique<AstVariable>(name.str()),
+                                std::unique_ptr<AstArgument>(arg->clone())));
+                    }
                     return std::make_unique<AstVariable>(name.str());
                 }
             }
@@ -310,6 +312,13 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         visitDepthFirst(
                 aggr, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
     });
+
+    // - Any eqrel relation
+    for (auto* rel : program.getRelations()) {
+        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+        }
+    }
 
     // - Any atom that appears in the dependency graph of ignored atoms
     relationsToIgnore = findDependencyClosure(program, relationsToIgnore);
