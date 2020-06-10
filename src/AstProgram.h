@@ -108,7 +108,7 @@ public:
     /** remove a clause */
     bool removeClause(const AstClause* clause) {
         for (auto it = clauses.begin(); it != clauses.end(); it++) {
-            if (**it == *clause) {
+            if (it->get() == clause) {
                 clauses.erase(it);
                 return true;
             }
