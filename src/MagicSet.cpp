@@ -53,6 +53,7 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
 }
 
 bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
     auto isStrictlyIDB = [&](const AstRelation* rel) {
@@ -66,7 +67,6 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     };
 
     // Get all input relations
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> inputRelationNames;
     std::set<AstRelation*> inputRelations;
     for (auto* rel : program.getRelations()) {
@@ -441,48 +441,6 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                         assert(var != nullptr && "expected only variables in atom");
                         boundVariables.insert(var->getName());
                     }
-                    adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(atom->clone()));
-                } else if (const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit)) {
-                    const auto* aggr = dynamic_cast<const AstAggregator*>(bc->getRHS());
-                    if (aggr != nullptr) {
-                        assert(dynamic_cast<const AstVariable*>(bc->getLHS()) != nullptr &&
-                                "expected var <func> aggr constraint");
-                        assert(aggr->getBodyLiterals().size() == 1 &&
-                                "expected aggregator body to only contain 1 body literal");
-                        const auto* atom = dynamic_cast<AstAtom*>(aggr->getBodyLiterals()[0]);
-                        assert(atom != nullptr && "expected aggregator body to contain exactly one atom");
-                        if (contains(relationsToIgnore, atom->getQualifiedName())) {
-                            adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
-                            continue;
-                        }
-                        std::stringstream atomAdornment;
-                        for (const auto* arg : atom->getArguments()) {
-                            const auto* var = dynamic_cast<const AstVariable*>(arg);
-                            assert(var != nullptr && "expected only variables in atom");
-                            atomAdornment << (contains(boundVariables, var->getName()) ? "b" : "f");
-                        }
-                        auto currAtomAdornment =
-                                std::make_pair(atom->getQualifiedName(), atomAdornment.str());
-                        auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
-
-                        // Add the adorned version to the clause
-                        auto adornedBodyAtom = std::unique_ptr<AstAtom>(atom->clone());
-                        adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
-                        auto newAggregator = std::unique_ptr<AstAggregator>(aggr->clone());
-                        std::vector<std::unique_ptr<AstLiteral>> aggrBody;
-                        aggrBody.push_back(std::unique_ptr<AstLiteral>(adornedBodyAtom->clone()));
-                        newAggregator->setBody(std::move(aggrBody));
-                        auto newConstraint = std::make_unique<AstBinaryConstraint>(bc->getOperator(),
-                                std::unique_ptr<AstArgument>(bc->getLHS()->clone()),
-                                std::unique_ptr<AstArgument>(newAggregator->clone()));
-                        if (!contains(headAdornmentsSeen, currAtomAdornmentID)) {
-                            headAdornmentsSeen.insert(currAtomAdornmentID);
-                            headAdornmentsToDo.insert(currAtomAdornment);
-                        }
-                        adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(newConstraint->clone()));
-                    } else {
-                        adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
-                    }
                 } else {
                     adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 }
@@ -619,29 +577,6 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 clausesToAdd.insert(std::move(magicClause));
             }
 
-            visitDepthFirst(*clause, [&](const AstAggregator& aggr) {
-                assert(aggr.getBodyLiterals().size() == 1 &&
-                        "expected aggregator body to only contain 1 body literal");
-                const auto* atom = dynamic_cast<AstAtom*>(aggr.getBodyLiterals()[0]);
-                assert(atom != nullptr && "expected aggregator body to contain exactly one atom");
-
-                if (!isAdorned(atom->getQualifiedName())) {
-                    return;
-                }
-                auto adornmentMarker = getAdornment(atom->getQualifiedName());
-                auto magicHead = createMagicAtom(getRelation(program, atom->getQualifiedName()),
-                        adornmentMarker, atom->getArguments());
-
-                auto magicClause = std::make_unique<AstClause>();
-                magicClause->setHead(std::move(magicHead));
-                for (const auto* bindingAtom : atomsToTheLeft) {
-                    magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
-                }
-                for (const auto* eqConstraint : eqConstraints) {
-                    magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
-                }
-                clausesToAdd.insert(std::move(magicClause));
-            });
             clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
             continue;
         }
