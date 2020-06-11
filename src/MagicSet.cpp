@@ -327,9 +327,6 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         }
     }
 
-    // - Any atom that appears in the dependency graph of ignored atoms
-    relationsToIgnore = findDependencyClosure(program, relationsToIgnore);
-
     // Adorned predicate structure
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
     auto getAdornmentID = [&](const adorned_predicate& pred) {
