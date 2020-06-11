@@ -532,6 +532,21 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         return magicHead;
     };
 
+    /** Create magic clause focused on a specific atom */
+    auto createMagicClause = [&](const AstAtom* atom, const std::vector<const AstAtom*>& constrainingAtoms,
+                                     const std::vector<const AstBinaryConstraint*> eqConstraints) {
+        auto magicHead = createMagicAtom(atom);
+        auto magicClause = std::make_unique<AstClause>();
+        magicClause->setHead(std::move(magicHead));
+        for (const auto* bindingAtom : constrainingAtoms) {
+            magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
+        }
+        for (const auto* eqConstraint : eqConstraints) {
+            magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+        }
+        return magicClause;
+    };
+
     /** Get all equality constraints in a clause */
     auto getEqualityConstraints = [&](const AstClause* clause) {
         std::vector<const AstBinaryConstraint*> equalityConstraints;
@@ -554,6 +569,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         auto relName = head->getQualifiedName();
         auto rel = getRelation(program, relName);
         auto isOutput = ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel);
+
+        // Unadorned non-output clauses are just added directly into the new program
         if (!isAdorned(relName) && !isOutput) {
             for (const auto* clause : getClauses(program, relName)) {
                 clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
@@ -561,12 +578,15 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             continue;
         }
 
+        // Output relations need not be refined, as every possible tuple is relevant
+        // For the same reason, the head does not contribute to the SIPS/specialisation
         if (isOutput) {
-            // Output relations need not be refined, as every possible tuple is relevant
-            // For the same reason, the head does not contribute to the SIPS/specialisation
+            // Add the output clause directly, unrefined
+            clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
+
+            // Add the magic clauses
             std::vector<const AstAtom*> atomsToTheLeft;
             std::vector<const AstBinaryConstraint*> eqConstraints = getEqualityConstraints(clause);
-
             for (const auto* lit : clause->getBodyLiterals()) {
                 const auto* atom = dynamic_cast<const AstAtom*>(lit);
                 if (atom == nullptr) continue;
@@ -574,22 +594,15 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                     atomsToTheLeft.push_back(atom);
                     continue;
                 }
-                auto magicHead = createMagicAtom(atom);
-                auto magicClause = std::make_unique<AstClause>();
-                magicClause->setHead(std::move(magicHead));
-                for (const auto* bindingAtom : atomsToTheLeft) {
-                    magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
-                }
-                for (const auto* eqConstraint : eqConstraints) {
-                    magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
-                }
+                auto magicClause = createMagicClause(atom, atomsToTheLeft, eqConstraints);
                 atomsToTheLeft.push_back(atom);
                 clausesToAdd.insert(std::move(magicClause));
             }
 
-            clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
             continue;
         }
+
+        // Otherwise, need a refined clause + the set of magic clauses
 
         // Refine the clause with a prepended magic atom
         auto adornmentMarker = getAdornment(relName);
@@ -606,6 +619,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         // Create the magic rules associated with this rule
         std::vector<const AstBinaryConstraint*> eqConstraints = getEqualityConstraints(clause);
         std::vector<const AstAtom*> atomsToTheLeft;
+        atomsToTheLeft.push_back(magicAtom.get());
 
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* atom = dynamic_cast<const AstAtom*>(lit);
@@ -614,44 +628,10 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 atomsToTheLeft.push_back(atom);
                 continue;
             }
-
-            auto adornmentMarker = getAdornment(atom->getQualifiedName());
-            auto magicHead = createMagicAtom(atom);
-            auto magicClause = std::make_unique<AstClause>();
-            magicClause->setHead(std::move(magicHead));
-            magicClause->addToBody(std::unique_ptr<AstAtom>(magicAtom->clone()));
-            for (const auto* bindingAtom : atomsToTheLeft) {
-                magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
-            }
-            for (const auto* eqConstraint : eqConstraints) {
-                magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
-            }
+            auto magicClause = createMagicClause(atom, atomsToTheLeft, eqConstraints);
             atomsToTheLeft.push_back(atom);
             clausesToAdd.insert(std::move(magicClause));
         }
-
-        visitDepthFirst(*clause, [&](const AstAggregator& aggr) {
-            assert(aggr.getBodyLiterals().size() == 1 &&
-                    "expected aggregator body to only contain 1 body literal");
-            const auto* atom = dynamic_cast<AstAtom*>(aggr.getBodyLiterals()[0]);
-            assert(atom != nullptr && "expected aggregator body to contain exactly one atom");
-
-            if (!isAdorned(atom->getQualifiedName())) {
-                return;
-            }
-            auto adornmentMarker = getAdornment(atom->getQualifiedName());
-            auto magicHead = createMagicAtom(atom);
-            auto magicClause = std::make_unique<AstClause>();
-            magicClause->setHead(std::move(magicHead));
-            magicClause->addToBody(std::unique_ptr<AstAtom>(magicAtom->clone()));
-            for (const auto* bindingAtom : atomsToTheLeft) {
-                magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
-            }
-            for (const auto* eqConstraint : eqConstraints) {
-                magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
-            }
-            clausesToAdd.insert(std::move(magicClause));
-        });
     }
 
     for (auto& clause : clausesToAdd) {
