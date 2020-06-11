@@ -40,7 +40,7 @@ namespace souffle {
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
-    /** Separate the IDB from the EDB */
+    /** (1) Separate the IDB from the EDB */
     changed |= extractIDB(translationUnit);
 
     /** (2) Move constants into new equality constraints */
@@ -442,6 +442,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                         assert(var != nullptr && "expected only variables in atom");
                         boundVariables.insert(var->getName());
                     }
+                    adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 } else {
                     adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 }
