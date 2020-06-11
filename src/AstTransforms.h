@@ -433,7 +433,7 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    std::set<AstQualifiedName> findDependencyClosure(const AstProgram& program, const std::set<AstQualifiedName>& baseRelations);
+    std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit);
 };
 
 /**

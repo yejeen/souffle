@@ -268,35 +268,13 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     return !outputRelationNames.empty();
 }
 
-std::set<AstQualifiedName> AdornDatabaseTransformer::findDependencyClosure(
-        const AstProgram& program, const std::set<AstQualifiedName>& baseRelations) {
-    bool fixpointReached = true;
-    std::set<AstQualifiedName> result;
-
-    for (const auto& baseName : baseRelations) {
-        result.insert(baseName);
-
-        // Add in all the relations that it needs to use
-        for (const auto* clause : getClauses(program, baseName)) {
-            visitDepthFirst(*clause, [&](const AstAtom& dependency) {
-                auto dependencyName = dependency.getQualifiedName();
-                result.insert(dependencyName);
-                fixpointReached &= contains(baseRelations, dependencyName);
-            });
-        }
-    }
-
-    return fixpointReached ? result : findDependencyClosure(program, result);
-}
-
-bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
-    // Pick up all relations to ignore
     std::set<AstQualifiedName> relationsToIgnore;
 
     // - Any input relations
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     for (auto* rel : program.getRelations()) {
         if (ioTypes->isInput(rel)) {
             relationsToIgnore.insert(rel->getQualifiedName());
@@ -326,6 +304,16 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             relationsToIgnore.insert(clause->getHead()->getQualifiedName());
         }
     }
+
+    return relationsToIgnore;
+}
+
+bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+
+    // Get relations to ignore
+    auto relationsToIgnore = getIgnoredRelations(translationUnit);
 
     // Adorned predicate structure
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
