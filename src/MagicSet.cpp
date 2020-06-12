@@ -57,13 +57,13 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     auto& program = *translationUnit.getProgram();
 
     auto isStrictlyIDB = [&](const AstRelation* rel) {
-        for (const auto* clause : program.getClauses()) {
-            if (clause->getHead()->getQualifiedName() == rel->getQualifiedName() &&
-                    !clause->getBodyLiterals().empty()) {
-                return false;
-            }
+        bool hasRules = false;
+        for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+            visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& /* atom */) {
+                hasRules = true;
+            });
         }
-        return true;
+        return !hasRules;
     };
 
     // Get all input relations
@@ -275,9 +275,22 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
 
     std::set<AstQualifiedName> relationsToIgnore;
 
-    // - Any input relations
+    // - Any relations known in constant time (IDB relations)
     for (auto* rel : program.getRelations()) {
+        // Input relations
         if (ioTypes->isInput(rel)) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+            continue;
+        }
+
+        // Any relations not dependent on any atoms
+        bool hasRules = false;
+        for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+            visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& /* atom */) {
+                hasRules = true;
+            });
+        }
+        if (!hasRules) {
             relationsToIgnore.insert(rel->getQualifiedName());
         }
     }
