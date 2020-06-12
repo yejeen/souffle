@@ -386,7 +386,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         for (const AstClause* clause : getClauses(program, relName)) {
             const auto* headAtom = clause->getHead();
             const auto& headArguments = headAtom->getArguments();
-            std::set<std::string> boundVariables;
+            BindingStore variableBindings(clause);
 
             // Create the adorned clause with an empty body
             auto adornedClause = std::make_unique<AstClause>();
@@ -400,7 +400,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                 assert(var != nullptr && "expected only variables in head");
 
                 if (adornmentMarker[i] == 'b') {
-                    boundVariables.insert(var->getName());
+                    variableBindings.bindVariable(var->getName());
                 }
                 adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
             }
@@ -412,7 +412,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                         dynamic_cast<AstVariable*>(constr.getLHS()) &&
                         dynamic_cast<AstConstant*>(constr.getRHS())) {
                     const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
-                    boundVariables.insert(var->getName());
+                    variableBindings.bindVariable(var->getName());
                 }
             });
 
@@ -426,7 +426,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                     for (const auto* arg : atom->getArguments()) {
                         const auto* var = dynamic_cast<const AstVariable*>(arg);
                         assert(var != nullptr && "expected only variables in atom");
-                        atomAdornment << (contains(boundVariables, var->getName()) ? "b" : "f");
+                        atomAdornment << (variableBindings.isBound(var->getName()) ? "b" : "f");
                     }
                     auto currAtomAdornment = std::make_pair(atom->getQualifiedName(), atomAdornment.str());
                     auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
@@ -446,14 +446,14 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                     for (const auto* arg : atom->getArguments()) {
                         const auto* var = dynamic_cast<const AstVariable*>(arg);
                         assert(var != nullptr && "expected only variables in atom");
-                        boundVariables.insert(var->getName());
+                        variableBindings.bindVariable(var->getName());
                     }
                 } else if (atom != nullptr) {
                     // All arguments are now bound
                     for (const auto* arg : atom->getArguments()) {
                         const auto* var = dynamic_cast<const AstVariable*>(arg);
                         assert(var != nullptr && "expected only variables in atom");
-                        boundVariables.insert(var->getName());
+                        variableBindings.bindVariable(var->getName());
                     }
                     adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
                 } else {
@@ -698,7 +698,7 @@ std::string getString(const AstArgument* arg) {
 
 // checks whether a given record or functor is bound
 bool isBoundComposite(const AstVariable* compositeVariable, const std::set<std::string>& boundArgs,
-        BindingStore& compositeBindings) {
+        OldBindingStore& compositeBindings) {
     std::string variableName = compositeVariable->getName();
     if (contains(boundArgs, variableName)) {
         return true;
@@ -723,7 +723,7 @@ bool isBoundComposite(const AstVariable* compositeVariable, const std::set<std::
 }
 
 bool isBoundArgument(
-        AstArgument* arg, const std::set<std::string>& boundArgs, BindingStore& compositeBindings) {
+        AstArgument* arg, const std::set<std::string>& boundArgs, OldBindingStore& compositeBindings) {
     if (auto* var = dynamic_cast<AstVariable*>(arg)) {
         std::string variableName = var->getName();
         if (hasPrefix(variableName, "+functor") || hasPrefix(variableName, "+record")) {
@@ -744,7 +744,7 @@ bool isBoundArgument(
 
 // checks whether a given atom has a bound argument
 bool hasBoundArgument(
-        AstAtom* atom, const std::set<std::string>& boundArgs, BindingStore& compositeBindings) {
+        AstAtom* atom, const std::set<std::string>& boundArgs, OldBindingStore& compositeBindings) {
     for (AstArgument* arg : atom->getArguments()) {
         if (isBoundArgument(arg, boundArgs, compositeBindings)) {
             return true;
@@ -1046,7 +1046,7 @@ std::vector<std::string> reorderAdornment(
 // computes the adornment of a newly chosen atom
 // returns both the adornment and the new list of bound arguments
 std::pair<std::string, std::set<std::string>> bindArguments(
-        AstAtom* currAtom, std::set<std::string> boundArgs, BindingStore& compositeBindings) {
+        AstAtom* currAtom, std::set<std::string> boundArgs, OldBindingStore& compositeBindings) {
     std::set<std::string> newlyBoundArgs;
     std::string atomAdornment = "";
 
@@ -1072,7 +1072,7 @@ std::pair<std::string, std::set<std::string>> bindArguments(
 // Choose the left-most body atom with at least one bound argument
 // If none exist, prioritise EDB predicates.
 int getNextAtomNaiveSIPS(std::vector<AstAtom*> atoms, const std::set<std::string>& boundArgs,
-        const std::set<AstQualifiedName>& edb, BindingStore& compositeBindings) {
+        const std::set<AstQualifiedName>& edb, OldBindingStore& compositeBindings) {
     // find the first available atom with at least one bound argument
     int firstedb = -1;
     int firstidb = -1;
@@ -1113,7 +1113,7 @@ int getNextAtomNaiveSIPS(std::vector<AstAtom*> atoms, const std::set<std::string
 // Choose the body atom with the maximum number of bound arguments
 // If equal boundness, prioritise left-most EDB
 int getNextAtomMaxBoundSIPS(std::vector<AstAtom*>& atoms, const std::set<std::string>& boundArgs,
-        const std::set<AstQualifiedName>& edb, BindingStore& compositeBindings) {
+        const std::set<AstQualifiedName>& edb, OldBindingStore& compositeBindings) {
     int maxBound = -1;
     int maxIndex = 0;
     bool maxIsEDB = false;  // checks if current max index is an EDB predicate
@@ -1149,19 +1149,19 @@ int getNextAtomMaxBoundSIPS(std::vector<AstAtom*>& atoms, const std::set<std::st
 // Choose the SIP Strategy to be used
 // Current choice is the max ratio SIPS
 int getNextAtomSIPS(std::vector<AstAtom*>& atoms, std::set<std::string> boundArgs,
-        std::set<AstQualifiedName> edb, BindingStore& compositeBindings) {
+        std::set<AstQualifiedName> edb, OldBindingStore& compositeBindings) {
     return getNextAtomMaxBoundSIPS(atoms, boundArgs, edb, compositeBindings);
 }
 
 // Find and stores all composite arguments (namely records and functors) along
 // with their variable dependencies
-BindingStore bindComposites(const AstProgram* program) {
+OldBindingStore bindComposites(const AstProgram* program) {
     struct M : public AstNodeMapper {
-        BindingStore& compositeBindings;
+        OldBindingStore& compositeBindings;
         std::set<AstBinaryConstraint*>& constraints;
         mutable int changeCount;
 
-        M(BindingStore& compositeBindings, std::set<AstBinaryConstraint*>& constraints, int changeCount)
+        M(OldBindingStore& compositeBindings, std::set<AstBinaryConstraint*>& constraints, int changeCount)
                 : compositeBindings(compositeBindings), constraints(constraints), changeCount(changeCount) {}
 
         int getChangeCount() const {
@@ -1177,7 +1177,7 @@ BindingStore bindComposites(const AstProgram* program) {
                 std::stringstream newVariableName;
                 newVariableName << "+functor" << changeCount;
 
-                // add the binding to the BindingStore
+                // add the binding to the OldBindingStore
                 compositeBindings.addBinding(newVariableName.str(), functor);
 
                 // create new constraint (+functorX = original-functor)
@@ -1198,7 +1198,7 @@ BindingStore bindComposites(const AstProgram* program) {
                 std::stringstream newVariableName;
                 newVariableName << "+record" << changeCount;
 
-                // add the binding to the BindingStore
+                // add the binding to the OldBindingStore
                 compositeBindings.addBinding(newVariableName.str(), record);
 
                 // create new constraint (+recordX = original-record)
@@ -1215,7 +1215,7 @@ BindingStore bindComposites(const AstProgram* program) {
         }
     };
 
-    BindingStore compositeBindings;
+    OldBindingStore compositeBindings;
 
     int changeCount = 0;  // number of functors/records seen so far
 
@@ -1264,7 +1264,7 @@ void Adornment::run(const AstTranslationUnit& translationUnit) {
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
     // normalises and tracks bindings of composite arguments (namely records and functors)
-    BindingStore compositeBindings = bindComposites(program);
+    OldBindingStore compositeBindings = bindComposites(program);
 
     // set up IDB/EDB and the output queries
     std::vector<AstQualifiedName> outputQueries;
@@ -1618,7 +1618,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     separateDBs(program);  // make EDB int IDB = empty
 
     auto* adornment = translationUnit.getAnalysis<Adornment>();  // perform adornment
-    const BindingStore& compositeBindings = adornment->getBindings();
+    const OldBindingStore& compositeBindings = adornment->getBindings();
 
     // edb/idb handling
     std::vector<std::vector<AdornedClause>> allAdornedClauses = adornment->getAdornedClauses();

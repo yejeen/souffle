@@ -37,6 +37,23 @@ namespace souffle {
 
 class AstTranslationUnit;
 
+class BindingStore {
+public:
+    BindingStore(const AstClause* clause) {
+        
+    }
+
+    void bindVariable(std::string varName) {
+        boundVariables.insert(varName);
+    }
+
+    bool isBound(std::string varName) {
+        return contains(boundVariables, varName);
+    }
+private:
+    std::set<std::string> boundVariables{};
+};
+
 class AdornedPredicate {
 private:
     AstQualifiedName predicateName;
@@ -131,7 +148,7 @@ public:
     }
 };
 
-class BindingStore {
+class OldBindingStore {
 private:
     std::map<std::string, std::unique_ptr<AstArgument>> originalArguments;
     std::map<std::string, std::set<std::string>> varDependencies;
@@ -200,7 +217,7 @@ public:
         return ignoredAtoms;
     }
 
-    const BindingStore& getBindings() const {
+    const OldBindingStore& getBindings() const {
         return bindings;
     }
 
@@ -211,6 +228,6 @@ private:
     std::set<AstQualifiedName> adornmentIdb;
     std::set<AstQualifiedName> negatedAtoms;
     std::set<AstQualifiedName> ignoredAtoms;
-    BindingStore bindings;
+    OldBindingStore bindings;
 };
 }  // namespace souffle
