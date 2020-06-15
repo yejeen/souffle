@@ -73,6 +73,16 @@ private:
         };
 
         visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
+            // Ignore binary constraints involving aggregators
+            bool containsAggregators = false;
+            visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) {
+                containsAggregators = true;
+            });
+            if (containsAggregators) {
+                return;
+            }
+
+            // Add variable binding dependencies
             if (bc.getOperator() == BinaryConstraintOp::EQ) {
                 if (auto* var = dynamic_cast<AstVariable*>(bc.getLHS())) {
                     std::set<std::string> subVars;
