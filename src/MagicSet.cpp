@@ -555,7 +555,6 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                                      const std::vector<const AstBinaryConstraint*> eqConstraints) {
         auto magicHead = createMagicAtom(atom);
         auto magicClause = std::make_unique<AstClause>();
-        magicClause->setHead(std::move(magicHead));
         for (const auto& bindingAtom : constrainingAtoms) {
             magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
         }
@@ -563,7 +562,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         std::set<std::string> seenVariables;
         visitDepthFirst(
                 constrainingAtoms, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
-        visitDepthFirst(*atom, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
+        visitDepthFirst(*magicHead, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
         bool fixpointReached = false;
         while (!fixpointReached) {
             fixpointReached = true;
@@ -595,6 +594,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             }
         }
 
+        magicClause->setHead(std::move(magicHead));
         return magicClause;
     };
 
