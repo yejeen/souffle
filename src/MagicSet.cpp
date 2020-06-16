@@ -459,8 +459,10 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
             // Add in plans if needed
             if (clause->getExecutionPlan() != nullptr) {
-                assert(contains(relationsToIgnore, clause->getHead()->getQualifiedName()) && "clauses with plans should be ignored");
-                adornedClause->setExecutionPlan(std::unique_ptr<AstExecutionPlan>(clause->getExecutionPlan()->clone()));
+                assert(contains(relationsToIgnore, clause->getHead()->getQualifiedName()) &&
+                        "clauses with plans should be ignored");
+                adornedClause->setExecutionPlan(
+                        std::unique_ptr<AstExecutionPlan>(clause->getExecutionPlan()->clone()));
             }
 
             adornedClauses.push_back(std::move(adornedClause));
@@ -562,6 +564,23 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         visitDepthFirst(
                 constrainingAtoms, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
         visitDepthFirst(*atom, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
+        bool fixpointReached = false;
+        while (!fixpointReached) {
+            fixpointReached = true;
+            for (const auto* eqConstraint : eqConstraints) {
+                if (dynamic_cast<AstRecordInit*>(eqConstraint->getRHS()) != nullptr) {
+                    const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getLHS());
+                    if (var != nullptr) {
+                        visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
+                            if (!contains(seenVariables, subVar.getName())) {
+                                fixpointReached = false;
+                                seenVariables.insert(subVar.getName());
+                            }
+                        });
+                    }
+                }
+            }
+        }
 
         for (const auto* eqConstraint : eqConstraints) {
             bool addConstraint = true;
@@ -575,6 +594,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
             }
         }
+
         return magicClause;
     };
 
