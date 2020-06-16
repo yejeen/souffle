@@ -49,8 +49,12 @@ public:
         reduceDependencies();
     }
 
+    void bindHeadVariable(std::string varName) {
+        boundHeadVariables.insert(varName);
+    }
+
     bool isBound(std::string varName) const {
-        return contains(boundVariables, varName);
+        return contains(boundVariables, varName) || contains(boundHeadVariables, varName);
     }
 
     const std::set<std::string>& getBoundVariables() const {
@@ -59,6 +63,7 @@ public:
 
 private:
     std::set<std::string> boundVariables{};
+    std::set<std::string> boundHeadVariables{};
     std::map<std::string, std::set<std::set<std::string>>> bindingDependencies{};
 
     void generateBindingDependencies(const AstClause* clause) {
@@ -75,9 +80,7 @@ private:
         visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
             // Ignore binary constraints involving aggregators
             bool containsAggregators = false;
-            visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) {
-                containsAggregators = true;
-            });
+            visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) { containsAggregators = true; });
             if (containsAggregators) {
                 return;
             }

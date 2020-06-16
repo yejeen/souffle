@@ -402,7 +402,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                 assert(var != nullptr && "expected only variables in head");
 
                 if (adornmentMarker[i] == 'b') {
-                    variableBindings.bindVariable(var->getName());
+                    variableBindings.bindHeadVariable(var->getName());
                 }
                 adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
             }
@@ -562,8 +562,26 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         for (const auto& bindingAtom : constrainingAtoms) {
             magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
         }
+
+        std::set<std::string> seenVariables;
+        visitDepthFirst(constrainingAtoms, [&](const AstVariable& var) {
+            seenVariables.insert(var.getName());
+        });
+        visitDepthFirst(*atom, [&](const AstVariable& var) {
+            seenVariables.insert(var.getName());
+        });
+
         for (const auto* eqConstraint : eqConstraints) {
-            magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+            bool addConstraint = true;
+            visitDepthFirst(*eqConstraint, [&](const AstVariable& var) {
+                if (!contains(seenVariables, var.getName())) {
+                    addConstraint = false;
+                }
+            });
+
+            if (addConstraint) {
+                magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+            }
         }
         return magicClause;
     };
@@ -574,9 +592,15 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         for (const auto* lit : clause->getBodyLiterals()) {
             const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
             if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
-            if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr &&
+            if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr ||
                     dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
-                equalityConstraints.push_back(bc);
+                bool containsAggrs = false;
+                visitDepthFirst(*bc, [&](const AstAggregator& /* aggr */) {
+                    containsAggrs = true;
+                });
+                if (!containsAggrs) {
+                    equalityConstraints.push_back(bc);
+                }
             }
         }
         return equalityConstraints;
