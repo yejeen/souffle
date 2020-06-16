@@ -346,6 +346,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
     std::set<adorned_predicate> headAdornmentsToDo;
     std::set<AstQualifiedName> headAdornmentsSeen;
+    std::set<AstQualifiedName> unadornedRelationsToRemove;
     std::set<AstQualifiedName> outputRelations;
 
     // Output relations trigger the adornment process
@@ -380,6 +381,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                 adornedRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
             }
             program.addRelation(std::move(adornedRelation));
+            unadornedRelationsToRemove.insert(relName);
         }
 
         // Adorn every clause correspondingly
@@ -474,7 +476,11 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         program.addClause(std::unique_ptr<AstClause>(clause->clone()));
     }
 
-    return !adornedClauses.empty() || !redundantClauses.empty();
+    for (auto& relName : unadornedRelationsToRemove) {
+        program.removeRelation(relName);
+    }
+
+    return !adornedClauses.empty() || !redundantClauses.empty() || unadornedRelationsToRemove.empty();
 }
 
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
