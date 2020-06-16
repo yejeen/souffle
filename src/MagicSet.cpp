@@ -456,6 +456,13 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
                 }
             }
             adornedClause->setBodyLiterals(std::move(adornedBodyLiterals));
+
+            // Add in plans if needed
+            if (clause->getExecutionPlan() != nullptr) {
+                assert(contains(relationsToIgnore, clause->getHead()->getQualifiedName()) && "clauses with plans should be ignored");
+                adornedClause->setExecutionPlan(std::unique_ptr<AstExecutionPlan>(clause->getExecutionPlan()->clone()));
+            }
+
             adornedClauses.push_back(std::move(adornedClause));
         }
     }
