@@ -403,6 +403,11 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
     /**
+     * Partitions the input and output relations.
+     */
+    bool partitionIO(AstTranslationUnit& translationUnit);
+
+    /**
      * Separates the IDB from the EDB, so that they are disjoint.
      */
     bool extractIDB(AstTranslationUnit& translationUnit);

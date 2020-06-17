@@ -40,16 +40,92 @@ namespace souffle {
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
-    /** (1) Separate the IDB from the EDB */
+    /** (1) Partition input and output relations */
+    changed |= partitionIO(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
+
+    /** (2) Separate the IDB from the EDB */
     changed |= extractIDB(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
 
-    /** (2) Move constants into new equality constraints */
+    /** (3) Move constants into new equality constraints */
     changed |= nameConstants(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
 
-    /** (3) Querify output relations */
+    /** (4) Querify output relations */
     changed |= querifyOutputRelations(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
 
     return changed;
+}
+
+bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUnit) {
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    auto& program = *translationUnit.getProgram();
+
+    std::set<AstQualifiedName> relationsToSplit;
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes->isInput(rel) && (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel))) {
+            relationsToSplit.insert(rel->getQualifiedName());
+        }
+    }
+
+    for (auto relName : relationsToSplit) {
+        const auto* rel = getRelation(program, relName);
+        auto newRelName = AstQualifiedName(relName);
+        newRelName.prepend("@split_in");
+
+        // Create a new intermediate input relation
+        auto newRelation = std::make_unique<AstRelation>(newRelName);
+        for (const auto* attr : rel->getAttributes()) {
+            newRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+        }
+
+        // Read in the input relation into the original relation
+        auto newClause = std::make_unique<AstClause>();
+        auto newHeadAtom = std::make_unique<AstAtom>(relName);
+        auto newBodyAtom = std::make_unique<AstAtom>(newRelName);
+        for (size_t i = 0; i < rel->getArity(); i++) {
+            std::stringstream varName;
+            varName << "@var" << i;
+            newHeadAtom->addArgument(std::make_unique<AstVariable>(varName.str()));
+            newBodyAtom->addArgument(std::make_unique<AstVariable>(varName.str()));
+        }
+        newClause->setHead(std::move(newHeadAtom));
+        newClause->addToBody(std::move(newBodyAtom));
+
+        // New relation should be input, original should not
+        std::set<const AstIO*> iosToDelete;
+        std::set<std::unique_ptr<AstIO>> iosToAdd;
+        for (const auto* io : program.getIOs()) {
+            if (io->getQualifiedName() == relName && io->getType() == AstIoType::input) {
+                if (!io->hasDirective("IO") ||
+                        (io->getDirective("IO") == "file" && !io->hasDirective("filename"))) {
+                    auto newIO = std::make_unique<AstIO>(AstIoType::input, newRelName);
+                    std::stringstream defaultFactFile;
+                    defaultFactFile << relName << ".facts";
+                    newIO->addDirective("IO", "file");
+                    newIO->addDirective("filename", defaultFactFile.str());
+                    iosToAdd.insert(std::move(newIO));
+                } else {
+                    iosToAdd.insert(std::unique_ptr<AstIO>(io->clone()));
+                }
+                iosToDelete.insert(io);
+            }
+        }
+
+        for (const auto* io : iosToDelete) {
+            program.removeIO(io);
+        }
+        for (auto& io : iosToAdd) {
+            program.addIO(std::unique_ptr<AstIO>(io->clone()));
+        }
+
+        program.addRelation(std::move(newRelation));
+        program.addClause(std::move(newClause));
+    }
+
+    return !relationsToSplit.empty();
 }
 
 bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
@@ -569,7 +645,18 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             for (const auto* eqConstraint : eqConstraints) {
                 if (dynamic_cast<AstRecordInit*>(eqConstraint->getRHS()) != nullptr) {
                     const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getLHS());
-                    if (var != nullptr) {
+                    if (var != nullptr && contains(seenVariables, var->getName())) {
+                        visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
+                            if (!contains(seenVariables, subVar.getName())) {
+                                fixpointReached = false;
+                                seenVariables.insert(subVar.getName());
+                            }
+                        });
+                    }
+                }
+                if (dynamic_cast<AstRecordInit*>(eqConstraint->getLHS()) != nullptr) {
+                    const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getRHS());
+                    if (var != nullptr && contains(seenVariables, var->getName())) {
                         visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
                             if (!contains(seenVariables, subVar.getName())) {
                                 fixpointReached = false;
