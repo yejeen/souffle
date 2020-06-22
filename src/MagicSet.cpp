@@ -349,6 +349,16 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
 
     std::set<AstQualifiedName> relationsToIgnore;
 
+    // - Any relations not specified to magic-set
+    std::vector<std::string> specifiedRelations = splitString(Global::config().get("magic-transform"), ',');
+    if (!contains(specifiedRelations, "*")) {
+        for (const AstRelation* rel : program.getRelations()) {
+            if (!contains(specifiedRelations, toString(rel->getQualifiedName()))) {
+                relationsToIgnore.insert(rel->getQualifiedName());
+            }
+        }
+    }
+
     // - Any relations known in constant time (IDB relations)
     for (auto* rel : program.getRelations()) {
         // Input relations
