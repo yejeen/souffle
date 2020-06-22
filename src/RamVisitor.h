@@ -109,7 +109,7 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(Filter);
         FORWARD(Break);
         FORWARD(Project);
-        FORWARD(SubroutineReturnValue);
+        FORWARD(SubroutineReturn);
         FORWARD(UnpackRecord);
         FORWARD(NestedIntrinsicOperator);
         FORWARD(ParallelScan);
@@ -141,6 +141,7 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(LogTimer);
         FORWARD(LogRelationTimer);
         FORWARD(DebugInfo);
+        FORWARD(Call);
 
 #undef FORWARD
 
@@ -178,12 +179,13 @@ protected:
     LINK(LogTimer, Statement);
     LINK(LogRelationTimer, Statement);
     LINK(DebugInfo, Statement);
+    LINK(Call, Statement);
 
     LINK(Statement, Node);
 
     // -- operations --
     LINK(Project, Operation);
-    LINK(SubroutineReturnValue, Operation);
+    LINK(SubroutineReturn, Operation);
     LINK(UnpackRecord, TupleOperation);
     LINK(NestedIntrinsicOperator, TupleOperation)
     LINK(Scan, RelationOperation);

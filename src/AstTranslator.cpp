@@ -668,7 +668,7 @@ std::unique_ptr<RamOperation> AstTranslator::ProvenanceClauseTranslator::createO
         }
     }
 
-    return std::make_unique<RamSubroutineReturnValue>(std::move(values));
+    return std::make_unique<RamSubroutineReturn>(std::move(values));
 }
 
 std::unique_ptr<RamCondition> AstTranslator::ClauseTranslator::createCondition(
@@ -1498,10 +1498,10 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             // create a RamQuery to return true/false
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(existenceCheck),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnTrue)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnTrue)))));
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeExistenceCheck),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnFalse)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
 
         } else if (auto con = dynamic_cast<AstConstraint*>(lit)) {
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1522,10 +1522,10 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
 
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(condition),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnTrue)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnTrue)))));
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeCondition),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnFalse)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
         }
 
         litNumber++;
@@ -1553,9 +1553,6 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
     // get auxiliary arity analysis
     auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
-
-    // start with an empty sequence of ram statements
-    std::vector<std::unique_ptr<RamStatement>> res;
 
     // handle the case of an empty SCC graph
     if (sccGraph.getNumberOfSCCs() == 0) return;
@@ -1678,8 +1675,15 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
             }
         }
 
-        appendStmt(res, std::make_unique<RamSequence>(std::move(current)));
+        // create subroutine for this stratum
+        ramSubs["stratum_" + std::to_string(indexOfScc)] = std::make_unique<RamSequence>(std::move(current));
         indexOfScc++;
+    }
+
+    // invoke all strata
+    std::vector<std::unique_ptr<RamStatement>> res;
+    for (size_t i = 0; i < indexOfScc; i++) {
+        appendStmt(res, std::make_unique<RamCall>("stratum_" + std::to_string(i)));
     }
 
     // add main timer if profiling
