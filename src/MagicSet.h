@@ -92,12 +92,30 @@ private:
                     visitDepthFirst(*bc.getRHS(),
                             [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
                     addBindingDependency(var->getName(), subVars);
+                    if (const auto* rec = dynamic_cast<const AstRecordInit*>(bc.getRHS())) {
+                        for (const auto* arg : rec->getArguments()) {
+                            if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
+                                std::set<std::string> singletonVar;
+                                singletonVar.insert(var->getName());
+                                addBindingDependency(subVar->getName(), singletonVar);
+                            }
+                        }
+                    }
                 }
                 if (auto* var = dynamic_cast<AstVariable*>(bc.getRHS())) {
                     std::set<std::string> subVars;
                     visitDepthFirst(*bc.getLHS(),
                             [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
                     addBindingDependency(var->getName(), subVars);
+                    if (const auto* rec = dynamic_cast<const AstRecordInit*>(bc.getLHS())) {
+                        for (const auto* arg : rec->getArguments()) {
+                            if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
+                                std::set<std::string> singletonVar;
+                                singletonVar.insert(var->getName());
+                                addBindingDependency(subVar->getName(), singletonVar);
+                            }
+                        }
+                    }
                 }
             }
         });
