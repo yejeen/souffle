@@ -381,6 +381,28 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
     visitDepthFirst(program,
             [&](const AstNegation& neg) { relationsToIgnore.insert(neg.getAtom()->getQualifiedName()); });
 
+    // - Any relation with a clause containing float-related binary constraints
+    const std::set<BinaryConstraintOp> floatOps(
+            {BinaryConstraintOp::FEQ, BinaryConstraintOp::FNE, BinaryConstraintOp::FLE,
+                    BinaryConstraintOp::FGE, BinaryConstraintOp::FLT, BinaryConstraintOp::FGT});
+    for (const auto* clause : program.getClauses()) {
+        visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
+            if (contains(floatOps, bc.getOperator())) {
+                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+            }
+        });
+    }
+
+    // - Any relation with a clause containing order-dependent functors
+    const std::set<FunctorOp> orderDepFuncOps({FunctorOp::MOD, FunctorOp::FDIV, FunctorOp::DIV, FunctorOp::UMOD});
+    for (const auto* clause : program.getClauses()) {
+        visitDepthFirst(*clause, [&](const AstIntrinsicFunctor& functor) {
+            if (contains(orderDepFuncOps, functor.getFunctionInfo()->op)) {
+                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+            }
+        });
+    }
+
     // - Any relation that appears in an aggregator
     visitDepthFirst(program, [&](const AstAggregator& aggr) {
         visitDepthFirst(
