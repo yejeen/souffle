@@ -462,6 +462,11 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             headAdornmentsToDo.insert(adornment);
             headAdornmentsSeen.insert(adornmentID);
             outputRelations.insert(rel->getQualifiedName());
+        } else if (contains(relationsToIgnore, rel->getQualifiedName())) {
+            auto adornment = std::make_pair(rel->getQualifiedName(), "");
+            auto adornmentID = getAdornmentID(adornment);
+            headAdornmentsToDo.insert(adornment);
+            headAdornmentsSeen.insert(adornmentID);
         }
     }
 
@@ -492,8 +497,9 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             // Create the adorned clause with an empty body
             auto adornedClause = std::make_unique<AstClause>();
             auto adornedHeadAtomName = adornmentMarker == "" ? relName : getAdornmentID(headAdornment);
-            if (adornmentMarker == "")
+            if (adornmentMarker == "") {
                 redundantClauses.push_back(std::unique_ptr<AstClause>(clause->clone()));
+            }
             auto adornedHeadAtom = std::make_unique<AstAtom>(adornedHeadAtomName);
             assert((adornmentMarker == "" || headAtom->getArity() == adornmentMarker.length()) &&
                     "adornment marker should correspond to head atom variables");
@@ -526,8 +532,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             // Add in adorned body literals
             std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
             for (const auto* lit : clause->getBodyLiterals()) {
-                const auto* atom = dynamic_cast<const AstAtom*>(lit);
-                if (atom != nullptr) {
+                if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
                     // Form the appropriate adornment marker
                     std::stringstream atomAdornment;
 
