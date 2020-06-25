@@ -394,7 +394,8 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
     }
 
     // - Any relation with a clause containing order-dependent functors
-    const std::set<FunctorOp> orderDepFuncOps({FunctorOp::MOD, FunctorOp::FDIV, FunctorOp::DIV, FunctorOp::UMOD});
+    const std::set<FunctorOp> orderDepFuncOps(
+            {FunctorOp::MOD, FunctorOp::FDIV, FunctorOp::DIV, FunctorOp::UMOD});
     for (const auto* clause : program.getClauses()) {
         visitDepthFirst(*clause, [&](const AstIntrinsicFunctor& functor) {
             if (contains(orderDepFuncOps, functor.getFunctionInfo()->op)) {
@@ -594,17 +595,78 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
+AstQualifiedName getNegativeLabel(const AstQualifiedName& name) {
+    AstQualifiedName newName(name);
+    newName.prepend("@neglabel");
+    return newName;
+}
+
 bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
-    bool changed = false;
+    auto& program = *translationUnit.getProgram();
+    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
+    std::set<AstQualifiedName> relationsToLabel;
+    std::set<AstClause*> clausesToAdd;
 
-    // steps:
-    // 1 - find all stratums from 1 to n
-    // 2 - go through all stratums:
-    //      2.1 - replace !P with !nP
-    // 3 - go through all stratums:
-    //      3.1 - add the rules, but n'd
+    // Rename appearances of negated predicates
+    visitDepthFirst(program, [&](const AstNegation& neg) {
+        auto* atom = neg.getAtom();
+        auto relName = atom->getQualifiedName();
+        atom->setQualifiedName(getNegativeLabel(relName));
+        relationsToLabel.insert(relName);
+    });
 
-    return changed;
+    // Add the rules for negatively-labelled predicates
+    struct labelAtoms : public AstNodeMapper {
+        const std::set<AstQualifiedName>& sccFriends;
+        std::set<AstQualifiedName>& relsToLabel;
+        labelAtoms(const std::set<AstQualifiedName>& sccFriends, std::set<AstQualifiedName>& relsToLabel) : sccFriends(sccFriends), relsToLabel(relsToLabel) {}
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                if (contains(sccFriends, atom->getQualifiedName())) {
+                    auto labelledAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    labelledAtom->setQualifiedName(getNegativeLabel(atom->getQualifiedName()));
+                    relsToLabel.insert(atom->getQualifiedName());
+                    return labelledAtom;
+                }
+            }
+            return node;
+        }
+    };
+
+    for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
+        const auto& rels = sccGraph.getInternalRelations(stratum);
+        std::set<AstQualifiedName> relNames;
+        for (const auto* rel : rels) {
+            relNames.insert(rel->getQualifiedName());
+        }
+
+        for (const auto* rel : rels) {
+            const auto& relName = rel->getQualifiedName();
+            for (auto* clause : getClauses(program, relName)) {
+                auto* neggedClause = clause->clone();
+                labelAtoms update(relNames, relationsToLabel);
+                neggedClause->apply(update);
+                clausesToAdd.insert(neggedClause);
+            }
+        }
+    }
+
+    // Add in all the relations that were labelled
+    for (const auto& relName : relationsToLabel) {
+        const auto* originalRel = getRelation(program, relName);
+        assert(originalRel != nullptr && "unlabelled relation does not exist");
+        auto labelledRelation = std::unique_ptr<AstRelation>(originalRel->clone());
+        labelledRelation->setQualifiedName(getNegativeLabel(relName));
+        program.addRelation(std::move(labelledRelation));
+    }
+
+    // Add in all the negged clauses
+    for (auto* clause : clausesToAdd) {
+        program.addClause(std::unique_ptr<AstClause>(clause));
+    }
+
+    return !relationsToLabel.empty();
 }
 
 bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
