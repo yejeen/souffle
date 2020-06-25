@@ -381,6 +381,14 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
     visitDepthFirst(program,
             [&](const AstNegation& neg) { relationsToIgnore.insert(neg.getAtom()->getQualifiedName()); });
 
+    // - Any relation with a neglabel
+    visitDepthFirst(program, [&](const AstAtom& atom) {
+        const auto& qualifiers = atom.getQualifiedName().getQualifiers();
+        if (!qualifiers.empty() && qualifiers[0] == "@neglabel") {
+            relationsToIgnore.insert(atom.getQualifiedName());
+        }
+    });
+
     // - Any relation with a clause containing float-related binary constraints
     const std::set<BinaryConstraintOp> floatOps(
             {BinaryConstraintOp::FEQ, BinaryConstraintOp::FNE, BinaryConstraintOp::FLE,
@@ -602,20 +610,32 @@ AstQualifiedName getNegativeLabel(const AstQualifiedName& name) {
 }
 
 bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
-    auto& program = *translationUnit.getProgram();
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
+    auto& program = *translationUnit.getProgram();
+
     std::set<AstQualifiedName> relationsToLabel;
+    std::set<AstQualifiedName> inputRelations;
     std::set<AstClause*> clausesToAdd;
+
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes.isInput(rel)) {
+            inputRelations.insert(rel->getQualifiedName());
+        }
+    }
 
     // Rename appearances of negated predicates
     visitDepthFirst(program, [&](const AstNegation& neg) {
         auto* atom = neg.getAtom();
         auto relName = atom->getQualifiedName();
+        if (contains(inputRelations, relName)) return;
         atom->setQualifiedName(getNegativeLabel(relName));
         relationsToLabel.insert(relName);
     });
 
     // Add the rules for negatively-labelled predicates
+
+    /* Atom labeller */
     struct labelAtoms : public AstNodeMapper {
         const std::set<AstQualifiedName>& sccFriends;
         std::set<AstQualifiedName>& relsToLabel;
@@ -634,6 +654,7 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
         }
     };
 
+    // Copy over the rules for negatively-labelled relations one stratum at a time
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
         const auto& rels = sccGraph.getInternalRelations(stratum);
         std::set<AstQualifiedName> relNames;

@@ -403,6 +403,7 @@ int main(int argc, char** argv) {
                                       std::make_unique<MinimiseProgramTransformer>()))
                     : std::make_unique<ConditionalTransformer>(Global::config().has("magic-transform"),
                               std::make_unique<PipelineTransformer>(
+                                      std::make_unique<MinimiseProgramTransformer>(),
                                       std::make_unique<NormaliseDatabaseTransformer>(),
                                       std::make_unique<LabelDatabaseTransformer>(),
                                       std::make_unique<RemoveRedundantRelationsTransformer>(),
