@@ -424,6 +424,25 @@ private:
     bool querifyOutputRelations(AstTranslationUnit& translationUnit);
 };
 
+class LabelDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "LabelDatabaseTransformer";
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override {
+        bool changed = false;
+        changed |= runNegativeLabelling(translationUnit);
+        changed |= runPositiveLabelling(translationUnit);
+        return changed;
+    }
+
+    bool runNegativeLabelling(AstTranslationUnit& translationUnit);
+
+    bool runPositiveLabelling(AstTranslationUnit& translationUnit);
+};
+
 /**
  * Database adornment.
  * Adorns the rules of a database with variable binding information.

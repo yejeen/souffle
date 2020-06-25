@@ -594,6 +594,30 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
+bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+
+    // steps:
+    // 1 - find all stratums from 1 to n
+    // 2 - go through all stratums:
+    //      2.1 - replace !P with !nP
+    // 3 - go through all stratums:
+    //      3.1 - add the rules, but n'd
+
+    return changed;
+}
+
+bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+
+    // steps:
+    // 1 - for all newly added strata (heads with n in them - stratify those)
+    // 2 - for all of these, replace positive not n'd things with p_alpha (counter)
+    // 3 - for all the dependent ones below each, replace q with q_alpha and ++ (copy)
+
+    return changed;
+}
+
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     std::set<std::unique_ptr<AstClause>> clausesToRemove;
