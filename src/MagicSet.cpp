@@ -377,10 +377,6 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
         }
     }
 
-    // - Any relation that appears negated
-    visitDepthFirst(program,
-            [&](const AstNegation& neg) { relationsToIgnore.insert(neg.getAtom()->getQualifiedName()); });
-
     // - Any relation with a neglabel
     visitDepthFirst(program, [&](const AstAtom& atom) {
         const auto& qualifiers = atom.getQualifiedName().getQualifiers();
