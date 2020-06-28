@@ -605,6 +605,14 @@ AstQualifiedName getNegativeLabel(const AstQualifiedName& name) {
     return newName;
 }
 
+bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+    changed |= runNegativeLabelling(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
+    changed |= runPositiveLabelling(translationUnit);
+    return changed;
+}
+
 bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
     const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
@@ -635,7 +643,8 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     struct labelAtoms : public AstNodeMapper {
         const std::set<AstQualifiedName>& sccFriends;
         std::set<AstQualifiedName>& relsToLabel;
-        labelAtoms(const std::set<AstQualifiedName>& sccFriends, std::set<AstQualifiedName>& relsToLabel) : sccFriends(sccFriends), relsToLabel(relsToLabel) {}
+        labelAtoms(const std::set<AstQualifiedName>& sccFriends, std::set<AstQualifiedName>& relsToLabel)
+                : sccFriends(sccFriends), relsToLabel(relsToLabel) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
@@ -689,9 +698,111 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
 bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
+    std::set<AstClause*> clausesToAdd;
+
+    auto& program = *translationUnit.getProgram();
+    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
+    const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>()->graph();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
+
+    auto isNegativelyLabelled = [&](const AstQualifiedName& name) {
+        auto qualifiers = name.getQualifiers();
+        assert(!qualifiers.empty() && "unexpected empty qualifier list");
+        return qualifiers[0] == "@neglabel";
+    };
+
+    /* Atom labeller */
+    struct labelAtoms : public AstNodeMapper {
+        const AstProgram& program;
+        const SCCGraph& sccGraph;
+        const std::map<size_t, size_t>& stratumCounts;
+        const std::set<AstQualifiedName>& atomsToRelabel;
+        labelAtoms(const AstProgram& program, const SCCGraph& sccGraph, const std::map<size_t, size_t>& stratumCounts, const std::set<AstQualifiedName>& atomsToRelabel) : program(program), sccGraph(sccGraph), stratumCounts(stratumCounts), atomsToRelabel(atomsToRelabel) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                auto relName = atom->getQualifiedName();
+                if (contains(atomsToRelabel, relName)) {
+                    size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
+                    auto relabelledAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    auto newName = AstQualifiedName(relName);
+                    std::stringstream label;
+                    label << "@poscopy_" << stratumCounts.at(relStratum) + 1;
+                    newName.prepend(label.str());
+                    relabelledAtom->setQualifiedName(newName);
+                    return relabelledAtom;
+                }
+            }
+            return node;
+        }
+    };
+
+    std::set<AstQualifiedName> inputRelations;
+    for (auto* rel : program.getRelations()) {
+        if (ioTypes.isInput(rel)) {
+            inputRelations.insert(rel->getQualifiedName());
+        }
+    }
+
+    std::set<size_t> labelledStrata;
+    std::map<size_t, size_t> labelledStrataCopyCount;
+    std::map<size_t, std::set<size_t>> dependentStrata;
+    for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
+        dependentStrata[stratum] = std::set<size_t>();
+        size_t neglabelCount = 0;
+        const auto& stratumRels = sccGraph.getInternalRelations(stratum);
+        for (const auto* rel : stratumRels) {
+            if (isNegativelyLabelled(rel->getQualifiedName())) {
+                neglabelCount++;
+            }
+        }
+        assert((neglabelCount == 0 || neglabelCount == stratumRels.size()) &&
+                "stratum cannot contain a mix of neglabelled and unlabelled relations");
+        if (neglabelCount > 0) {
+            labelledStrata.insert(stratum);
+        } else {
+            labelledStrataCopyCount[stratum] = 0;
+        }
+    }
+    for (const auto* rel : program.getRelations()) {
+        size_t stratum = sccGraph.getSCC(rel);
+        precedenceGraph.visitDepthFirst(rel, [&](const auto* dependentRel) {
+            dependentStrata[stratum].insert(sccGraph.getSCC(dependentRel));
+        });
+    }
+
+    for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
+        if (!contains(labelledStrata, stratum)) continue;
+        const auto& stratumRels = sccGraph.getInternalRelations(stratum);
+        for (const auto* rel : stratumRels) {
+            assert(isNegativelyLabelled(rel->getQualifiedName()) && "should only be looking at neglabelled strata");
+            const auto& clauses = getClauses(program, *rel);
+            std::set<AstQualifiedName> relsToCopy;
+            for (const auto* clause : clauses) {
+                visitDepthFirst(*clause, [&](const AstAtom& atom) {
+                    const auto& name = atom.getQualifiedName();
+                    if (!contains(inputRelations, name) && !isNegativelyLabelled(name)) {
+                        relsToCopy.insert(name);
+                    }
+                });
+            }
+            for (auto* clause : clauses) {
+                labelAtoms update(program, sccGraph, labelledStrataCopyCount, relsToCopy);
+                clause->apply(update);
+            }
+        }
+    }
+
+    std::cout << program << std::endl;
+
+    // TODO: do the actual copying
+
+    // TODO: Add the labelled relations
+
     // steps:
-    // 1 - for all newly added strata (heads with n in them - stratify those)
-    // 2 - for all of these, replace positive not n'd things with p_alpha (counter)
+    // 1 - for all newly added strata (heads with n in them - stratify those) [done]
+    // 2 - for all of these, replace positive not n'd things with p_alpha (counter) [done]
     // 3 - for all the dependent ones below each, replace q with q_alpha and ++ (copy)
 
     return changed;

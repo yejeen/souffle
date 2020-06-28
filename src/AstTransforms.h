@@ -431,12 +431,7 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override {
-        bool changed = false;
-        changed |= runNegativeLabelling(translationUnit);
-        changed |= runPositiveLabelling(translationUnit);
-        return changed;
-    }
+    bool transform(AstTranslationUnit& translationUnit) override;
 
     bool runNegativeLabelling(AstTranslationUnit& translationUnit);
 
