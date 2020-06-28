@@ -72,6 +72,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
 
     for (auto relName : relationsToSplit) {
         const auto* rel = getRelation(program, relName);
+        assert(rel != nullptr && "relation does not exist");
         auto newRelName = AstQualifiedName(relName);
         newRelName.prepend("@split_in");
 
@@ -482,6 +483,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
         headAdornmentsToDo.erase(headAdornmentsToDo.begin());
         const auto& relName = headAdornment.first;
         const auto* rel = getRelation(program, relName);
+        assert(rel != nullptr && "relation does not exist");
         const auto& adornmentMarker = headAdornment.second;
 
         // Add the adorned relation if needed
@@ -774,7 +776,10 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
 
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
         if (!contains(labelledStrata, stratum)) continue;
+
         const auto& stratumRels = sccGraph.getInternalRelations(stratum);
+
+        // Number the positive derived literals in the associated clauses
         for (const auto* rel : stratumRels) {
             assert(isNegativelyLabelled(rel->getQualifiedName()) && "should only be looking at neglabelled strata");
             const auto& clauses = getClauses(program, *rel);
@@ -792,18 +797,53 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                 clause->apply(update);
             }
         }
+
+        // Create the rules for the newly positive labelled literals
+        std::set<AstQualifiedName> relsToCopy;
+        for (const auto* rel : program.getRelations()) {
+            const auto& relName = rel->getQualifiedName();
+            if (!contains(inputRelations, relName) && !isNegativelyLabelled(relName)) {
+                relsToCopy.insert(relName);
+            }
+        }
+
+        for (int preStratum = stratum - 1; preStratum >= 0; preStratum--) {
+            if (contains(labelledStrata, preStratum)) continue;
+            if (contains(dependentStrata[preStratum], stratum)) {
+                const auto& preStratumRels = sccGraph.getInternalRelations(preStratum);
+                std::set<AstQualifiedName> relsToLabel;
+                for (const auto* rel : preStratumRels) {
+                    relsToLabel.insert(rel->getQualifiedName());
+                }
+                for (const auto* rel : preStratumRels) {
+                    if (contains(inputRelations, rel->getQualifiedName())) continue;
+                    for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+                        auto* labelledClause = clause->clone();
+                        labelAtoms update(program, sccGraph, labelledStrataCopyCount, relsToCopy);
+                        labelledClause->apply(update);
+                        program.addClause(std::unique_ptr<AstClause>(labelledClause));
+                    }
+                }
+                labelledStrataCopyCount[preStratum]++;
+            }
+        }
     }
 
-    std::cout << program << std::endl;
-
-    // TODO: do the actual copying
-
-    // TODO: Add the labelled relations
-
-    // steps:
-    // 1 - for all newly added strata (heads with n in them - stratify those) [done]
-    // 2 - for all of these, replace positive not n'd things with p_alpha (counter) [done]
-    // 3 - for all the dependent ones below each, replace q with q_alpha and ++ (copy)
+    // Add the new relations in
+    for (auto& pair : labelledStrataCopyCount) {
+        size_t stratum = pair.first;
+        const auto& stratumRels = sccGraph.getInternalRelations(stratum);
+        for (size_t copy = 0; copy < pair.second; copy++) {
+            for (auto* rel : stratumRels) {
+                std::stringstream label;
+                auto newName = AstQualifiedName(rel->getQualifiedName());
+                newName.prepend(label.str());
+                auto* newRelation = rel->clone();
+                newRelation->setQualifiedName(newName);
+                program.addRelation(std::unique_ptr<AstRelation>(newRelation));
+            }
+        }
+    }
 
     return changed;
 }
