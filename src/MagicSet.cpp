@@ -109,7 +109,9 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
                     newIO->addDirective("filename", defaultFactFile.str());
                     iosToAdd.insert(std::move(newIO));
                 } else {
-                    iosToAdd.insert(std::unique_ptr<AstIO>(io->clone()));
+                    auto newIO = std::unique_ptr<AstIO>(io->clone());
+                    newIO->setQualifiedName(newRelName);
+                    iosToAdd.insert(std::move(newIO));
                 }
                 iosToDelete.insert(io);
             }
@@ -409,12 +411,6 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
         });
     }
 
-    // - Any relation that appears in an aggregator
-    visitDepthFirst(program, [&](const AstAggregator& aggr) {
-        visitDepthFirst(
-                aggr, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
-    });
-
     // - Any eqrel relation
     for (auto* rel : program.getRelations()) {
         if (rel->getRepresentation() == RelationRepresentation::EQREL) {
@@ -638,6 +634,14 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
         atom->setQualifiedName(getNegativeLabel(relName));
         relationsToLabel.insert(relName);
     });
+    visitDepthFirst(program, [&](const AstAggregator& aggr) {
+        visitDepthFirst(aggr, [&](const AstAtom& atom) {
+            auto relName = atom.getQualifiedName();
+            if (contains(inputRelations, relName)) return;
+            const_cast<AstAtom&>(atom).setQualifiedName(getNegativeLabel(relName));
+            relationsToLabel.insert(relName);
+        });
+    });
 
     // Add the rules for negatively-labelled predicates
 
@@ -836,6 +840,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         for (size_t copy = 0; copy < pair.second; copy++) {
             for (auto* rel : stratumRels) {
                 std::stringstream label;
+                label << "@poscopy_" << copy+1;
                 auto newName = AstQualifiedName(rel->getQualifiedName());
                 newName.prepend(label.str());
                 auto* newRelation = rel->clone();
