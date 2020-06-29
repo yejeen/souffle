@@ -425,6 +425,19 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
         }
     }
 
+    // - Any atom appearing in a clause containing a counter
+    for (auto* clause : program.getClauses()) {
+        bool containsCounter = false;
+        visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
+            containsCounter = true;
+        });
+        if (containsCounter) {
+            visitDepthFirst(*clause, [&](const AstAtom& atom) {
+                relationsToIgnore.insert(atom.getQualifiedName());
+            });
+        }
+    }
+
     return relationsToIgnore;
 }
 
@@ -621,6 +634,11 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     std::set<AstClause*> clausesToAdd;
 
     for (auto* rel : program.getRelations()) {
+        for (const auto* clause : getClauses(program, *rel)) {
+            visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
+                inputRelations.insert(rel->getQualifiedName());
+            });
+        }
         if (ioTypes.isInput(rel)) {
             inputRelations.insert(rel->getQualifiedName());
         }
@@ -746,6 +764,11 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
 
     std::set<AstQualifiedName> inputRelations;
     for (auto* rel : program.getRelations()) {
+        for (const auto* clause : getClauses(program, *rel)) {
+            visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
+                inputRelations.insert(rel->getQualifiedName());
+            });
+        }
         if (ioTypes.isInput(rel)) {
             inputRelations.insert(rel->getQualifiedName());
         }
