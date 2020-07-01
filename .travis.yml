@@ -69,6 +69,16 @@ jobs:
         paths: .
     script: docker exec souf /bin/sh -c "export CXX=g++ && .travis/init_test.sh '--enable-swig'"
 
+# Windows
+  - stage: Testing
+    os: windows
+    language: cpp
+    before_script:
+      - choco install wsl-ubuntu-1804 --ignore-checksums
+      - wsl bash -c "apt-get update -y"
+      - wsl bash -c "apt-get install -y autoconf bison build-essential flex libffi-dev libncurses5-dev libtool lsb-release mcpp swig zlib1g-dev libsqlite3-dev"
+    script: '.travis/windows-test.sh'
+
 # Testing stage without Evaluation tests nor OpenMP (,-c)
   - stage: Testing
     <<: *osxclang
