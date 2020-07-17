@@ -100,19 +100,9 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         std::set<std::unique_ptr<AstIO>> iosToAdd;
         for (const auto* io : program.getIOs()) {
             if (io->getQualifiedName() == relName && io->getType() == AstIoType::input) {
-                if (!io->hasDirective("IO") ||
-                        (io->getDirective("IO") == "file" && !io->hasDirective("filename"))) {
-                    auto newIO = std::make_unique<AstIO>(AstIoType::input, newRelName);
-                    std::stringstream defaultFactFile;
-                    defaultFactFile << relName << ".facts";
-                    newIO->addDirective("IO", "file");
-                    newIO->addDirective("filename", defaultFactFile.str());
-                    iosToAdd.insert(std::move(newIO));
-                } else {
-                    auto newIO = std::unique_ptr<AstIO>(io->clone());
-                    newIO->setQualifiedName(newRelName);
-                    iosToAdd.insert(std::move(newIO));
-                }
+                auto newIO = std::unique_ptr<AstIO>(io->clone());
+                newIO->setQualifiedName(newRelName);
+                iosToAdd.insert(std::move(newIO));
                 iosToDelete.insert(io);
             }
         }
