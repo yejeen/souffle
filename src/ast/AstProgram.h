@@ -76,17 +76,6 @@ public:
         ios.push_back(std::move(directive));
     }
 
-    /** remove an IO directive */
-    bool removeIO(const AstIO* io) {
-        for (auto it = ios.begin(); it != ios.end(); it++) {
-            if (**it == *io) {
-                ios.erase(it);
-                return true;
-            }
-        }
-        return false;
-    }
-
     /** get pragma directives */
     const VecOwn<AstPragma>& getPragmaDirectives() const {
         return pragmaDirectives;
