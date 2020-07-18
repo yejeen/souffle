@@ -392,30 +392,17 @@ int main(int argc, char** argv) {
     /* construct the transformation pipeline */
 
     // Magic-Set pipeline
-    auto magicPipeline =
-            (Global::config().has("magic-transform") && (Global::config().get("magic-transform")[0] == ';'))
-                    ? std::make_unique<ConditionalTransformer>(Global::config().has("magic-transform"),
-                              std::make_unique<PipelineTransformer>(
-                                      std::make_unique<NormaliseConstraintsTransformer>(),
-                                      std::make_unique<OldMagicSetTransformer>(),
-                                      std::make_unique<ResolveAliasesTransformer>(),
-                                      std::make_unique<RemoveRelationCopiesTransformer>(),
-                                      std::make_unique<RemoveEmptyRelationsTransformer>(),
-                                      std::make_unique<RemoveRedundantRelationsTransformer>(),
-                                      std::make_unique<MinimiseProgramTransformer>()))
-                    : std::make_unique<ConditionalTransformer>(Global::config().has("magic-transform"),
-                              std::make_unique<PipelineTransformer>(
-                                      std::make_unique<MinimiseProgramTransformer>(),
-                                      std::make_unique<NormaliseDatabaseTransformer>(),
-                                      std::make_unique<LabelDatabaseTransformer>(),
-                                      std::make_unique<RemoveRedundantRelationsTransformer>(),
-                                      std::make_unique<AdornDatabaseTransformer>(),
-                                      std::make_unique<MagicSetTransformer>(),
-                                      std::make_unique<ResolveAliasesTransformer>(),
-                                      std::make_unique<RemoveRelationCopiesTransformer>(),
-                                      std::make_unique<RemoveEmptyRelationsTransformer>(),
-                                      std::make_unique<RemoveRedundantRelationsTransformer>(),
-                                      std::make_unique<MinimiseProgramTransformer>()));
+    auto magicPipeline = std::make_unique<ConditionalTransformer>(Global::config().has("magic-transform"),
+            std::make_unique<PipelineTransformer>(std::make_unique<MinimiseProgramTransformer>(),
+                    std::make_unique<NormaliseDatabaseTransformer>(),
+                    std::make_unique<LabelDatabaseTransformer>(),
+                    std::make_unique<RemoveRedundantRelationsTransformer>(),
+                    std::make_unique<AdornDatabaseTransformer>(), std::make_unique<MagicSetTransformer>(),
+                    std::make_unique<ResolveAliasesTransformer>(),
+                    std::make_unique<RemoveRelationCopiesTransformer>(),
+                    std::make_unique<RemoveEmptyRelationsTransformer>(),
+                    std::make_unique<RemoveRedundantRelationsTransformer>(),
+                    std::make_unique<MinimiseProgramTransformer>()));
 
     // Equivalence pipeline
     auto equivalencePipeline =
