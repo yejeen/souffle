@@ -600,23 +600,6 @@ private:
 };
 
 /**
- * Magic Set Transformation (OLD)
- */
-class OldMagicSetTransformer : public AstTransformer {
-public:
-    std::string getName() const override {
-        return "OldMagicSetTransformer";
-    }
-
-    OldMagicSetTransformer* clone() const override {
-        return new OldMagicSetTransformer();
-    }
-
-private:
-    bool transform(AstTranslationUnit& translationUnit) override;
-};
-
-/**
  * Transformation to remove typecasts.
  */
 class RemoveTypecastsTransformer : public AstTransformer {
