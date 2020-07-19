@@ -1611,8 +1611,7 @@ OldBindingStore bindComposites(const AstProgram* program) {
                 auto opEq = functor->getReturnType() == TypeAttribute::Float ? BinaryConstraintOp::FEQ
                                                                              : BinaryConstraintOp::EQ;
                 constraints.insert(
-                        new AstBinaryConstraint(opEq, std::unique_ptr<AstArgument>(newVariable->clone()),
-                                std::unique_ptr<AstArgument>(functor->clone())));
+                        new AstBinaryConstraint(opEq, souffle::clone(newVariable), souffle::clone(functor)));
 
                 // update functor to be the variable created
                 return newVariable;
@@ -1629,9 +1628,8 @@ OldBindingStore bindComposites(const AstProgram* program) {
 
                 // create new constraint (+recordX = original-record)
                 auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
-                constraints.insert(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                        std::unique_ptr<AstArgument>(newVariable->clone()),
-                        std::unique_ptr<AstArgument>(record->clone())));
+                constraints.insert(new AstBinaryConstraint(
+                        BinaryConstraintOp::EQ, souffle::clone(newVariable), souffle::clone(record)));
 
                 // update record to be the variable created
                 return newVariable;
@@ -1995,7 +1993,7 @@ AstRelation* createMagicRelation(AstRelation* original, const AstQualifiedName& 
     std::vector<AstAttribute*> attrs = original->getAttributes();
     for (size_t currentArg = 0; currentArg < original->getArity(); currentArg++) {
         if (adornment[currentArg] == 'b') {
-            newMagicRelation->addAttribute(std::unique_ptr<AstAttribute>(attrs[currentArg]->clone()));
+            newMagicRelation->addAttribute(souffle::clone(attrs[currentArg]));
         }
     }
 
@@ -2205,7 +2203,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                             int argcount = 0;
                             for (AstAttribute* attr : originalRelation->getAttributes()) {
                                 if (currAdornment[argcount] == 'b') {
-                                    magicRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+                                    magicRelation->addAttribute(souffle::clone(attr));
                                 }
                                 argcount++;
                             }
@@ -2228,7 +2226,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                         int argCount = 0;
                         for (AstArgument* arg : atom->getArguments()) {
                             if (currAdornment[argCount] == 'b') {
-                                magicHead->addArgument(std::unique_ptr<AstArgument>(arg->clone()));
+                                magicHead->addArgument(souffle::clone(arg));
                             }
                             argCount++;
                         }
@@ -2257,7 +2255,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                         argCount = 0;
                         for (AstArgument* arg : newClause->getHead()->getArguments()) {
                             if (headAdornment[argCount] == 'b') {
-                                addedMagicPred->addArgument(std::unique_ptr<AstArgument>(arg->clone()));
+                                addedMagicPred->addArgument(souffle::clone(arg));
                             }
                             argCount++;
                         }
@@ -2267,7 +2265,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
                         // add the rest of the necessary arguments
                         for (size_t j = 0; j < i; j++) {
-                            magicClause->addToBody(std::unique_ptr<AstLiteral>(body[j]->clone()));
+                            magicClause->addToBody(souffle::clone(body[j]));
                         }
 
                         // restore memorised bindings for all composite arguments
@@ -2288,10 +2286,9 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                             if (compositeBindings.isVariableBoundComposite(argName)) {
                                 AstArgument* originalArgument =
                                         compositeBindings.cloneOriginalArgument(argName);
-                                magicClause->addToBody(
-                                        std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                                std::unique_ptr<AstArgument>(compositeArgument->clone()),
-                                                std::unique_ptr<AstArgument>(originalArgument)));
+                                magicClause->addToBody(std::make_unique<AstBinaryConstraint>(
+                                        BinaryConstraintOp::EQ, souffle::clone(compositeArgument),
+                                        std::unique_ptr<AstArgument>(originalArgument)));
                             }
                         }
 
@@ -2310,7 +2307,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
                                 // add the constraint to the body of the clause
                                 magicClause->addToBody(std::make_unique<AstBinaryConstraint>(
-                                        BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(var->clone()),
+                                        BinaryConstraintOp::EQ, souffle::clone(var),
                                         std::unique_ptr<AstArgument>(embeddedConstant)));
                             }
                         }
@@ -2334,7 +2331,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             std::vector<AstArgument*> args = newClauseHead->getArguments();
             for (size_t k = 0; k < args.size(); k++) {
                 if (headAdornment[k] == 'b') {
-                    newMagAtom->addArgument(std::unique_ptr<AstArgument>(args[k]->clone()));
+                    newMagAtom->addArgument(souffle::clone(args[k]));
                 }
             }
 
@@ -2394,7 +2391,7 @@ bool OldMagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
             // copy over the attributes from the existing adorned version
             for (AstAttribute* attr : adornedRelation->getAttributes()) {
-                outputRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+                outputRelation->addAttribute(souffle::clone(attr));
             }
 
             // rename it back to its original name
