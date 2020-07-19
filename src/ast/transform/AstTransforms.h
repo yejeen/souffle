@@ -514,6 +514,10 @@ public:
         return "NormaliseDatabaseTransformer";
     }
 
+    NormaliseDatabaseTransformer* clone() const override {
+        return new NormaliseDatabaseTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
@@ -545,6 +549,10 @@ public:
         return "LabelDatabaseTransformer";
     }
 
+    LabelDatabaseTransformer* clone() const override {
+        return new LabelDatabaseTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
@@ -562,6 +570,10 @@ class AdornDatabaseTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "AdornDatabaseTransformer";
+    }
+
+    AdornDatabaseTransformer* clone() const override {
+        return new AdornDatabaseTransformer();
     }
 
 private:
@@ -594,6 +606,10 @@ class OldMagicSetTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "OldMagicSetTransformer";
+    }
+
+    OldMagicSetTransformer* clone() const override {
+        return new OldMagicSetTransformer();
     }
 
 private:
