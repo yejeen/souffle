@@ -36,6 +36,7 @@
 #include "ast/transform/ComponentInstantiationTransformer.h"
 #include "ast/transform/IOAttributesTransformer.h"
 #include "ast/transform/IODefaultsTransformer.h"
+#include "ast/transform/MagicSet.h"
 #include "config.h"
 #include "profile/Tui.h"
 #include "ram/RamNode.h"

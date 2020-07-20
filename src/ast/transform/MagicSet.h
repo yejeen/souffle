@@ -22,12 +22,8 @@
 #include "ast/AstLiteral.h"
 #include "ast/AstQualifiedName.h"
 #include "ast/AstVisitor.h"
-#include "ast/analysis/AstAnalysis.h"
-#include "utility/StreamUtil.h"
-#include <cstddef>
+#include "ast/transform/AstTransformer.h"
 #include <map>
-#include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
@@ -36,6 +32,106 @@
 namespace souffle {
 
 class AstTranslationUnit;
+
+/**
+ * Database normaliser.
+ * Effects:
+ *  - Separates the EDB and IDB
+ *  - Constants moved into equality atoms
+ *  - Output relations extracted into queries
+ * Prerequisite for adornment.
+ */
+class NormaliseDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "NormaliseDatabaseTransformer";
+    }
+
+    NormaliseDatabaseTransformer* clone() const override {
+        return new NormaliseDatabaseTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    /**
+     * Partitions the input and output relations.
+     */
+    bool partitionIO(AstTranslationUnit& translationUnit);
+
+    /**
+     * Separates the IDB from the EDB, so that they are disjoint.
+     */
+    bool extractIDB(AstTranslationUnit& translationUnit);
+
+    /**
+     * Names all constants and unnamed variables.
+     */
+    bool nameConstants(AstTranslationUnit& translationUnit);
+
+    /**
+     * Extracts output relations into separate simple query relations,
+     * so that they are unused in any other rules.
+     */
+    bool querifyOutputRelations(AstTranslationUnit& translationUnit);
+};
+
+class LabelDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "LabelDatabaseTransformer";
+    }
+
+    LabelDatabaseTransformer* clone() const override {
+        return new LabelDatabaseTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    bool runNegativeLabelling(AstTranslationUnit& translationUnit);
+
+    bool runPositiveLabelling(AstTranslationUnit& translationUnit);
+};
+
+/**
+ * Database adornment.
+ * Adorns the rules of a database with variable binding information.
+ * Prerequisite for the magic set transformation.
+ */
+class AdornDatabaseTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "AdornDatabaseTransformer";
+    }
+
+    AdornDatabaseTransformer* clone() const override {
+        return new AdornDatabaseTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit);
+};
+
+/**
+ * Magic Set Transformation.
+ */
+class MagicSetTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "MagicSetTransformer";
+    }
+
+    MagicSetTransformer* clone() const override {
+        return new MagicSetTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+};
+
 
 class BindingStore {
 public:

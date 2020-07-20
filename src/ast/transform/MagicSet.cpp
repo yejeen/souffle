@@ -17,7 +17,6 @@
 #include "ast/transform/MagicSet.h"
 #include "BinaryConstraintOps.h"
 #include "Global.h"
-#include "MagicSet.h"
 #include "RamTypes.h"
 #include "SrcLocation.h"
 #include "ast/AstAttribute.h"
