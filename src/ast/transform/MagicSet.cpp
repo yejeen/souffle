@@ -418,13 +418,10 @@ std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
     // - Any atom appearing in a clause containing a counter
     for (auto* clause : program.getClauses()) {
         bool containsCounter = false;
-        visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
-            containsCounter = true;
-        });
+        visitDepthFirst(*clause, [&](const AstCounter& /* counter */) { containsCounter = true; });
         if (containsCounter) {
-            visitDepthFirst(*clause, [&](const AstAtom& atom) {
-                relationsToIgnore.insert(atom.getQualifiedName());
-            });
+            visitDepthFirst(
+                    *clause, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
         }
     }
 
@@ -625,9 +622,8 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
 
     for (auto* rel : program.getRelations()) {
         for (const auto* clause : getClauses(program, *rel)) {
-            visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
-                inputRelations.insert(rel->getQualifiedName());
-            });
+            visitDepthFirst(*clause,
+                    [&](const AstCounter& /* counter */) { inputRelations.insert(rel->getQualifiedName()); });
         }
         if (ioTypes.isInput(rel)) {
             inputRelations.insert(rel->getQualifiedName());
@@ -731,7 +727,11 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         const SCCGraph& sccGraph;
         const std::map<size_t, size_t>& stratumCounts;
         const std::set<AstQualifiedName>& atomsToRelabel;
-        labelAtoms(const AstProgram& program, const SCCGraph& sccGraph, const std::map<size_t, size_t>& stratumCounts, const std::set<AstQualifiedName>& atomsToRelabel) : program(program), sccGraph(sccGraph), stratumCounts(stratumCounts), atomsToRelabel(atomsToRelabel) {}
+        labelAtoms(const AstProgram& program, const SCCGraph& sccGraph,
+                const std::map<size_t, size_t>& stratumCounts,
+                const std::set<AstQualifiedName>& atomsToRelabel)
+                : program(program), sccGraph(sccGraph), stratumCounts(stratumCounts),
+                  atomsToRelabel(atomsToRelabel) {}
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             node->apply(*this);
@@ -755,9 +755,8 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
     std::set<AstQualifiedName> inputRelations;
     for (auto* rel : program.getRelations()) {
         for (const auto* clause : getClauses(program, *rel)) {
-            visitDepthFirst(*clause, [&](const AstCounter& /* counter */) {
-                inputRelations.insert(rel->getQualifiedName());
-            });
+            visitDepthFirst(*clause,
+                    [&](const AstCounter& /* counter */) { inputRelations.insert(rel->getQualifiedName()); });
         }
         if (ioTypes.isInput(rel)) {
             inputRelations.insert(rel->getQualifiedName());
@@ -798,7 +797,8 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
 
         // Number the positive derived literals in the associated clauses
         for (const auto* rel : stratumRels) {
-            assert(isNegativelyLabelled(rel->getQualifiedName()) && "should only be looking at neglabelled strata");
+            assert(isNegativelyLabelled(rel->getQualifiedName()) &&
+                    "should only be looking at neglabelled strata");
             const auto& clauses = getClauses(program, *rel);
             std::set<AstQualifiedName> relsToCopy;
             for (const auto* clause : clauses) {
@@ -853,7 +853,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         for (size_t copy = 0; copy < pair.second; copy++) {
             for (auto* rel : stratumRels) {
                 std::stringstream label;
-                label << "@poscopy_" << copy+1;
+                label << "@poscopy_" << copy + 1;
                 auto newName = AstQualifiedName(rel->getQualifiedName());
                 newName.prepend(label.str());
                 auto* newRelation = rel->clone();
