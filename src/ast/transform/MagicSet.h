@@ -56,11 +56,13 @@ private:
 
     /**
      * Partitions the input and output relations.
+     * Program will no longer have relations that are both input and output.
      */
     bool partitionIO(AstTranslationUnit& translationUnit);
 
     /**
      * Separates the IDB from the EDB, so that they are disjoint.
+     * Program will no longer have input relations that appear as the head of clauses.
      */
     bool extractIDB(AstTranslationUnit& translationUnit);
 
@@ -131,7 +133,6 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
-
 
 class BindingStore {
 public:

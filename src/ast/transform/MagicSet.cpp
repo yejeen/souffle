@@ -62,6 +62,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
+    // Get all relations that are both input and output
     std::set<AstQualifiedName> relationsToSplit;
     for (auto* rel : program.getRelations()) {
         if (ioTypes->isInput(rel) && (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel))) {
@@ -69,19 +70,21 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         }
     }
 
+    // For each of these relations I, add a new relation I' that's input instead.
+    // The old relation I is no longer input, but copies over the data from I'.
     for (auto relName : relationsToSplit) {
         const auto* rel = getRelation(program, relName);
         assert(rel != nullptr && "relation does not exist");
         auto newRelName = AstQualifiedName(relName);
         newRelName.prepend("@split_in");
 
-        // Create a new intermediate input relation
+        // Create a new intermediate input relation, I'
         auto newRelation = std::make_unique<AstRelation>(newRelName);
         for (const auto* attr : rel->getAttributes()) {
             newRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
         }
 
-        // Read in the input relation into the original relation
+        // Add the rule I <- I'
         auto newClause = std::make_unique<AstClause>();
         auto newHeadAtom = std::make_unique<AstAtom>(relName);
         auto newBodyAtom = std::make_unique<AstAtom>(newRelName);
@@ -94,18 +97,20 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         newClause->setHead(std::move(newHeadAtom));
         newClause->addToBody(std::move(newBodyAtom));
 
-        // New relation should be input, original should not
+        // New relation I' should be input, original should not
         std::set<const AstIO*> iosToDelete;
         std::set<std::unique_ptr<AstIO>> iosToAdd;
         for (const auto* io : program.getIOs()) {
             if (io->getQualifiedName() == relName && io->getType() == AstIoType::input) {
+                // New relation inherits the old input rules
                 auto newIO = std::unique_ptr<AstIO>(io->clone());
                 newIO->setQualifiedName(newRelName);
                 iosToAdd.insert(std::move(newIO));
+
+                // Original no longer has them
                 iosToDelete.insert(io);
             }
         }
-
         for (const auto* io : iosToDelete) {
             program.removeIO(io);
         }
@@ -113,6 +118,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
             program.addIO(std::unique_ptr<AstIO>(io->clone()));
         }
 
+        // Add in the new relation and the copy clause
         program.addRelation(std::move(newRelation));
         program.addClause(std::move(newClause));
     }
@@ -124,7 +130,8 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
-    auto isStrictlyIDB = [&](const AstRelation* rel) {
+    // Helper method to check if an input relation has no associated rules
+    auto isStrictlyEDB = [&](const AstRelation* rel) {
         bool hasRules = false;
         for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
             visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& /* atom */) { hasRules = true; });
@@ -132,61 +139,63 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
         return !hasRules;
     };
 
-    // Get all input relations
+    // Get all input relations that also have IDB rules attached
     std::set<AstQualifiedName> inputRelationNames;
-    std::set<AstRelation*> inputRelations;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isInput(rel) && !isStrictlyIDB(rel)) {
-            auto name = rel->getQualifiedName();
-            auto usedName = rel->getQualifiedName();
-            usedName.prepend("@interm_in");
-
-            auto* newRelation = rel->clone();
-            newRelation->setQualifiedName(usedName);
-            program.addRelation(std::unique_ptr<AstRelation>(newRelation));
-
-            inputRelations.insert(rel);
-            inputRelationNames.insert(name);
+        if (ioTypes->isInput(rel) && !isStrictlyEDB(rel)) {
+            inputRelationNames.insert(rel->getQualifiedName());
         }
+    }
+
+    // Add a new intermediate non-input relation for each
+    // These will cover relation appearances in IDB rules
+    std::map<AstQualifiedName, AstQualifiedName> inputToIntermediate;
+    for (const auto& inputRelationName : inputRelationNames) {
+        // Give it a unique name
+        AstQualifiedName intermediateName(inputRelationName);
+        intermediateName.prepend("@interm_in");
+        inputToIntermediate[inputRelationName] = intermediateName;
+
+        // Add the relation
+        auto intermediateRelation = souffle::clone(getRelation(program, inputRelationName));
+        intermediateRelation->setQualifiedName(intermediateName);
+        program.addRelation(std::move(intermediateRelation));
     }
 
     // Rename them systematically
     struct rename_relation : public AstNodeMapper {
-        const std::set<AstQualifiedName>& relations;
-
-        rename_relation(const std::set<AstQualifiedName>& relations) : relations(relations) {}
-
+        const std::map<AstQualifiedName, AstQualifiedName>& inputToIntermediate;
+        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& inputToIntermediate)
+                : inputToIntermediate(inputToIntermediate) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                if (contains(relations, atom->getQualifiedName())) {
-                    auto newName = atom->getQualifiedName();
-                    newName.prepend("@interm_in");
-                    auto* renamedAtom = atom->clone();
-                    renamedAtom->setQualifiedName(newName);
-                    return std::unique_ptr<AstAtom>(renamedAtom);
+                if (contains(inputToIntermediate, atom->getQualifiedName())) {
+                    auto renamedAtom = souffle::clone(atom);
+                    renamedAtom->setQualifiedName(inputToIntermediate.at(atom->getQualifiedName()));
+                    return renamedAtom;
                 }
             }
             node->apply(*this);
             return node;
         }
     };
-    rename_relation update(inputRelationNames);
+    rename_relation update(inputToIntermediate);
     program.apply(update);
 
-    // Add the new simple query output relations
-    for (auto* rel : inputRelations) {
-        auto name = rel->getQualifiedName();
-        auto newName = rel->getQualifiedName();
-        newName.prepend("@interm_in");
+    // Add the rule I' <- I
+    for (const auto& inputRelationName : inputRelationNames) {
+        auto queryHead = std::make_unique<AstAtom>(inputToIntermediate.at(inputRelationName));
+        auto queryLiteral = std::make_unique<AstAtom>(inputRelationName);
 
-        auto queryHead = std::make_unique<AstAtom>(newName);
-        auto queryLiteral = std::make_unique<AstAtom>(name);
-        for (size_t i = 0; i < rel->getArity(); i++) {
+        // Give them identical arguments
+        const auto* inputRelation = getRelation(program, inputRelationName);
+        for (size_t i = 0; i < inputRelation->getArity(); i++) {
             std::stringstream var;
             var << "@query_x" << i;
             queryHead->addArgument(std::make_unique<AstVariable>(var.str()));
             queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
         }
+
         auto query = std::make_unique<AstClause>(std::move(queryHead));
         query->addToBody(std::move(queryLiteral));
         program.addClause(std::move(query));
