@@ -18,6 +18,7 @@
 
 #include "FunctorOps.h"
 #include <cstddef>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -248,5 +249,13 @@ void negateConstraintInPlace(AstConstraint& constraint);
  * Pick valid overloads for a functor, sorted by some measure of "preference".
  */
 IntrinsicFunctors validOverloads(const TypeAnalysis&, const AstIntrinsicFunctor&);
+
+/**
+ * Rename all relations that appear in a node to a given name.
+ * @param node node to alter the children of
+ * @param oldToNew map from old relation names to new relation names
+ * @return true if the node was changed
+ */
+bool renameRelations(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew);
 
 }  // end of namespace souffle

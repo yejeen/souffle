@@ -165,24 +165,7 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     }
 
     // Rename them systematically
-    struct rename_relation : public AstNodeMapper {
-        const std::map<AstQualifiedName, AstQualifiedName>& inputToIntermediate;
-        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& inputToIntermediate)
-                : inputToIntermediate(inputToIntermediate) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
-            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                if (contains(inputToIntermediate, atom->getQualifiedName())) {
-                    auto renamedAtom = souffle::clone(atom);
-                    renamedAtom->setQualifiedName(inputToIntermediate.at(atom->getQualifiedName()));
-                    return renamedAtom;
-                }
-            }
-            return node;
-        }
-    };
-    rename_relation update(inputToIntermediate);
-    program.apply(update);
+    renameRelations(program, inputToIntermediate);
 
     // Add the rule I' <- I
     for (const auto& inputRelationName : inputRelationNames) {
@@ -326,24 +309,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     }
 
     // Rename them systematically
-    struct rename_relation : public AstNodeMapper {
-        const std::map<AstQualifiedName, AstQualifiedName>& outputToIntermediate;
-        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& outputToIntermediate)
-                : outputToIntermediate(outputToIntermediate) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
-            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                if (contains(outputToIntermediate, atom->getQualifiedName())) {
-                    auto renamedAtom = souffle::clone(atom);
-                    renamedAtom->setQualifiedName(outputToIntermediate.at(atom->getQualifiedName()));
-                    return renamedAtom;
-                }
-            }
-            return node;
-        }
-    };
-    rename_relation update(outputToIntermediate);
-    program.apply(update);
+    renameRelations(program, outputToIntermediate);
 
     // Add the rule I <- I'
     for (const auto& outputRelationName : outputRelationNames) {

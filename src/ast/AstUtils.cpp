@@ -307,4 +307,27 @@ IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicF
     return candidates;
 }
 
+bool renameRelations(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) {
+    struct rename_relation : public AstNodeMapper {
+        mutable bool changed{false};
+        const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
+        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                if (contains(oldToNew, atom->getQualifiedName())) {
+                    auto renamedAtom = souffle::clone(atom);
+                    renamedAtom->setQualifiedName(oldToNew.at(atom->getQualifiedName()));
+                    changed = true;
+                    return renamedAtom;
+                }
+            }
+            return node;
+        }
+    };
+    rename_relation update(oldToNew);
+    node.apply(update);
+    return update.changed;
+}
+
 }  // end of namespace souffle
