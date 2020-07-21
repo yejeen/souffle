@@ -47,8 +47,8 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
     changed |= extractIDB(translationUnit);
     if (changed) translationUnit.invalidateAnalyses();
 
-    /** (3) Move constants into new equality constraints */
-    changed |= nameConstants(translationUnit);
+    /** (3) Normalise arguments within each clause */
+    changed |= normaliseArguments(translationUnit);
     if (changed) translationUnit.invalidateAnalyses();
 
     /** (4) Querify output relations */
@@ -204,10 +204,11 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     return !inputRelationNames.empty();
 }
 
-bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
-    // Replace all constants and underscores with named variables
+    // Replace all non-variable-arguments nested inside the node with named variables
+    // Also, keeps track of constraints to add to keep the clause semantically equivalent
     struct constant_normaliser : public AstNodeMapper {
         std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
         int& changeCount;
@@ -221,11 +222,16 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
                 if (dynamic_cast<AstVariable*>(arg) == nullptr) {
                     std::stringstream name;
                     name << "@abdul" << changeCount++;
-                    if (dynamic_cast<AstUnnamedVariable*>(arg) == nullptr) {
-                        constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                std::make_unique<AstVariable>(name.str()),
-                                std::unique_ptr<AstArgument>(arg->clone())));
+
+                    // Unnamed variables don't need a new constraint, just give them a name
+                    if (dynamic_cast<AstUnnamedVariable*>(arg) != nullptr) {
+                        return std::make_unique<AstVariable>(name.str());
                     }
+
+                    // Link other variables back to their original value with a `<var> = <arg>` constraint
+                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                            std::make_unique<AstVariable>(name.str()),
+                            std::unique_ptr<AstArgument>(arg->clone())));
                     return std::make_unique<AstVariable>(name.str());
                 }
             }
@@ -233,12 +239,19 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
         }
     };
 
+    // Transform each clause so that all arguments are:
+    //      1) a variable, or
+    //      2) the RHS of a `<var> = <arg>` constraint
     bool changed = false;
     for (auto* clause : program.getClauses()) {
         int changeCount = 0;
         std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
         constant_normaliser update(constraintsToAdd, changeCount);
+
+        // Apply to each clause head
         clause->getHead()->apply(update);
+
+        // Apply to each body literal that isn't already a `<var> = <arg>` constraint
         for (AstLiteral* lit : clause->getBodyLiterals()) {
             if (auto* bc = dynamic_cast<AstBinaryConstraint*>(lit)) {
                 if (bc->getOperator() == BinaryConstraintOp::EQ &&
@@ -248,11 +261,13 @@ bool NormaliseDatabaseTransformer::nameConstants(AstTranslationUnit& translation
             }
             lit->apply(update);
         }
-        visitDepthFirst(*clause, [&](const AstAtom& atom) { const_cast<AstAtom&>(atom).apply(update); });
-        changed |= changeCount != 0;
+
+        // Add each necessary new constraint to the clause
         for (auto& constraint : constraintsToAdd) {
             clause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
         }
+
+        changed |= changeCount != 0;
     }
 
     return changed;

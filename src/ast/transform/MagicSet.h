@@ -67,9 +67,12 @@ private:
     bool extractIDB(AstTranslationUnit& translationUnit);
 
     /**
-     * Names all constants and unnamed variables.
+     * Normalise all arguments within each clause.
+     * All arguments in all clauses will now be either:
+     *      (1) a variable, or
+     *      (2) the RHS of a `<var> = <arg>` constraint
      */
-    bool nameConstants(AstTranslationUnit& translationUnit);
+    bool normaliseArguments(AstTranslationUnit& translationUnit);
 
     /**
      * Extracts output relations into separate simple query relations,
