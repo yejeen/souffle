@@ -34,11 +34,10 @@ namespace souffle {
 class AstTranslationUnit;
 
 /**
- * Database normaliser.
+ * Database normaliser for MST.
  * Effects:
- *  - Separates the EDB and IDB
- *  - Constants moved into equality atoms
- *  - Output relations extracted into queries
+ *  - Partitions database into [input|intermediate|queries]
+ *  - Normalises all arguments and constraints
  * Prerequisite for adornment.
  */
 class NormaliseDatabaseTransformer : public AstTransformer {
@@ -58,13 +57,13 @@ private:
      * Partitions the input and output relations.
      * Program will no longer have relations that are both input and output.
      */
-    bool partitionIO(AstTranslationUnit& translationUnit);
+    static bool partitionIO(AstTranslationUnit& translationUnit);
 
     /**
      * Separates the IDB from the EDB, so that they are disjoint.
      * Program will no longer have input relations that appear as the head of clauses.
      */
-    bool extractIDB(AstTranslationUnit& translationUnit);
+    static bool extractIDB(AstTranslationUnit& translationUnit);
 
     /**
      * Extracts output relations into separate simple query relations,
@@ -73,7 +72,7 @@ private:
      *      (1) have exactly one rule defining them
      *      (2) do not appear in other rules
      */
-    bool querifyOutputRelations(AstTranslationUnit& translationUnit);
+    static bool querifyOutputRelations(AstTranslationUnit& translationUnit);
 
     /**
      * Normalise all arguments within each clause.
@@ -81,9 +80,13 @@ private:
      *      (1) a variable, or
      *      (2) the RHS of a `<var> = <arg>` constraint
      */
-    bool normaliseArguments(AstTranslationUnit& translationUnit);
+    static bool normaliseArguments(AstTranslationUnit& translationUnit);
 };
 
+/**
+ * Database labeller. Runs the magic-set labelling algorithm.
+ * Necessary for supporting negation in MST.
+ */
 class LabelDatabaseTransformer : public AstTransformer {
 public:
     std::string getName() const override {
@@ -97,14 +100,25 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    bool runNegativeLabelling(AstTranslationUnit& translationUnit);
+    /**
+     * Runs the first stage of the labelling algorithm.
+     * Separates out negated appearances of relations from the main SCC graph, preventing
+     * them from affecting stratification once magic dependencies are added.
+     */
+    static bool runNegativeLabelling(AstTranslationUnit& translationUnit);
 
-    bool runPositiveLabelling(AstTranslationUnit& translationUnit);
+    /**
+     * Runs the second stage of the labelling algorithm.
+     * Separates out the dependencies of negatively labelled atoms from the main SCC
+     * graph, preventing them from affecting stratification after magic.
+     * Negative labelling must have been run first.
+     */
+    static bool runPositiveLabelling(AstTranslationUnit& translationUnit);
 };
 
 /**
  * Database adornment.
- * Adorns the rules of a database with variable binding information.
+ * Adorns the rules of a database with variable flow and binding information.
  * Prerequisite for the magic set transformation.
  */
 class AdornDatabaseTransformer : public AstTransformer {
@@ -120,11 +134,15 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit);
+    static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit);
 };
 
 /**
  * Magic Set Transformation.
+ * Before running this transformation, need to run:
+ *      (1) NormaliseDatabaseTransformer, for assumptions to hold
+ *      (2) LabelDatabaseTransformer, to support negation
+ *      (3) AdornDatabaseTransformer, to annotate information flow
  */
 class MagicSetTransformer : public AstTransformer {
 public:

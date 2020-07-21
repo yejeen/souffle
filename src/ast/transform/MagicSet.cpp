@@ -189,75 +189,6 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     return !inputRelationNames.empty();
 }
 
-bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& translationUnit) {
-    auto& program = *translationUnit.getProgram();
-
-    // Replace all non-variable-arguments nested inside the node with named variables
-    // Also, keeps track of constraints to add to keep the clause semantically equivalent
-    struct constant_normaliser : public AstNodeMapper {
-        std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
-        int& changeCount;
-
-        constant_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
-                : constraints(constraints), changeCount(changeCount) {}
-
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
-            if (auto* arg = dynamic_cast<AstArgument*>(node.get())) {
-                if (dynamic_cast<AstVariable*>(arg) == nullptr) {
-                    std::stringstream name;
-                    name << "@abdul" << changeCount++;
-
-                    // Unnamed variables don't need a new constraint, just give them a name
-                    if (dynamic_cast<AstUnnamedVariable*>(arg) != nullptr) {
-                        return std::make_unique<AstVariable>(name.str());
-                    }
-
-                    // Link other variables back to their original value with a `<var> = <arg>` constraint
-                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                            std::make_unique<AstVariable>(name.str()),
-                            std::unique_ptr<AstArgument>(arg->clone())));
-                    return std::make_unique<AstVariable>(name.str());
-                }
-            }
-            return node;
-        }
-    };
-
-    // Transform each clause so that all arguments are:
-    //      1) a variable, or
-    //      2) the RHS of a `<var> = <arg>` constraint
-    bool changed = false;
-    for (auto* clause : program.getClauses()) {
-        int changeCount = 0;
-        std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
-        constant_normaliser update(constraintsToAdd, changeCount);
-
-        // Apply to each clause head
-        clause->getHead()->apply(update);
-
-        // Apply to each body literal that isn't already a `<var> = <arg>` constraint
-        for (AstLiteral* lit : clause->getBodyLiterals()) {
-            if (auto* bc = dynamic_cast<AstBinaryConstraint*>(lit)) {
-                if (bc->getOperator() == BinaryConstraintOp::EQ &&
-                        dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr) {
-                    continue;
-                }
-            }
-            lit->apply(update);
-        }
-
-        // Add each necessary new constraint to the clause
-        for (auto& constraint : constraintsToAdd) {
-            clause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
-        }
-
-        changed |= changeCount != 0;
-    }
-
-    return changed;
-}
-
 bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
@@ -330,6 +261,75 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     }
 
     return !outputRelationNames.empty();
+}
+
+bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+
+    // Replace all non-variable-arguments nested inside the node with named variables
+    // Also, keeps track of constraints to add to keep the clause semantically equivalent
+    struct constant_normaliser : public AstNodeMapper {
+        std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
+        int& changeCount;
+
+        constant_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
+                : constraints(constraints), changeCount(changeCount) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+            if (auto* arg = dynamic_cast<AstArgument*>(node.get())) {
+                if (dynamic_cast<AstVariable*>(arg) == nullptr) {
+                    std::stringstream name;
+                    name << "@abdul" << changeCount++;
+
+                    // Unnamed variables don't need a new constraint, just give them a name
+                    if (dynamic_cast<AstUnnamedVariable*>(arg) != nullptr) {
+                        return std::make_unique<AstVariable>(name.str());
+                    }
+
+                    // Link other variables back to their original value with a `<var> = <arg>` constraint
+                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                            std::make_unique<AstVariable>(name.str()),
+                            std::unique_ptr<AstArgument>(arg->clone())));
+                    return std::make_unique<AstVariable>(name.str());
+                }
+            }
+            return node;
+        }
+    };
+
+    // Transform each clause so that all arguments are:
+    //      1) a variable, or
+    //      2) the RHS of a `<var> = <arg>` constraint
+    bool changed = false;
+    for (auto* clause : program.getClauses()) {
+        int changeCount = 0;
+        std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
+        constant_normaliser update(constraintsToAdd, changeCount);
+
+        // Apply to each clause head
+        clause->getHead()->apply(update);
+
+        // Apply to each body literal that isn't already a `<var> = <arg>` constraint
+        for (AstLiteral* lit : clause->getBodyLiterals()) {
+            if (auto* bc = dynamic_cast<AstBinaryConstraint*>(lit)) {
+                if (bc->getOperator() == BinaryConstraintOp::EQ &&
+                        dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr) {
+                    continue;
+                }
+            }
+            lit->apply(update);
+        }
+
+        // Add each necessary new constraint to the clause
+        for (auto& constraint : constraintsToAdd) {
+            clause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
+        }
+
+        changed |= changeCount != 0;
+    }
+
+    return changed;
 }
 
 std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
