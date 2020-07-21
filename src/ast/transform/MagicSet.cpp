@@ -428,23 +428,21 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     return changed;
 }
 
+AstQualifiedName AdornDatabaseTransformer::getAdornmentID(const adorned_predicate& pred) {
+    if (pred.second == "") return pred.first;
+    AstQualifiedName adornmentID(pred.first);
+    std::stringstream adornmentMarker;
+    adornmentMarker << "{" << pred.second << "}";
+    adornmentID.append(adornmentMarker.str());
+    return adornmentID;
+}
+
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
     // Get relations to ignore
     auto relationsToIgnore = getIgnoredRelations(translationUnit);
-
-    // Adorned predicate structure
-    using adorned_predicate = std::pair<AstQualifiedName, std::string>;
-    auto getAdornmentID = [&](const adorned_predicate& pred) {
-        if (pred.second == "") return pred.first;
-        AstQualifiedName adornmentID(pred.first);
-        std::stringstream adornmentMarker;
-        adornmentMarker << "{" << pred.second << "}";
-        adornmentID.append(adornmentMarker.str());
-        return adornmentID;
-    };
 
     // Process data-structures
     std::vector<std::unique_ptr<AstClause>> adornedClauses;

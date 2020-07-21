@@ -132,7 +132,11 @@ public:
     }
 
 private:
+    using adorned_predicate = std::pair<AstQualifiedName, std::string>;
+
     bool transform(AstTranslationUnit& translationUnit) override;
+
+    static AstQualifiedName getAdornmentID(const adorned_predicate& pred);
 };
 
 /**
