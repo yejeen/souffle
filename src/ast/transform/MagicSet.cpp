@@ -36,6 +36,102 @@
 
 namespace souffle {
 
+/**
+ * Get set of relations to ignore during the MST process.
+ * Ignored relations are relations that should not be copied or altered beyond normalisation.
+ */
+static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+
+    std::set<AstQualifiedName> relationsToIgnore;
+
+    // - Any relations not specified to magic-set
+    std::vector<std::string> specifiedRelations = splitString(Global::config().get("magic-transform"), ',');
+    if (!contains(specifiedRelations, "*")) {
+        for (const AstRelation* rel : program.getRelations()) {
+            if (!contains(specifiedRelations, toString(rel->getQualifiedName()))) {
+                relationsToIgnore.insert(rel->getQualifiedName());
+            }
+        }
+    }
+
+    // - Any relations known in constant time (IDB relations)
+    for (auto* rel : program.getRelations()) {
+        // Input relations
+        if (ioTypes->isInput(rel)) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+            continue;
+        }
+
+        // Any relations not dependent on any atoms
+        bool hasRules = false;
+        for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+            visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& /* atom */) { hasRules = true; });
+        }
+        if (!hasRules) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+        }
+    }
+
+    // - Any relation with a neglabel
+    visitDepthFirst(program, [&](const AstAtom& atom) {
+        const auto& qualifiers = atom.getQualifiedName().getQualifiers();
+        if (!qualifiers.empty() && qualifiers[0] == "@neglabel") {
+            relationsToIgnore.insert(atom.getQualifiedName());
+        }
+    });
+
+    // - Any relation with a clause containing float-related binary constraints
+    const std::set<BinaryConstraintOp> floatOps(
+            {BinaryConstraintOp::FEQ, BinaryConstraintOp::FNE, BinaryConstraintOp::FLE,
+                    BinaryConstraintOp::FGE, BinaryConstraintOp::FLT, BinaryConstraintOp::FGT});
+    for (const auto* clause : program.getClauses()) {
+        visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
+            if (contains(floatOps, bc.getOperator())) {
+                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+            }
+        });
+    }
+
+    // - Any relation with a clause containing order-dependent functors
+    const std::set<FunctorOp> orderDepFuncOps(
+            {FunctorOp::MOD, FunctorOp::FDIV, FunctorOp::DIV, FunctorOp::UMOD});
+    for (const auto* clause : program.getClauses()) {
+        visitDepthFirst(*clause, [&](const AstIntrinsicFunctor& functor) {
+            if (contains(orderDepFuncOps, functor.getFunctionInfo()->op)) {
+                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+            }
+        });
+    }
+
+    // - Any eqrel relation
+    for (auto* rel : program.getRelations()) {
+        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
+            relationsToIgnore.insert(rel->getQualifiedName());
+        }
+    }
+
+    // - Any relation with execution plans
+    for (auto* clause : program.getClauses()) {
+        if (clause->getExecutionPlan() != nullptr) {
+            relationsToIgnore.insert(clause->getHead()->getQualifiedName());
+        }
+    }
+
+    // - Any atom appearing in a clause containing a counter
+    for (auto* clause : program.getClauses()) {
+        bool containsCounter = false;
+        visitDepthFirst(*clause, [&](const AstCounter& /* counter */) { containsCounter = true; });
+        if (containsCounter) {
+            visitDepthFirst(
+                    *clause, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
+        }
+    }
+
+    return relationsToIgnore;
+}
+
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
@@ -332,99 +428,6 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     return changed;
 }
 
-std::set<AstQualifiedName> AdornDatabaseTransformer::getIgnoredRelations(
-        AstTranslationUnit& translationUnit) {
-    auto& program = *translationUnit.getProgram();
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
-
-    std::set<AstQualifiedName> relationsToIgnore;
-
-    // - Any relations not specified to magic-set
-    std::vector<std::string> specifiedRelations = splitString(Global::config().get("magic-transform"), ',');
-    if (!contains(specifiedRelations, "*")) {
-        for (const AstRelation* rel : program.getRelations()) {
-            if (!contains(specifiedRelations, toString(rel->getQualifiedName()))) {
-                relationsToIgnore.insert(rel->getQualifiedName());
-            }
-        }
-    }
-
-    // - Any relations known in constant time (IDB relations)
-    for (auto* rel : program.getRelations()) {
-        // Input relations
-        if (ioTypes->isInput(rel)) {
-            relationsToIgnore.insert(rel->getQualifiedName());
-            continue;
-        }
-
-        // Any relations not dependent on any atoms
-        bool hasRules = false;
-        for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
-            visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& /* atom */) { hasRules = true; });
-        }
-        if (!hasRules) {
-            relationsToIgnore.insert(rel->getQualifiedName());
-        }
-    }
-
-    // - Any relation with a neglabel
-    visitDepthFirst(program, [&](const AstAtom& atom) {
-        const auto& qualifiers = atom.getQualifiedName().getQualifiers();
-        if (!qualifiers.empty() && qualifiers[0] == "@neglabel") {
-            relationsToIgnore.insert(atom.getQualifiedName());
-        }
-    });
-
-    // - Any relation with a clause containing float-related binary constraints
-    const std::set<BinaryConstraintOp> floatOps(
-            {BinaryConstraintOp::FEQ, BinaryConstraintOp::FNE, BinaryConstraintOp::FLE,
-                    BinaryConstraintOp::FGE, BinaryConstraintOp::FLT, BinaryConstraintOp::FGT});
-    for (const auto* clause : program.getClauses()) {
-        visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
-            if (contains(floatOps, bc.getOperator())) {
-                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
-            }
-        });
-    }
-
-    // - Any relation with a clause containing order-dependent functors
-    const std::set<FunctorOp> orderDepFuncOps(
-            {FunctorOp::MOD, FunctorOp::FDIV, FunctorOp::DIV, FunctorOp::UMOD});
-    for (const auto* clause : program.getClauses()) {
-        visitDepthFirst(*clause, [&](const AstIntrinsicFunctor& functor) {
-            if (contains(orderDepFuncOps, functor.getFunctionInfo()->op)) {
-                relationsToIgnore.insert(clause->getHead()->getQualifiedName());
-            }
-        });
-    }
-
-    // - Any eqrel relation
-    for (auto* rel : program.getRelations()) {
-        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
-            relationsToIgnore.insert(rel->getQualifiedName());
-        }
-    }
-
-    // - Any relation with execution plans
-    for (auto* clause : program.getClauses()) {
-        if (clause->getExecutionPlan() != nullptr) {
-            relationsToIgnore.insert(clause->getHead()->getQualifiedName());
-        }
-    }
-
-    // - Any atom appearing in a clause containing a counter
-    for (auto* clause : program.getClauses()) {
-        bool containsCounter = false;
-        visitDepthFirst(*clause, [&](const AstCounter& /* counter */) { containsCounter = true; });
-        if (containsCounter) {
-            visitDepthFirst(
-                    *clause, [&](const AstAtom& atom) { relationsToIgnore.insert(atom.getQualifiedName()); });
-        }
-    }
-
-    return relationsToIgnore;
-}
-
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
@@ -610,35 +613,24 @@ bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 
 bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
-    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
     std::set<AstQualifiedName> relationsToLabel;
-    std::set<AstQualifiedName> inputRelations;
     std::set<AstClause*> clausesToAdd;
-
-    for (auto* rel : program.getRelations()) {
-        for (const auto* clause : getClauses(program, *rel)) {
-            visitDepthFirst(*clause,
-                    [&](const AstCounter& /* counter */) { inputRelations.insert(rel->getQualifiedName()); });
-        }
-        if (ioTypes.isInput(rel)) {
-            inputRelations.insert(rel->getQualifiedName());
-        }
-    }
+    auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     // Rename appearances of negated predicates
     visitDepthFirst(program, [&](const AstNegation& neg) {
         auto* atom = neg.getAtom();
         auto relName = atom->getQualifiedName();
-        if (contains(inputRelations, relName)) return;
+        if (contains(ignoredRelations, relName)) return;
         atom->setQualifiedName(getNegativeLabel(relName));
         relationsToLabel.insert(relName);
     });
     visitDepthFirst(program, [&](const AstAggregator& aggr) {
         visitDepthFirst(aggr, [&](const AstAtom& atom) {
             auto relName = atom.getQualifiedName();
-            if (contains(inputRelations, relName)) return;
+            if (contains(ignoredRelations, relName)) return;
             const_cast<AstAtom&>(atom).setQualifiedName(getNegativeLabel(relName));
             relationsToLabel.insert(relName);
         });
@@ -710,7 +702,6 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
     auto& program = *translationUnit.getProgram();
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
     const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>()->graph();
-    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
 
     auto isNegativelyLabelled = [&](const AstQualifiedName& name) {
         auto qualifiers = name.getQualifiers();
@@ -749,16 +740,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         }
     };
 
-    std::set<AstQualifiedName> inputRelations;
-    for (auto* rel : program.getRelations()) {
-        for (const auto* clause : getClauses(program, *rel)) {
-            visitDepthFirst(*clause,
-                    [&](const AstCounter& /* counter */) { inputRelations.insert(rel->getQualifiedName()); });
-        }
-        if (ioTypes.isInput(rel)) {
-            inputRelations.insert(rel->getQualifiedName());
-        }
-    }
+    auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     std::set<size_t> labelledStrata;
     std::map<size_t, size_t> labelledStrataCopyCount;
@@ -801,7 +783,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
             for (const auto* clause : clauses) {
                 visitDepthFirst(*clause, [&](const AstAtom& atom) {
                     const auto& name = atom.getQualifiedName();
-                    if (!contains(inputRelations, name) && !isNegativelyLabelled(name)) {
+                    if (!contains(ignoredRelations, name) && !isNegativelyLabelled(name)) {
                         relsToCopy.insert(name);
                     }
                 });
@@ -816,7 +798,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         std::set<AstQualifiedName> relsToCopy;
         for (const auto* rel : program.getRelations()) {
             const auto& relName = rel->getQualifiedName();
-            if (!contains(inputRelations, relName) && !isNegativelyLabelled(relName)) {
+            if (!contains(ignoredRelations, relName) && !isNegativelyLabelled(relName)) {
                 relsToCopy.insert(relName);
             }
         }
@@ -830,7 +812,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                     relsToLabel.insert(rel->getQualifiedName());
                 }
                 for (const auto* rel : preStratumRels) {
-                    if (contains(inputRelations, rel->getQualifiedName())) continue;
+                    if (contains(ignoredRelations, rel->getQualifiedName())) continue;
                     for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
                         auto* labelledClause = clause->clone();
                         labelAtoms update(program, sccGraph, labelledStrataCopyCount, relsToCopy);

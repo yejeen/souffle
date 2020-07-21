@@ -133,8 +133,6 @@ public:
 
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
-
-    static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit);
 };
 
 /**
