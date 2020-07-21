@@ -143,6 +143,8 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     std::set<AstQualifiedName> inputRelationNames;
     for (auto* rel : program.getRelations()) {
         if (ioTypes->isInput(rel) && !isStrictlyEDB(rel)) {
+            assert(!ioTypes->isOutput(rel) && !ioTypes->isPrintSize(rel) &&
+                    "input relations should not be output at this stage");
             inputRelationNames.insert(rel->getQualifiedName());
         }
     }
@@ -168,6 +170,7 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
         rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& inputToIntermediate)
                 : inputToIntermediate(inputToIntermediate) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 if (contains(inputToIntermediate, atom->getQualifiedName())) {
                     auto renamedAtom = souffle::clone(atom);
@@ -175,7 +178,6 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
                     return renamedAtom;
                 }
             }
-            node->apply(*this);
             return node;
         }
     };
@@ -276,16 +278,20 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
+    // Helper method to check if a relation is a single-rule output query
     auto isStrictlyOutput = [&](const AstRelation* rel) {
         bool strictlyOutput = true;
         size_t ruleCount = 0;
 
         for (const auto* clause : program.getClauses()) {
+            // Check if the relation is used in the body of any rules
             visitDepthFirst(clause->getBodyLiterals(), [&](const AstAtom& atom) {
                 if (atom.getQualifiedName() == rel->getQualifiedName()) {
                     strictlyOutput = false;
                 }
             });
+
+            // Keep track of number of rules defining the relation
             if (clause->getHead()->getQualifiedName() == rel->getQualifiedName()) {
                 ruleCount++;
             }
@@ -294,57 +300,59 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
         return strictlyOutput && ruleCount <= 1;
     };
 
-    // Get all output relations
+    // Get all output relations that need to be normalised
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> outputRelationNames;
-    std::set<AstRelation*> outputRelations;
     for (auto* rel : program.getRelations()) {
         if ((ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) && !isStrictlyOutput(rel)) {
-            auto name = rel->getQualifiedName();
-            auto queryName = rel->getQualifiedName();
-            queryName.prepend("@interm_out");
-
-            auto* newRelation = rel->clone();
-            newRelation->setQualifiedName(queryName);
-            program.addRelation(std::unique_ptr<AstRelation>(newRelation));
-
-            outputRelations.insert(rel);
-            outputRelationNames.insert(name);
+            assert(!ioTypes->isInput(rel) && "output relations should not be input at this stage");
+            outputRelationNames.insert(rel->getQualifiedName());
         }
+    }
+
+    // Add a new intermediate non-output relation for each
+    // These will cover relation appearances in intermediate rules
+    std::map<AstQualifiedName, AstQualifiedName> outputToIntermediate;
+    for (const auto& outputRelationName : outputRelationNames) {
+        // Give it a unique name
+        AstQualifiedName intermediateName(outputRelationName);
+        intermediateName.prepend("@interm_out");
+        outputToIntermediate[outputRelationName] = intermediateName;
+
+        // Add the relation
+        auto intermediateRelation = souffle::clone(getRelation(program, outputRelationName));
+        intermediateRelation->setQualifiedName(intermediateName);
+        program.addRelation(std::move(intermediateRelation));
     }
 
     // Rename them systematically
     struct rename_relation : public AstNodeMapper {
-        const std::set<AstQualifiedName>& relations;
-
-        rename_relation(const std::set<AstQualifiedName>& relations) : relations(relations) {}
-
+        const std::map<AstQualifiedName, AstQualifiedName>& outputToIntermediate;
+        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& outputToIntermediate)
+                : outputToIntermediate(outputToIntermediate) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                if (contains(relations, atom->getQualifiedName())) {
-                    auto newName = atom->getQualifiedName();
-                    newName.prepend("@interm_out");
-                    auto* renamedAtom = atom->clone();
-                    renamedAtom->setQualifiedName(newName);
-                    return std::unique_ptr<AstAtom>(renamedAtom);
+                if (contains(outputToIntermediate, atom->getQualifiedName())) {
+                    auto renamedAtom = souffle::clone(atom);
+                    renamedAtom->setQualifiedName(outputToIntermediate.at(atom->getQualifiedName()));
+                    return renamedAtom;
                 }
             }
-            node->apply(*this);
             return node;
         }
     };
-    rename_relation update(outputRelationNames);
+    rename_relation update(outputToIntermediate);
     program.apply(update);
 
-    // Add the new simple query output relations
-    for (auto* rel : outputRelations) {
-        auto name = rel->getQualifiedName();
-        auto newName = rel->getQualifiedName();
-        newName.prepend("@interm_out");
+    // Add the rule I <- I'
+    for (const auto& outputRelationName : outputRelationNames) {
+        auto queryHead = std::make_unique<AstAtom>(outputRelationName);
+        auto queryLiteral = std::make_unique<AstAtom>(outputToIntermediate.at(outputRelationName));
 
-        auto queryHead = std::make_unique<AstAtom>(name);
-        auto queryLiteral = std::make_unique<AstAtom>(newName);
-        for (size_t i = 0; i < rel->getArity(); i++) {
+        // Give them identical arguments
+        const auto* outputRelation = getRelation(program, outputRelationName);
+        for (size_t i = 0; i < outputRelation->getArity(); i++) {
             std::stringstream var;
             var << "@query_x" << i;
             queryHead->addArgument(std::make_unique<AstVariable>(var.str()));

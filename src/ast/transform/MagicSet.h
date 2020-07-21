@@ -67,18 +67,21 @@ private:
     bool extractIDB(AstTranslationUnit& translationUnit);
 
     /**
+     * Extracts output relations into separate simple query relations,
+     * so that they are unused in any other rules.
+     * Programs will only contain output relations which:
+     *      (1) have exactly one rule defining them
+     *      (2) do not appear in other rules
+     */
+    bool querifyOutputRelations(AstTranslationUnit& translationUnit);
+
+    /**
      * Normalise all arguments within each clause.
      * All arguments in all clauses will now be either:
      *      (1) a variable, or
      *      (2) the RHS of a `<var> = <arg>` constraint
      */
     bool normaliseArguments(AstTranslationUnit& translationUnit);
-
-    /**
-     * Extracts output relations into separate simple query relations,
-     * so that they are unused in any other rules.
-     */
-    bool querifyOutputRelations(AstTranslationUnit& translationUnit);
 };
 
 class LabelDatabaseTransformer : public AstTransformer {
