@@ -41,6 +41,7 @@ namespace souffle {
  * Ignored relations are relations that should not be copied or altered beyond normalisation.
  */
 static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit) {
+    // TODO: check which relations to ignore if neglabel/poslabel involved
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
@@ -596,10 +597,12 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     auto& program = *translationUnit.getProgram();
 
     std::set<AstQualifiedName> relationsToLabel;
-    std::set<AstClause*> clausesToAdd;
+    std::set<std::unique_ptr<AstClause>> clausesToAdd;
     auto ignoredRelations = getIgnoredRelations(translationUnit);
 
-    // Rename appearances of negated predicates
+    // Negatively label all relations that might affect stratification after MST
+    //      - Negated relations
+    //      - Relations that appear in aggregators
     visitDepthFirst(program, [&](const AstNegation& neg) {
         auto* atom = neg.getAtom();
         auto relName = atom->getQualifiedName();
@@ -616,43 +619,23 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
         });
     });
 
-    // Add the rules for negatively-labelled predicates
-
-    /* Atom labeller */
-    struct labelAtoms : public AstNodeMapper {
-        const std::set<AstQualifiedName>& sccFriends;
-        std::set<AstQualifiedName>& relsToLabel;
-        labelAtoms(const std::set<AstQualifiedName>& sccFriends, std::set<AstQualifiedName>& relsToLabel)
-                : sccFriends(sccFriends), relsToLabel(relsToLabel) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
-            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                if (contains(sccFriends, atom->getQualifiedName())) {
-                    auto labelledAtom = souffle::clone(atom);
-                    labelledAtom->setQualifiedName(getNegativeLabel(atom->getQualifiedName()));
-                    relsToLabel.insert(atom->getQualifiedName());
-                    return labelledAtom;
-                }
-            }
-            return node;
-        }
-    };
-
-    // Copy over the rules for negatively-labelled relations one stratum at a time
+    // Copy over the rules for labelled relations one stratum at a time
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
-        const auto& rels = sccGraph.getInternalRelations(stratum);
-        std::set<AstQualifiedName> relNames;
-        for (const auto* rel : rels) {
-            relNames.insert(rel->getQualifiedName());
+        // Check which relations to label in this stratum
+        const auto& stratumRels = sccGraph.getInternalRelations(stratum);
+        std::map<AstQualifiedName, AstQualifiedName> newSccFriendNames;
+        for (const auto* rel : stratumRels) {
+            auto relName = rel->getQualifiedName();
+            relationsToLabel.insert(relName);
+            newSccFriendNames[relName] = getNegativeLabel(relName);
         }
 
-        for (const auto* rel : rels) {
-            const auto& relName = rel->getQualifiedName();
-            for (auto* clause : getClauses(program, relName)) {
-                auto* neggedClause = clause->clone();
-                labelAtoms update(relNames, relationsToLabel);
-                neggedClause->apply(update);
-                clausesToAdd.insert(neggedClause);
+        // Negatively label the relations in a new copy of this stratum
+        for (const auto* rel : stratumRels) {
+            for (auto* clause : getClauses(program, rel->getQualifiedName())) {
+                auto neggedClause = souffle::clone(clause);
+                renameRelations(*neggedClause, newSccFriendNames);
+                clausesToAdd.insert(std::move(neggedClause));
             }
         }
     }
@@ -667,8 +650,8 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     }
 
     // Add in all the negged clauses
-    for (auto* clause : clausesToAdd) {
-        program.addClause(std::unique_ptr<AstClause>(clause));
+    for (const auto& clause : clausesToAdd) {
+        program.addClause(souffle::clone(clause));
     }
 
     return !relationsToLabel.empty();
