@@ -177,7 +177,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         // Create a new intermediate input relation, I'
         auto newRelation = std::make_unique<AstRelation>(newRelName);
         for (const auto* attr : rel->getAttributes()) {
-            newRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+            newRelation->addAttribute(souffle::clone(attr));
         }
 
         // Add the rule I <- I'
@@ -199,7 +199,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         for (const auto* io : program.getIOs()) {
             if (io->getQualifiedName() == relName && io->getType() == AstIoType::input) {
                 // New relation inherits the old input rules
-                auto newIO = std::unique_ptr<AstIO>(io->clone());
+                auto newIO = souffle::clone(io);
                 newIO->setQualifiedName(newRelName);
                 iosToAdd.insert(std::move(newIO));
 
@@ -211,7 +211,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
             program.removeIO(io);
         }
         for (auto& io : iosToAdd) {
-            program.addIO(std::unique_ptr<AstIO>(io->clone()));
+            program.addIO(souffle::clone(io));
         }
 
         // Add in the new relation and the copy clause
@@ -385,8 +385,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
                     // Link other variables back to their original value with a `<var> = <arg>` constraint
                     constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                            std::make_unique<AstVariable>(name.str()),
-                            std::unique_ptr<AstArgument>(arg->clone())));
+                            std::make_unique<AstVariable>(name.str()), souffle::clone(arg)));
                     return std::make_unique<AstVariable>(name.str());
                 }
             }
@@ -419,7 +418,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
         // Add each necessary new constraint to the clause
         for (auto& constraint : constraintsToAdd) {
-            clause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
+            clause->addToBody(souffle::clone(constraint));
         }
 
         changed |= changeCount != 0;
@@ -461,7 +460,7 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
     for (const auto* arg : headArgs) {
         const auto* var = dynamic_cast<const AstVariable*>(arg);
         assert(var != nullptr && "expected only variables in head");
-        adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
+        adornedHeadAtom->addArgument(souffle::clone(var));
     }
     adornedClause->setHead(std::move(adornedHeadAtom));
 
@@ -572,7 +571,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     }
 
     for (auto& clause : adornedClauses) {
-        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
+        program.addClause(souffle::clone(clause));
     }
 
     return !adornedClauses.empty() || !redundantClauses.empty();
@@ -629,7 +628,7 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
             node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 if (contains(sccFriends, atom->getQualifiedName())) {
-                    auto labelledAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    auto labelledAtom = souffle::clone(atom);
                     labelledAtom->setQualifiedName(getNegativeLabel(atom->getQualifiedName()));
                     relsToLabel.insert(atom->getQualifiedName());
                     return labelledAtom;
@@ -662,7 +661,7 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     for (const auto& relName : relationsToLabel) {
         const auto* originalRel = getRelation(program, relName);
         assert(originalRel != nullptr && "unlabelled relation does not exist");
-        auto labelledRelation = std::unique_ptr<AstRelation>(originalRel->clone());
+        auto labelledRelation = souffle::clone(originalRel);
         labelledRelation->setQualifiedName(getNegativeLabel(relName));
         program.addRelation(std::move(labelledRelation));
     }
@@ -708,7 +707,7 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                 auto relName = atom->getQualifiedName();
                 if (contains(atomsToRelabel, relName)) {
                     size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
-                    auto relabelledAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    auto relabelledAtom = souffle::clone(atom);
                     auto newName = AstQualifiedName(relName);
                     std::stringstream label;
                     label << "@poscopy_" << stratumCounts.at(relStratum) + 1;
@@ -874,7 +873,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         auto magicAtom = std::make_unique<AstAtom>(magicRelName);
         for (size_t i = 0; i < args.size(); i++) {
             if (adornmentMarker[i] == 'b') {
-                magicAtom->addArgument(std::unique_ptr<AstArgument>(args[i]->clone()));
+                magicAtom->addArgument(souffle::clone(args[i]));
             }
         }
 
@@ -885,7 +884,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             auto magicRelation = std::make_unique<AstRelation>(magicRelName);
             for (size_t i = 0; i < attributes.size(); i++) {
                 if (adornmentMarker[i] == 'b') {
-                    magicRelation->addAttribute(std::unique_ptr<AstAttribute>(attributes[i]->clone()));
+                    magicRelation->addAttribute(souffle::clone(attributes[i]));
                 }
             }
             program.addRelation(std::move(magicRelation));
@@ -901,7 +900,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         auto magicHead = createMagicAtom(atom);
         auto magicClause = std::make_unique<AstClause>();
         for (const auto& bindingAtom : constrainingAtoms) {
-            magicClause->addToBody(std::unique_ptr<AstAtom>(bindingAtom->clone()));
+            magicClause->addToBody(souffle::clone(bindingAtom));
         }
 
         std::set<std::string> seenVariables;
@@ -946,7 +945,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             });
 
             if (addConstraint) {
-                magicClause->addToBody(std::unique_ptr<AstBinaryConstraint>(eqConstraint->clone()));
+                magicClause->addToBody(souffle::clone(eqConstraint));
             }
         }
 
@@ -974,7 +973,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
 
     /** Perform the Magic Set Transformation */
     for (const auto* clause : program.getClauses()) {
-        clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
+        clausesToRemove.insert(souffle::clone(clause));
 
         const auto* head = clause->getHead();
         auto relName = head->getQualifiedName();
@@ -982,15 +981,15 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         // (1) Add the refined clause
         if (!isAdorned(relName)) {
             // Unadorned relations need not be refined, as every possible tuple is relevant
-            clausesToAdd.insert(std::unique_ptr<AstClause>(clause->clone()));
+            clausesToAdd.insert(souffle::clone(clause));
         } else {
             // Refine the clause with a prepended magic atom
             auto magicAtom = createMagicAtom(head);
             auto refinedClause = std::make_unique<AstClause>();
-            refinedClause->setHead(std::unique_ptr<AstAtom>(head->clone()));
-            refinedClause->addToBody(std::unique_ptr<AstAtom>(magicAtom->clone()));
+            refinedClause->setHead(souffle::clone(head));
+            refinedClause->addToBody(souffle::clone(magicAtom));
             for (auto* literal : clause->getBodyLiterals()) {
-                refinedClause->addToBody(std::unique_ptr<AstLiteral>(literal->clone()));
+                refinedClause->addToBody(souffle::clone(literal));
             }
             clausesToAdd.insert(std::move(refinedClause));
         }
@@ -1007,7 +1006,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             const auto* atom = dynamic_cast<const AstAtom*>(lit);
             if (atom == nullptr) continue;
             if (!isAdorned(atom->getQualifiedName())) {
-                atomsToTheLeft.push_back(std::unique_ptr<AstAtom>(atom->clone()));
+                atomsToTheLeft.push_back(souffle::clone(atom));
                 continue;
             }
             auto magicClause = createMagicClause(atom, atomsToTheLeft, eqConstraints);
@@ -1017,7 +1016,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     }
 
     for (auto& clause : clausesToAdd) {
-        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
+        program.addClause(souffle::clone(clause));
     }
     for (const auto& clause : clausesToRemove) {
         program.removeClause(clause.get());
