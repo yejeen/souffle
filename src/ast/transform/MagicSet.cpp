@@ -262,7 +262,7 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     }
 
     // Rename them systematically
-    renameRelations(program, inputToIntermediate);
+    renameAtoms(program, inputToIntermediate);
 
     // Add the rule I' <- I
     for (const auto& inputRelationName : inputRelationNames) {
@@ -337,7 +337,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     }
 
     // Rename them systematically
-    renameRelations(program, outputToIntermediate);
+    renameAtoms(program, outputToIntermediate);
 
     // Add the rule I <- I'
     for (const auto& outputRelationName : outputRelationNames) {

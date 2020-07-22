@@ -307,11 +307,11 @@ IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicF
     return candidates;
 }
 
-bool renameRelations(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) {
-    struct rename_relation : public AstNodeMapper {
+bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) {
+    struct rename_atoms : public AstNodeMapper {
         mutable bool changed{false};
         const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
-        rename_relation(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
+        rename_atoms(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
@@ -325,7 +325,7 @@ bool renameRelations(AstNode& node, const std::map<AstQualifiedName, AstQualifie
             return node;
         }
     };
-    rename_relation update(oldToNew);
+    rename_atoms update(oldToNew);
     node.apply(update);
     return update.changed;
 }

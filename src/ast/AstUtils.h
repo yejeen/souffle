@@ -251,11 +251,11 @@ void negateConstraintInPlace(AstConstraint& constraint);
 IntrinsicFunctors validOverloads(const TypeAnalysis&, const AstIntrinsicFunctor&);
 
 /**
- * Rename all relations that appear in a node to a given name.
+ * Rename all atoms hat appear in a node to a given name.
  * @param node node to alter the children of
- * @param oldToNew map from old relation names to new relation names
+ * @param oldToNew map from old atom names to new atom names
  * @return true if the node was changed
  */
-bool renameRelations(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew);
+bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew);
 
 }  // end of namespace souffle
