@@ -148,7 +148,8 @@ private:
 
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    static AstQualifiedName getAdornmentID(const AstQualifiedName& relName, const std::string& adornmentMarker);
+    static AstQualifiedName getAdornmentID(
+            const AstQualifiedName& relName, const std::string& adornmentMarker);
 
     void queueAdornment(const AstQualifiedName& relName, const std::string& adornmentMarker) {
         auto adornmentID = getAdornmentID(relName, adornmentMarker);

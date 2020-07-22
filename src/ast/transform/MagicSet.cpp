@@ -428,7 +428,8 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     return changed;
 }
 
-AstQualifiedName AdornDatabaseTransformer::getAdornmentID(const AstQualifiedName& relName, const std::string& adornmentMarker) {
+AstQualifiedName AdornDatabaseTransformer::getAdornmentID(
+        const AstQualifiedName& relName, const std::string& adornmentMarker) {
     if (adornmentMarker == "") return relName;
     AstQualifiedName adornmentID(relName);
     std::stringstream adornmentMarkerRepr;
