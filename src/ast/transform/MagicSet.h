@@ -248,59 +248,47 @@ private:
     std::set<std::string> boundHeadVariables{};
     std::map<std::string, std::set<std::set<std::string>>> bindingDependencies{};
 
-    void generateBindingDependencies(const AstClause* clause) {
-        auto addBindingDependency = [&](std::string variable, std::set<std::string> dependency) {
-            if (contains(bindingDependencies, variable)) {
-                bindingDependencies[variable].insert(dependency);
-            } else {
-                std::set<std::set<std::string>> dependencies;
-                dependencies.insert(dependency);
-                bindingDependencies[variable] = dependencies;
-            }
-        };
+    void addBindingDependency(std::string variable, std::set<std::string> dependency) {
+        if (!contains(bindingDependencies, variable)) {
+            bindingDependencies[variable] = std::set<std::set<std::string>>();
+        }
+        bindingDependencies[variable].insert(dependency);
+    }
 
+    void processEqualityBindings(const AstArgument* lhs, const AstArgument* rhs) {
+        const auto* var = dynamic_cast<const AstVariable*>(lhs);
+        if (var == nullptr) return;
+        std::set<std::string> subVars;
+        visitDepthFirst(*rhs, [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
+        addBindingDependency(var->getName(), subVars);
+        if (const auto* rec = dynamic_cast<const AstRecordInit*>(rhs)) {
+            for (const auto* arg : rec->getArguments()) {
+                if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
+                    // TODO need to make sure record args are pulled out into variables too!!
+                    std::set<std::string> singletonVar;
+                    singletonVar.insert(var->getName());
+                    addBindingDependency(subVar->getName(), singletonVar);
+                }
+            }
+        }
+    }
+
+    void generateBindingDependencies(const AstClause* clause) {
+        // Grab all relevant constraints
+        std::set<const AstBinaryConstraint*> constraints;
         visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
-            // Ignore binary constraints involving aggregators
             bool containsAggregators = false;
             visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) { containsAggregators = true; });
-            if (containsAggregators) {
-                return;
-            }
-
-            // Add variable binding dependencies
-            if (bc.getOperator() == BinaryConstraintOp::EQ) {
-                if (auto* var = dynamic_cast<AstVariable*>(bc.getLHS())) {
-                    std::set<std::string> subVars;
-                    visitDepthFirst(*bc.getRHS(),
-                            [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
-                    addBindingDependency(var->getName(), subVars);
-                    if (const auto* rec = dynamic_cast<const AstRecordInit*>(bc.getRHS())) {
-                        for (const auto* arg : rec->getArguments()) {
-                            if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
-                                std::set<std::string> singletonVar;
-                                singletonVar.insert(var->getName());
-                                addBindingDependency(subVar->getName(), singletonVar);
-                            }
-                        }
-                    }
-                }
-                if (auto* var = dynamic_cast<AstVariable*>(bc.getRHS())) {
-                    std::set<std::string> subVars;
-                    visitDepthFirst(*bc.getLHS(),
-                            [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
-                    addBindingDependency(var->getName(), subVars);
-                    if (const auto* rec = dynamic_cast<const AstRecordInit*>(bc.getLHS())) {
-                        for (const auto* arg : rec->getArguments()) {
-                            if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
-                                std::set<std::string> singletonVar;
-                                singletonVar.insert(var->getName());
-                                addBindingDependency(subVar->getName(), singletonVar);
-                            }
-                        }
-                    }
-                }
+            if (!containsAggregators && bc.getOperator() == BinaryConstraintOp::EQ) {
+                constraints.insert(&bc);
             }
         });
+
+        // Add variable binding dependencies
+        for (const auto* bc : constraints) {
+            processEqualityBindings(bc->getLHS(), bc->getRHS());
+            processEqualityBindings(bc->getRHS(), bc->getLHS());
+        }
     }
 
     bool reduceDependencies() {
@@ -308,15 +296,13 @@ private:
         std::map<std::string, std::set<std::set<std::string>>> newBindingDependencies;
         std::set<std::string> variablesToBind;
 
-        for (auto& pair : bindingDependencies) {
-            auto headVar = pair.first;
+        for (const auto& [headVar, dependencies] : bindingDependencies) {
             if (contains(boundVariables, headVar)) {
                 // No need to add the dependencies of already-bound variables
                 changed = true;
                 continue;
             }
 
-            const auto& dependencies = pair.second;
             assert(!dependencies.empty() &&
                     "a variable is only added if it appears in >= 1 binary constraint");
 
