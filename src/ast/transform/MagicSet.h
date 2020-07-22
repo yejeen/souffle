@@ -114,6 +114,11 @@ private:
      * Negative labelling must have been run first.
      */
     static bool runPositiveLabelling(AstTranslationUnit& translationUnit);
+
+    /**
+     * Provide a unique name for negatively-labelled relations.
+     */
+    static AstQualifiedName getNegativeLabel(const AstQualifiedName& name);
 };
 
 /**
@@ -134,9 +139,37 @@ public:
 private:
     using adorned_predicate = std::pair<AstQualifiedName, std::string>;
 
+    std::set<adorned_predicate> headAdornmentsToDo;
+    std::set<AstQualifiedName> headAdornmentsSeen;
+
+    std::vector<std::unique_ptr<AstClause>> adornedClauses;
+    std::vector<std::unique_ptr<AstClause>> redundantClauses;
+    std::set<AstQualifiedName> relationsToIgnore;
+
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    static AstQualifiedName getAdornmentID(const adorned_predicate& pred);
+    static AstQualifiedName getAdornmentID(const AstQualifiedName& relName, const std::string& adornmentMarker);
+
+    void queueAdornment(const AstQualifiedName& relName, const std::string& adornmentMarker) {
+        auto adornmentID = getAdornmentID(relName, adornmentMarker);
+        if (!contains(headAdornmentsSeen, adornmentID)) {
+            headAdornmentsToDo.insert(std::make_pair(relName, adornmentMarker));
+            headAdornmentsSeen.insert(adornmentID);
+        }
+    }
+
+    bool hasAdornmentToProcess() const {
+        return !headAdornmentsToDo.empty();
+    }
+
+    adorned_predicate nextAdornmentToProcess() {
+        assert(hasAdornmentToProcess() && "no adornment to pop");
+        auto headAdornment = *(headAdornmentsToDo.begin());
+        headAdornmentsToDo.erase(headAdornmentsToDo.begin());
+        return headAdornment;
+    }
+
+    std::unique_ptr<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
 };
 
 /**

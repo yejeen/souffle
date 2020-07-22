@@ -428,157 +428,139 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     return changed;
 }
 
-AstQualifiedName AdornDatabaseTransformer::getAdornmentID(const adorned_predicate& pred) {
-    if (pred.second == "") return pred.first;
-    AstQualifiedName adornmentID(pred.first);
-    std::stringstream adornmentMarker;
-    adornmentMarker << "{" << pred.second << "}";
-    adornmentID.append(adornmentMarker.str());
+AstQualifiedName AdornDatabaseTransformer::getAdornmentID(const AstQualifiedName& relName, const std::string& adornmentMarker) {
+    if (adornmentMarker == "") return relName;
+    AstQualifiedName adornmentID(relName);
+    std::stringstream adornmentMarkerRepr;
+    adornmentMarkerRepr << "{" << adornmentMarker << "}";
+    adornmentID.append(adornmentMarkerRepr.str());
     return adornmentID;
+}
+
+std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
+        const AstClause* clause, const std::string& adornmentMarker) {
+    const auto& relName = clause->getHead()->getQualifiedName();
+    const auto& headArgs = clause->getHead()->getArguments();
+    BindingStore variableBindings(clause);
+
+    // Create the adorned clause with an empty body
+    auto adornedClause = std::make_unique<AstClause>();
+
+    // Copy over plans if needed
+    if (clause->getExecutionPlan() != nullptr) {
+        assert(contains(relationsToIgnore, clause->getHead()->getQualifiedName()) &&
+                "clauses with plans should be ignored");
+        adornedClause->setExecutionPlan(souffle::clone(clause->getExecutionPlan()));
+    }
+
+    // Create the head atom
+    auto adornedHeadAtom = std::make_unique<AstAtom>(getAdornmentID(relName, adornmentMarker));
+    assert((adornmentMarker == "" || headArgs.size() == adornmentMarker.length()) &&
+            "adornment marker should correspond to head atom variables");
+    for (const auto* arg : headArgs) {
+        const auto* var = dynamic_cast<const AstVariable*>(arg);
+        assert(var != nullptr && "expected only variables in head");
+        adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
+    }
+    adornedClause->setHead(std::move(adornedHeadAtom));
+
+    // Bind variables in the head that are marked as bound args
+    for (size_t i = 0; i < adornmentMarker.length(); i++) {
+        const auto* var = dynamic_cast<AstVariable*>(headArgs[i]);
+        assert(var != nullptr && "expected only variables in head");
+        if (adornmentMarker[i] == 'b') {
+            variableBindings.bindHeadVariable(var->getName());
+        }
+    }
+
+    // Check through for variables bound in the body by a '<var> = <const>' term
+    visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
+        if (constr.getOperator() == BinaryConstraintOp::EQ && dynamic_cast<AstVariable*>(constr.getLHS()) &&
+                dynamic_cast<AstConstant*>(constr.getRHS())) {
+            const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
+            variableBindings.bindVariable(var->getName());
+        }
+    });
+
+    // Add in adorned body literals
+    std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
+    for (const auto* lit : clause->getBodyLiterals()) {
+        if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
+            // Non-atoms are added directly
+            adornedBodyLiterals.push_back(souffle::clone(lit));
+            continue;
+        }
+
+        const auto* atom = dynamic_cast<const AstAtom*>(lit);
+        assert(atom != nullptr && "expected atom");
+
+        // Form the appropriate adornment marker
+        std::stringstream atomAdornment;
+        if (!contains(relationsToIgnore, atom->getQualifiedName())) {
+            for (const auto* arg : atom->getArguments()) {
+                const auto* var = dynamic_cast<const AstVariable*>(arg);
+                assert(var != nullptr && "expected only variables in atom");
+                atomAdornment << (variableBindings.isBound(var->getName()) ? "b" : "f");
+            }
+        }
+        auto currAtomAdornmentID = getAdornmentID(atom->getQualifiedName(), atomAdornment.str());
+
+        // Add to the ToDo queue if needed
+        queueAdornment(atom->getQualifiedName(), atomAdornment.str());
+
+        // Add the adorned version to the clause
+        auto adornedBodyAtom = souffle::clone(atom);
+        adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
+        adornedBodyLiterals.push_back(std::move(adornedBodyAtom));
+
+        // All arguments are now bound
+        for (const auto* arg : atom->getArguments()) {
+            const auto* var = dynamic_cast<const AstVariable*>(arg);
+            assert(var != nullptr && "expected only variables in atom");
+            variableBindings.bindVariable(var->getName());
+        }
+    }
+    adornedClause->setBodyLiterals(std::move(adornedBodyLiterals));
+
+    return adornedClause;
 }
 
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
-    // Get relations to ignore
-    auto relationsToIgnore = getIgnoredRelations(translationUnit);
-
-    // Process data-structures
-    std::vector<std::unique_ptr<AstClause>> adornedClauses;
-    std::vector<std::unique_ptr<AstClause>> redundantClauses;
-    std::vector<std::unique_ptr<AstRelation>> relationsToAdd;
-
-    std::set<adorned_predicate> headAdornmentsToDo;
-    std::set<AstQualifiedName> headAdornmentsSeen;
-    std::set<AstQualifiedName> outputRelations;
+    relationsToIgnore = getIgnoredRelations(translationUnit);
 
     // Output relations trigger the adornment process
     for (const auto* rel : program.getRelations()) {
         if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
-            auto adornment = std::make_pair(rel->getQualifiedName(), "");
-            auto adornmentID = getAdornmentID(adornment);
-            assert(!contains(headAdornmentsSeen, adornmentID) && "unexpected repeat output relation");
-            headAdornmentsToDo.insert(adornment);
-            headAdornmentsSeen.insert(adornmentID);
-            outputRelations.insert(rel->getQualifiedName());
-        } else if (contains(relationsToIgnore, rel->getQualifiedName())) {
-            auto adornment = std::make_pair(rel->getQualifiedName(), "");
-            auto adornmentID = getAdornmentID(adornment);
-            headAdornmentsToDo.insert(adornment);
-            headAdornmentsSeen.insert(adornmentID);
+            queueAdornment(rel->getQualifiedName(), "");
         }
     }
 
     // Keep going while there's things to adorn
-    while (!headAdornmentsToDo.empty()) {
+    while (hasAdornmentToProcess()) {
         // Pop off the next head adornment to do
-        auto headAdornment = *(headAdornmentsToDo.begin());
-        headAdornmentsToDo.erase(headAdornmentsToDo.begin());
-        const auto& relName = headAdornment.first;
-        const auto* rel = getRelation(program, relName);
-        assert(rel != nullptr && "relation does not exist");
-        const auto& adornmentMarker = headAdornment.second;
+        const auto& [relName, adornmentMarker] = nextAdornmentToProcess();
 
         // Add the adorned relation if needed
         if (adornmentMarker != "") {
-            auto adornedRelation = std::make_unique<AstRelation>(getAdornmentID(headAdornment));
+            const auto* rel = getRelation(program, relName);
+            assert(rel != nullptr && "relation does not exist");
+
+            auto adornedRelation = std::make_unique<AstRelation>(getAdornmentID(relName, adornmentMarker));
             for (const auto* attr : rel->getAttributes()) {
-                adornedRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
+                adornedRelation->addAttribute(souffle::clone(attr));
             }
             program.addRelation(std::move(adornedRelation));
         }
 
         // Adorn every clause correspondingly
-        for (const AstClause* clause : getClauses(program, relName)) {
-            const auto* headAtom = clause->getHead();
-            const auto& headArguments = headAtom->getArguments();
-            BindingStore variableBindings(clause);
-
-            // Create the adorned clause with an empty body
-            auto adornedClause = std::make_unique<AstClause>();
-            auto adornedHeadAtomName = adornmentMarker == "" ? relName : getAdornmentID(headAdornment);
+        for (const auto* clause : getClauses(program, relName)) {
             if (adornmentMarker == "") {
-                redundantClauses.push_back(std::unique_ptr<AstClause>(clause->clone()));
+                redundantClauses.push_back(souffle::clone(clause));
             }
-            auto adornedHeadAtom = std::make_unique<AstAtom>(adornedHeadAtomName);
-            assert((adornmentMarker == "" || headAtom->getArity() == adornmentMarker.length()) &&
-                    "adornment marker should correspond to head atom variables");
-            for (size_t i = 0; i < adornmentMarker.length(); i++) {
-                const auto* var = dynamic_cast<AstVariable*>(headArguments[i]);
-                assert(var != nullptr && "expected only variables in head");
-                if (adornmentMarker[i] == 'b') {
-                    variableBindings.bindHeadVariable(var->getName());
-                }
-            }
-
-            for (const auto* arg : headArguments) {
-                const auto* var = dynamic_cast<const AstVariable*>(arg);
-                assert(var != nullptr && "expected only variables in head");
-                adornedHeadAtom->addArgument(std::unique_ptr<AstArgument>(var->clone()));
-            }
-
-            adornedClause->setHead(std::move(adornedHeadAtom));
-
-            // Check through for variables bound in the body
-            visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
-                if (constr.getOperator() == BinaryConstraintOp::EQ &&
-                        dynamic_cast<AstVariable*>(constr.getLHS()) &&
-                        dynamic_cast<AstConstant*>(constr.getRHS())) {
-                    const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
-                    variableBindings.bindVariable(var->getName());
-                }
-            });
-
-            // Add in adorned body literals
-            std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
-            for (const auto* lit : clause->getBodyLiterals()) {
-                if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
-                    // Form the appropriate adornment marker
-                    std::stringstream atomAdornment;
-
-                    if (!contains(relationsToIgnore, atom->getQualifiedName())) {
-                        for (const auto* arg : atom->getArguments()) {
-                            const auto* var = dynamic_cast<const AstVariable*>(arg);
-                            assert(var != nullptr && "expected only variables in atom");
-                            atomAdornment << (variableBindings.isBound(var->getName()) ? "b" : "f");
-                        }
-                    }
-
-                    auto currAtomAdornment = std::make_pair(atom->getQualifiedName(), atomAdornment.str());
-                    auto currAtomAdornmentID = getAdornmentID(currAtomAdornment);
-
-                    // Add the adorned version to the clause
-                    auto adornedBodyAtom = std::unique_ptr<AstAtom>(atom->clone());
-                    adornedBodyAtom->setQualifiedName(currAtomAdornmentID);
-                    adornedBodyLiterals.push_back(std::move(adornedBodyAtom));
-
-                    // Add to the ToDo queue if needed
-                    if (!contains(headAdornmentsSeen, currAtomAdornmentID)) {
-                        headAdornmentsSeen.insert(currAtomAdornmentID);
-                        headAdornmentsToDo.insert(currAtomAdornment);
-                    }
-
-                    // All arguments are now bound
-                    for (const auto* arg : atom->getArguments()) {
-                        const auto* var = dynamic_cast<const AstVariable*>(arg);
-                        assert(var != nullptr && "expected only variables in atom");
-                        variableBindings.bindVariable(var->getName());
-                    }
-                } else {
-                    adornedBodyLiterals.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
-                }
-            }
-            adornedClause->setBodyLiterals(std::move(adornedBodyLiterals));
-
-            // Add in plans if needed
-            if (clause->getExecutionPlan() != nullptr) {
-                assert(contains(relationsToIgnore, clause->getHead()->getQualifiedName()) &&
-                        "clauses with plans should be ignored");
-                adornedClause->setExecutionPlan(
-                        std::unique_ptr<AstExecutionPlan>(clause->getExecutionPlan()->clone()));
-            }
-
+            auto adornedClause = adornClause(clause, adornmentMarker);
             adornedClauses.push_back(std::move(adornedClause));
         }
     }
@@ -595,7 +577,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
-AstQualifiedName getNegativeLabel(const AstQualifiedName& name) {
+AstQualifiedName LabelDatabaseTransformer::getNegativeLabel(const AstQualifiedName& name) {
     AstQualifiedName newName(name);
     newName.prepend("@neglabel");
     return newName;
