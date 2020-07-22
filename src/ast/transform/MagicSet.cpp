@@ -584,6 +584,20 @@ AstQualifiedName LabelDatabaseTransformer::getNegativeLabel(const AstQualifiedNa
     return newName;
 }
 
+AstQualifiedName LabelDatabaseTransformer::getPositiveLabel(const AstQualifiedName& name, size_t count) {
+    std::stringstream label;
+    label << "@poscopy_" << count;
+    AstQualifiedName labelledName(name);
+    labelledName.prepend(label.str());
+    return labelledName;
+}
+
+bool LabelDatabaseTransformer::isNegativelyLabelled(const AstQualifiedName& name) {
+    auto qualifiers = name.getQualifiers();
+    assert(!qualifiers.empty() && "unexpected empty qualifier list");
+    return qualifiers[0] == "@neglabel";
+}
+
 bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
     changed |= runNegativeLabelling(translationUnit);
@@ -634,7 +648,7 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
         for (const auto* rel : stratumRels) {
             for (auto* clause : getClauses(program, rel->getQualifiedName())) {
                 auto neggedClause = souffle::clone(clause);
-                renameRelations(*neggedClause, newSccFriendNames);
+                renameAtoms(*neggedClause, newSccFriendNames);
                 clausesToAdd.insert(std::move(neggedClause));
             }
         }
@@ -665,44 +679,6 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
     auto& program = *translationUnit.getProgram();
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
     const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>()->graph();
-
-    auto isNegativelyLabelled = [&](const AstQualifiedName& name) {
-        auto qualifiers = name.getQualifiers();
-        assert(!qualifiers.empty() && "unexpected empty qualifier list");
-        return qualifiers[0] == "@neglabel";
-    };
-
-    /* Atom labeller */
-    struct labelAtoms : public AstNodeMapper {
-        const AstProgram& program;
-        const SCCGraph& sccGraph;
-        const std::map<size_t, size_t>& stratumCounts;
-        const std::set<AstQualifiedName>& atomsToRelabel;
-        labelAtoms(const AstProgram& program, const SCCGraph& sccGraph,
-                const std::map<size_t, size_t>& stratumCounts,
-                const std::set<AstQualifiedName>& atomsToRelabel)
-                : program(program), sccGraph(sccGraph), stratumCounts(stratumCounts),
-                  atomsToRelabel(atomsToRelabel) {}
-
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
-            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
-                auto relName = atom->getQualifiedName();
-                if (contains(atomsToRelabel, relName)) {
-                    size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
-                    auto relabelledAtom = souffle::clone(atom);
-                    auto newName = AstQualifiedName(relName);
-                    std::stringstream label;
-                    label << "@poscopy_" << stratumCounts.at(relStratum) + 1;
-                    newName.prepend(label.str());
-                    relabelledAtom->setQualifiedName(newName);
-                    return relabelledAtom;
-                }
-            }
-            return node;
-        }
-    };
-
     auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     std::set<size_t> labelledStrata;
@@ -751,9 +727,15 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                     }
                 });
             }
+
             for (auto* clause : clauses) {
-                labelAtoms update(program, sccGraph, labelledStrataCopyCount, relsToCopy);
-                clause->apply(update);
+                std::map<AstQualifiedName, AstQualifiedName> labelledNames;
+                for (const auto& relName : relsToCopy) {
+                    size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
+                    size_t copyCount = labelledStrataCopyCount.at(relStratum) + 1;
+                    labelledNames[relName] = getPositiveLabel(relName, copyCount);
+                }
+                renameAtoms(*clause, labelledNames);
             }
         }
 
@@ -767,7 +749,10 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         }
 
         for (int preStratum = stratum - 1; preStratum >= 0; preStratum--) {
-            if (contains(labelledStrata, preStratum)) continue;
+            if (contains(labelledStrata, preStratum)) {
+                continue;
+            }
+
             if (contains(dependentStrata[preStratum], stratum)) {
                 const auto& preStratumRels = sccGraph.getInternalRelations(preStratum);
                 std::set<AstQualifiedName> relsToLabel;
@@ -775,12 +760,20 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                     relsToLabel.insert(rel->getQualifiedName());
                 }
                 for (const auto* rel : preStratumRels) {
-                    if (contains(ignoredRelations, rel->getQualifiedName())) continue;
+                    if (contains(ignoredRelations, rel->getQualifiedName())) {
+                        continue;
+                    }
+
                     for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
-                        auto* labelledClause = clause->clone();
-                        labelAtoms update(program, sccGraph, labelledStrataCopyCount, relsToCopy);
-                        labelledClause->apply(update);
-                        program.addClause(std::unique_ptr<AstClause>(labelledClause));
+                        auto labelledClause = souffle::clone(clause);
+                        std::map<AstQualifiedName, AstQualifiedName> labelledNames;
+                        for (const auto& relName : relsToCopy) {
+                            size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
+                            size_t copyCount = labelledStrataCopyCount.at(relStratum) + 1;
+                            labelledNames[relName] = getPositiveLabel(relName, copyCount);
+                        }
+                        renameAtoms(*labelledClause, labelledNames);
+                        program.addClause(std::move(labelledClause));
                     }
                 }
                 labelledStrataCopyCount[preStratum]++;
@@ -790,17 +783,13 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
 
     // Add the new relations in
     for (auto& pair : labelledStrataCopyCount) {
-        size_t stratum = pair.first;
+        const auto& [stratum, numCopies] = pair;
         const auto& stratumRels = sccGraph.getInternalRelations(stratum);
-        for (size_t copy = 0; copy < pair.second; copy++) {
+        for (size_t copy = 0; copy < numCopies; copy++) {
             for (auto* rel : stratumRels) {
-                std::stringstream label;
-                label << "@poscopy_" << copy + 1;
-                auto newName = AstQualifiedName(rel->getQualifiedName());
-                newName.prepend(label.str());
-                auto* newRelation = rel->clone();
-                newRelation->setQualifiedName(newName);
-                program.addRelation(std::unique_ptr<AstRelation>(newRelation));
+                auto newRelation = souffle::clone(rel);
+                newRelation->setQualifiedName(getPositiveLabel(newRelation->getQualifiedName(), copy + 1));
+                program.addRelation(std::move(newRelation));
             }
         }
     }

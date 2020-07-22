@@ -119,6 +119,16 @@ private:
      * Provide a unique name for negatively-labelled relations.
      */
     static AstQualifiedName getNegativeLabel(const AstQualifiedName& name);
+
+    /**
+     * Provide a unique name for a positively labelled relation copy.
+     */
+    static AstQualifiedName getPositiveLabel(const AstQualifiedName& name, size_t count);
+
+    /**
+     * Check if a relation is negatively labelled.
+     */
+    static bool isNegativelyLabelled(const AstQualifiedName& name);
 };
 
 /**
