@@ -148,9 +148,15 @@ private:
 
     bool transform(AstTranslationUnit& translationUnit) override;
 
+    /**
+     * Get the unique identifier corresponding to an adorned predicate.
+     */
     static AstQualifiedName getAdornmentID(
             const AstQualifiedName& relName, const std::string& adornmentMarker);
 
+    /**
+     * Add an adornment to the ToDo queue if it hasn't been processed before.
+     */
     void queueAdornment(const AstQualifiedName& relName, const std::string& adornmentMarker) {
         auto adornmentID = getAdornmentID(relName, adornmentMarker);
         if (!contains(headAdornmentsSeen, adornmentID)) {
@@ -159,10 +165,16 @@ private:
         }
     }
 
+    /**
+     * Check if any more relations need to be adorned.
+     */
     bool hasAdornmentToProcess() const {
         return !headAdornmentsToDo.empty();
     }
 
+    /**
+     * Pop off the next predicate adornment to process.
+     */
     adorned_predicate nextAdornmentToProcess() {
         assert(hasAdornmentToProcess() && "no adornment to pop");
         auto headAdornment = *(headAdornmentsToDo.begin());
@@ -170,6 +182,9 @@ private:
         return headAdornment;
     }
 
+    /**
+     * Returns the adorned version of a clause.
+     */
     std::unique_ptr<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
 };
 
