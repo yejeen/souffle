@@ -244,36 +244,53 @@ public:
     }
 
 private:
+    // Helper types to represent a disjunction of several dependency sets
+    using ConjBindingSet = std::set<std::string>;
+    using DisjBindingSet = std::set<ConjBindingSet>;
+
     std::set<std::string> boundVariables{};
     std::set<std::string> boundHeadVariables{};
-    std::map<std::string, std::set<std::set<std::string>>> bindingDependencies{};
+    std::map<std::string, DisjBindingSet> variableDependencies{};
 
-    void addBindingDependency(std::string variable, std::set<std::string> dependency) {
-        if (!contains(bindingDependencies, variable)) {
-            bindingDependencies[variable] = std::set<std::set<std::string>>();
+    /**
+     * Add a new conjunction of variables as a potential binder for a given variable.
+     * The variable is considered bound if all variables in the conjunction are bound.
+     */
+    void addBindingDependency(std::string variable, ConjBindingSet dependency) {
+        if (!contains(variableDependencies, variable)) {
+            variableDependencies[variable] = DisjBindingSet();
         }
-        bindingDependencies[variable].insert(dependency);
+        variableDependencies[variable].insert(dependency);
     }
 
+    /**
+     * Add binding dependencies formed on lhs by a <lhs> = <rhs> equality constraint.
+     */
     void processEqualityBindings(const AstArgument* lhs, const AstArgument* rhs) {
+        // Only care about equalities affecting the bound status of variables
         const auto* var = dynamic_cast<const AstVariable*>(lhs);
         if (var == nullptr) return;
-        std::set<std::string> subVars;
-        visitDepthFirst(*rhs, [&](const AstVariable& subVar) { subVars.insert(subVar.getName()); });
-        addBindingDependency(var->getName(), subVars);
+
+        // If all variables on the rhs are bound, then lhs is also bound
+        ConjBindingSet depSet;
+        visitDepthFirst(*rhs, [&](const AstVariable& subVar) { depSet.insert(subVar.getName()); });
+        addBindingDependency(var->getName(), depSet);
+
+        // If the lhs is bound, then all args in the rec on the rhs are also bound
         if (const auto* rec = dynamic_cast<const AstRecordInit*>(rhs)) {
             for (const auto* arg : rec->getArguments()) {
                 const auto* subVar = dynamic_cast<const AstVariable*>(arg);
                 assert(subVar != nullptr && "expected args to be variables");
-                std::set<std::string> singletonVar;
-                singletonVar.insert(var->getName());
-                addBindingDependency(subVar->getName(), singletonVar);
+                addBindingDependency(subVar->getName(), ConjBindingSet({var->getName()}));
             }
         }
     }
 
+    /**
+     * Generate all binding dependencies implied by the constraints within a given clause.
+     */
     void generateBindingDependencies(const AstClause* clause) {
-        // Grab all relevant constraints
+        // Grab all relevant constraints (i.e. eq. constrs not involving aggregators)
         std::set<const AstBinaryConstraint*> constraints;
         visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
             bool containsAggregators = false;
@@ -283,71 +300,81 @@ private:
             }
         });
 
-        // Add variable binding dependencies
+        // Add variable binding dependencies implied by the constraint
         for (const auto* bc : constraints) {
             processEqualityBindings(bc->getLHS(), bc->getRHS());
             processEqualityBindings(bc->getRHS(), bc->getLHS());
         }
     }
 
+    /**
+     * Reduce a conjunctive set of dependencies based on the current bound variable set.
+     */
+    ConjBindingSet reduceDependency(const ConjBindingSet origDependency) {
+        ConjBindingSet newDependency;
+        for (const auto& var : origDependency) {
+            // Only keep unbound variables in the dependency
+            if (!contains(boundVariables, var)) {
+                newDependency.insert(var);
+            }
+        }
+        return newDependency;
+    }
+
+    /**
+     * Reduce a disjunctive set of variable dependencies based on the current bound variable set.
+     */
+    DisjBindingSet reduceDependency(const DisjBindingSet& originalDependencySet) {
+        DisjBindingSet newDependencies;
+        for (const auto& dep : originalDependencySet) {
+            auto newDep = reduceDependency(dep);
+            if (!newDep.empty()) {
+                newDependencies.insert(newDep);
+            }
+        }
+        return newDependencies;
+    }
+
+    /**
+     * Reduce the full set of dependencies for all tracked variables.
+     */
     bool reduceDependencies() {
         bool changed = false;
-        std::map<std::string, std::set<std::set<std::string>>> newBindingDependencies;
+        std::map<std::string, DisjBindingSet> newVariableDependencies;
         std::set<std::string> variablesToBind;
 
-        for (const auto& [headVar, dependencies] : bindingDependencies) {
+        // Reduce each variable's set of dependencies one by one
+        for (const auto& [headVar, dependencies] : variableDependencies) {
+            // No need to track the dependencies of already-bound variables
             if (contains(boundVariables, headVar)) {
-                // No need to add the dependencies of already-bound variables
                 changed = true;
                 continue;
             }
 
-            assert(!dependencies.empty() &&
-                    "a variable is only added if it appears in >= 1 binary constraint");
-
-            bool nowBound = false;
-            std::set<std::set<std::string>> newDependencies;
-            for (const auto& dep : dependencies) {
-                if (dep.empty()) {
-                    // Dependency satisfied!
-                    nowBound = true;
-                    break;
-                }
-
-                // Only keep unbound variables in the dependency
-                std::set<std::string> newDependency;
-                for (const auto& var : dep) {
-                    if (!contains(boundVariables, var)) {
-                        newDependency.insert(var);
-                    } else {
-                        changed = true;
-                    }
-                }
-
-                newDependencies.insert(newDependency);
-            }
-
-            if (nowBound) {
-                // Dependency has been satisfied
-                variablesToBind.insert(headVar);
+            // Reduce the dependency set based on bound variables
+            auto newDependencies = reduceDependency(dependencies);
+            if (newDependencies.empty() || newDependencies.size() < dependencies.size()) {
+                // At least one dependency has been satisfied, so variable is now bound
                 changed = true;
-            } else {
-                // Dependencies not satisfied yet, keep them in store
-                newBindingDependencies[headVar] = newDependencies;
+                variablesToBind.insert(headVar);
+                continue;
             }
+            newVariableDependencies[headVar] = newDependencies;
+            changed |= (newDependencies != dependencies);
         }
 
+        // Bind variables that need to be bound
         for (auto var : variablesToBind) {
             boundVariables.insert(var);
         }
 
+        // Repeat it recursively if any changes happened, until we reach a fixpoint
         if (changed) {
-            bindingDependencies = newBindingDependencies;
+            variableDependencies = newVariableDependencies;
             reduceDependencies();
             return true;
         }
-
-        assert(bindingDependencies == newBindingDependencies && "unexpected change");
+        assert(variableDependencies == newVariableDependencies && "unexpected change");
         return false;
     }
 };
