@@ -417,6 +417,13 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
             lit->apply(update);
         }
 
+        // Also apply to each record
+        visitDepthFirst(*clause, [&](const AstRecordInit& rec) {
+            for (AstArgument* arg : rec.getArguments()) {
+                arg->apply(update);
+            }
+        });
+
         // Add each necessary new constraint to the clause
         for (auto& constraint : constraintsToAdd) {
             clause->addToBody(souffle::clone(constraint));

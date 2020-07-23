@@ -263,12 +263,11 @@ private:
         addBindingDependency(var->getName(), subVars);
         if (const auto* rec = dynamic_cast<const AstRecordInit*>(rhs)) {
             for (const auto* arg : rec->getArguments()) {
-                if (const auto* subVar = dynamic_cast<const AstVariable*>(arg)) {
-                    // TODO need to make sure record args are pulled out into variables too!!
-                    std::set<std::string> singletonVar;
-                    singletonVar.insert(var->getName());
-                    addBindingDependency(subVar->getName(), singletonVar);
-                }
+                const auto* subVar = dynamic_cast<const AstVariable*>(arg);
+                assert(subVar != nullptr && "expected args to be variables");
+                std::set<std::string> singletonVar;
+                singletonVar.insert(var->getName());
+                addBindingDependency(subVar->getName(), singletonVar);
             }
         }
     }
@@ -312,7 +311,6 @@ private:
                 if (dep.empty()) {
                     // Dependency satisfied!
                     nowBound = true;
-                    changed = true;
                     break;
                 }
 
@@ -332,6 +330,7 @@ private:
             if (nowBound) {
                 // Dependency has been satisfied
                 variablesToBind.insert(headVar);
+                changed = true;
             } else {
                 // Dependencies not satisfied yet, keep them in store
                 newBindingDependencies[headVar] = newDependencies;
