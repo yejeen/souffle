@@ -666,8 +666,8 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
     auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     // Partition the strata into neglabelled and regular
-    std::set<size_t> labelledStrata;
-    std::map<size_t, size_t> labelledStrataCopyCount;
+    std::set<size_t> neglabelledStrata;
+    std::map<size_t, size_t> originalStrataCopyCount;
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
         size_t numNeggedRelations = 0;
         const auto& stratumRels = sccGraph.getInternalRelations(stratum);
@@ -683,14 +683,15 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
 
         if (numNeggedRelations > 0) {
             // This is a neglabelled stratum that will not be copied
-            labelledStrata.insert(stratum);
+            neglabelledStrata.insert(stratum);
         } else {
             // This is a regular stratum that may be copied
-            labelledStrataCopyCount[stratum] = 0;
+            originalStrataCopyCount[stratum] = 0;
         }
     }
 
     // Keep track of strata that depend on each stratum
+    // e.g. T in dependentStrata[S] iff a relation in T depends on a relation in S
     std::map<size_t, std::set<size_t>> dependentStrata;
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
         dependentStrata[stratum] = std::set<size_t>();
@@ -702,10 +703,12 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
         });
     }
 
-    // Number the positive derived literals in the clauses of neglabelled relations
+    // Label the positive derived literals in the clauses of neglabelled relations
+    // Need a new copy of those relations up to that point for each
     for (size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
-        if (!contains(labelledStrata, stratum)) continue;
+        if (!contains(neglabelledStrata, stratum)) continue;
 
+        // Rename in the current stratum
         for (const auto* rel : sccGraph.getInternalRelations(stratum)) {
             assert(isNegativelyLabelled(rel->getQualifiedName()) &&
                     "should only be looking at neglabelled strata");
@@ -727,49 +730,46 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
                 std::map<AstQualifiedName, AstQualifiedName> labelledNames;
                 for (const auto& relName : relsToCopy) {
                     size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
-                    size_t copyCount = labelledStrataCopyCount.at(relStratum) + 1;
+                    size_t copyCount = originalStrataCopyCount.at(relStratum) + 1;
                     labelledNames[relName] = getPositiveLabel(relName, copyCount);
                 }
                 renameAtoms(*clause, labelledNames);
             }
         }
 
-        // Create the rules for the newly positive labelled literals
-        std::set<AstQualifiedName> relsToCopy;
-        for (const auto* rel : program.getRelations()) {
-            const auto& relName = rel->getQualifiedName();
-            if (!contains(ignoredRelations, relName) && !isNegativelyLabelled(relName)) {
-                relsToCopy.insert(relName);
-            }
-        }
-
+        // Create the rules (from all previous strata) for the newly positive labelled literals
         for (int preStratum = stratum - 1; preStratum >= 0; preStratum--) {
-            if (contains(labelledStrata, preStratum)) continue;
+            if (contains(neglabelledStrata, preStratum)) continue;
             if (!contains(dependentStrata[preStratum], stratum)) continue;
 
-            const auto& preStratumRels = sccGraph.getInternalRelations(preStratum);
-            for (const auto* rel : preStratumRels) {
+            for (const auto* rel : sccGraph.getInternalRelations(preStratum)) {
                 if (contains(ignoredRelations, rel->getQualifiedName())) continue;
 
                 for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
-                    auto labelledClause = souffle::clone(clause);
+                    // Grab the new names for all unignored unlabelled positive atoms
                     std::map<AstQualifiedName, AstQualifiedName> labelledNames;
-                    for (const auto& relName : relsToCopy) {
+                    visitDepthFirst(*clause, [&](const AstAtom& atom) {
+                        const auto& relName = atom.getQualifiedName();
+                        if (contains(ignoredRelations, relName) || isNegativelyLabelled(relName)) return;
                         size_t relStratum = sccGraph.getSCC(getRelation(program, relName));
-                        size_t copyCount = labelledStrataCopyCount.at(relStratum) + 1;
+                        size_t copyCount = originalStrataCopyCount.at(relStratum) + 1;
                         labelledNames[relName] = getPositiveLabel(relName, copyCount);
-                    }
+                    });
+
+                    // Rename atoms accordingly
+                    auto labelledClause = souffle::clone(clause);
                     renameAtoms(*labelledClause, labelledNames);
                     program.addClause(std::move(labelledClause));
                 }
             }
-            labelledStrataCopyCount[preStratum]++;
+
+            originalStrataCopyCount[preStratum]++;
         }
     }
 
-    // Add the new relations in
+    // Add each copy for each relation in
     bool changed = false;
-    for (const auto& [stratum, numCopies] : labelledStrataCopyCount) {
+    for (const auto& [stratum, numCopies] : originalStrataCopyCount) {
         const auto& stratumRels = sccGraph.getInternalRelations(stratum);
         for (size_t copy = 0; copy < numCopies; copy++) {
             for (auto* rel : stratumRels) {
