@@ -783,151 +783,139 @@ bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translat
     return changed;
 }
 
+bool MagicSetTransformer::isAdorned(const AstQualifiedName& name) {
+    // Grab the final qualifier - this is where the adornment is if it exists
+    auto qualifiers = name.getQualifiers();
+    assert(!qualifiers.empty() && "unexpected empty qualifier list");
+    auto finalQualifier = qualifiers[qualifiers.size() - 1];
+    assert(finalQualifier.length() > 0 && "unexpected empty qualifier");
+
+    // Pattern: {[bf]*}
+    if (finalQualifier[0] == '{' && finalQualifier[finalQualifier.length() - 1] == '}') {
+        for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
+            char curBindingType = finalQualifier[i];
+            if (curBindingType != 'b' && curBindingType != 'f') {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+std::string MagicSetTransformer::getAdornment(const AstQualifiedName& name) {
+    assert(isAdorned(name) && "relation not adorned");
+    auto qualifiers = name.getQualifiers();
+    auto finalQualifier = qualifiers[qualifiers.size() - 1];
+    std::stringstream binding;
+    for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
+        binding << finalQualifier[i];
+    }
+    return binding.str();
+}
+
+AstQualifiedName MagicSetTransformer::getMagicName(const AstQualifiedName& name) {
+    assert(isAdorned(name) && "cannot magify unadorned predicates");
+    AstQualifiedName magicRelName(name);
+    magicRelName.prepend("@magic");
+    return magicRelName;
+}
+
+std::unique_ptr<AstAtom> MagicSetTransformer::createMagicAtom(const AstAtom* atom) {
+    auto origRelName = atom->getQualifiedName();
+    auto magicAtom = std::make_unique<AstAtom>(getMagicName(origRelName));
+
+    auto args = atom->getArguments();
+    auto adornmentMarker = getAdornment(origRelName);
+    for (size_t i = 0; i < args.size(); i++) {
+        if (adornmentMarker[i] == 'b') {
+            magicAtom->addArgument(souffle::clone(args[i]));
+        }
+    }
+
+    magicPredicatesSeen.insert(origRelName);
+    return magicAtom;
+}
+
+std::unique_ptr<AstClause> MagicSetTransformer::createMagicClause(const AstAtom* atom,
+        const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
+        const std::vector<const AstBinaryConstraint*> eqConstraints) {
+    auto magicHead = createMagicAtom(atom);
+    auto magicClause = std::make_unique<AstClause>();
+    for (const auto& bindingAtom : constrainingAtoms) {
+        magicClause->addToBody(souffle::clone(bindingAtom));
+    }
+
+    std::set<std::string> seenVariables;
+    visitDepthFirst(constrainingAtoms, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
+    visitDepthFirst(*magicHead, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
+    bool fixpointReached = false;
+    while (!fixpointReached) {
+        fixpointReached = true;
+        for (const auto* eqConstraint : eqConstraints) {
+            if (dynamic_cast<AstRecordInit*>(eqConstraint->getRHS()) != nullptr) {
+                const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getLHS());
+                if (var != nullptr && contains(seenVariables, var->getName())) {
+                    visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
+                        if (!contains(seenVariables, subVar.getName())) {
+                            fixpointReached = false;
+                            seenVariables.insert(subVar.getName());
+                        }
+                    });
+                }
+            }
+            if (dynamic_cast<AstRecordInit*>(eqConstraint->getLHS()) != nullptr) {
+                const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getRHS());
+                if (var != nullptr && contains(seenVariables, var->getName())) {
+                    visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
+                        if (!contains(seenVariables, subVar.getName())) {
+                            fixpointReached = false;
+                            seenVariables.insert(subVar.getName());
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    for (const auto* eqConstraint : eqConstraints) {
+        bool addConstraint = true;
+        visitDepthFirst(*eqConstraint, [&](const AstVariable& var) {
+            if (!contains(seenVariables, var.getName())) {
+                addConstraint = false;
+            }
+        });
+
+        if (addConstraint) {
+            magicClause->addToBody(souffle::clone(eqConstraint));
+        }
+    }
+
+    magicClause->setHead(std::move(magicHead));
+    return magicClause;
+}
+
+std::vector<const AstBinaryConstraint*> MagicSetTransformer::getBindingEqualityConstraints(const AstClause* clause) {
+    std::vector<const AstBinaryConstraint*> equalityConstraints;
+    for (const auto* lit : clause->getBodyLiterals()) {
+        const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
+        if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
+        if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr ||
+                dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
+            bool containsAggrs = false;
+            visitDepthFirst(*bc, [&](const AstAggregator& /* aggr */) { containsAggrs = true; });
+            if (!containsAggrs) {
+                equalityConstraints.push_back(bc);
+            }
+        }
+    }
+    return equalityConstraints;
+}
+
 bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     std::set<std::unique_ptr<AstClause>> clausesToRemove;
     std::set<std::unique_ptr<AstClause>> clausesToAdd;
-
-    std::set<AstQualifiedName> magicPredicatesSeen;
-
-    /** Checks if a given relation name is adorned */
-    auto isAdorned = [&](const AstQualifiedName& name) {
-        auto qualifiers = name.getQualifiers();
-        assert(!qualifiers.empty() && "unexpected empty qualifier list");
-        auto finalQualifier = qualifiers[qualifiers.size() - 1];
-        assert(finalQualifier.length() > 0 && "unexpected empty qualifier");
-        if (finalQualifier[0] == '{') {
-            assert(finalQualifier[finalQualifier.length() - 1] == '}' && "unterminated adornment string");
-            for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
-                char curBindingType = finalQualifier[i];
-                assert((curBindingType == 'b' || curBindingType == 'f') &&
-                        "unexpected binding type in adornment");
-            }
-            return true;
-        }
-        return false;
-    };
-
-    /** Retrieves the adornment encoded in a given relation name */
-    auto getAdornment = [&](const AstQualifiedName& name) {
-        assert(isAdorned(name) && "relation not adorned");
-        auto qualifiers = name.getQualifiers();
-        auto finalQualifier = qualifiers[qualifiers.size() - 1];
-        std::stringstream binding;
-        for (size_t i = 1; i < finalQualifier.length() - 1; i++) {
-            binding << finalQualifier[i];
-        }
-        return binding.str();
-    };
-
-    /** Create the magic atom associated with the given (relation, adornment) pair */
-    auto createMagicAtom = [&](const AstAtom* atom) {
-        auto name = atom->getQualifiedName();
-        auto magicRelName = AstQualifiedName(name);
-        magicRelName.prepend("@magic");
-
-        auto args = atom->getArguments();
-        auto adornmentMarker = getAdornment(name);
-        auto magicAtom = std::make_unique<AstAtom>(magicRelName);
-        for (size_t i = 0; i < args.size(); i++) {
-            if (adornmentMarker[i] == 'b') {
-                magicAtom->addArgument(souffle::clone(args[i]));
-            }
-        }
-
-        if (!contains(magicPredicatesSeen, magicRelName)) {
-            magicPredicatesSeen.insert(magicRelName);
-
-            auto attributes = getRelation(program, name)->getAttributes();
-            auto magicRelation = std::make_unique<AstRelation>(magicRelName);
-            for (size_t i = 0; i < attributes.size(); i++) {
-                if (adornmentMarker[i] == 'b') {
-                    magicRelation->addAttribute(souffle::clone(attributes[i]));
-                }
-            }
-            program.addRelation(std::move(magicRelation));
-        }
-
-        return magicAtom;
-    };
-
-    /** Create magic clause focused on a specific atom */
-    auto createMagicClause = [&](const AstAtom* atom,
-                                     const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
-                                     const std::vector<const AstBinaryConstraint*> eqConstraints) {
-        auto magicHead = createMagicAtom(atom);
-        auto magicClause = std::make_unique<AstClause>();
-        for (const auto& bindingAtom : constrainingAtoms) {
-            magicClause->addToBody(souffle::clone(bindingAtom));
-        }
-
-        std::set<std::string> seenVariables;
-        visitDepthFirst(
-                constrainingAtoms, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
-        visitDepthFirst(*magicHead, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
-        bool fixpointReached = false;
-        while (!fixpointReached) {
-            fixpointReached = true;
-            for (const auto* eqConstraint : eqConstraints) {
-                if (dynamic_cast<AstRecordInit*>(eqConstraint->getRHS()) != nullptr) {
-                    const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getLHS());
-                    if (var != nullptr && contains(seenVariables, var->getName())) {
-                        visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
-                            if (!contains(seenVariables, subVar.getName())) {
-                                fixpointReached = false;
-                                seenVariables.insert(subVar.getName());
-                            }
-                        });
-                    }
-                }
-                if (dynamic_cast<AstRecordInit*>(eqConstraint->getLHS()) != nullptr) {
-                    const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getRHS());
-                    if (var != nullptr && contains(seenVariables, var->getName())) {
-                        visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
-                            if (!contains(seenVariables, subVar.getName())) {
-                                fixpointReached = false;
-                                seenVariables.insert(subVar.getName());
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        for (const auto* eqConstraint : eqConstraints) {
-            bool addConstraint = true;
-            visitDepthFirst(*eqConstraint, [&](const AstVariable& var) {
-                if (!contains(seenVariables, var.getName())) {
-                    addConstraint = false;
-                }
-            });
-
-            if (addConstraint) {
-                magicClause->addToBody(souffle::clone(eqConstraint));
-            }
-        }
-
-        magicClause->setHead(std::move(magicHead));
-        return magicClause;
-    };
-
-    /** Get all equality constraints in a clause */
-    auto getEqualityConstraints = [&](const AstClause* clause) {
-        std::vector<const AstBinaryConstraint*> equalityConstraints;
-        for (const auto* lit : clause->getBodyLiterals()) {
-            const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
-            if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
-            if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr ||
-                    dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
-                bool containsAggrs = false;
-                visitDepthFirst(*bc, [&](const AstAggregator& /* aggr */) { containsAggrs = true; });
-                if (!containsAggrs) {
-                    equalityConstraints.push_back(bc);
-                }
-            }
-        }
-        return equalityConstraints;
-    };
 
     /** Perform the Magic Set Transformation */
     for (const auto* clause : program.getClauses()) {
@@ -953,7 +941,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         }
 
         // (2) Add the associated magic rules
-        std::vector<const AstBinaryConstraint*> eqConstraints = getEqualityConstraints(clause);
+        std::vector<const AstBinaryConstraint*> eqConstraints = getBindingEqualityConstraints(clause);
         std::vector<std::unique_ptr<AstAtom>> atomsToTheLeft;
         if (isAdorned(relName)) {
             // Add the specialising head atom
@@ -978,6 +966,19 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
     }
     for (const auto& clause : clausesToRemove) {
         program.removeClause(clause.get());
+    }
+
+    for (const auto& originalName : magicPredicatesSeen) {
+        auto adornmentMarker = getAdornment(originalName);
+        auto magicRelName = getMagicName(originalName);
+        auto attributes = getRelation(program, originalName)->getAttributes();
+        auto magicRelation = std::make_unique<AstRelation>(magicRelName);
+        for (size_t i = 0; i < attributes.size(); i++) {
+            if (adornmentMarker[i] == 'b') {
+                magicRelation->addAttribute(souffle::clone(attributes[i]));
+            }
+        }
+        program.addRelation(std::move(magicRelation));
     }
 
     return !clausesToRemove.empty() || !clausesToAdd.empty();

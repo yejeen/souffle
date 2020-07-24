@@ -216,7 +216,29 @@ public:
     }
 
 private:
+    std::set<AstQualifiedName> magicPredicatesSeen;
+
     bool transform(AstTranslationUnit& translationUnit) override;
+
+    /** Gets a unique magic identifier for a given adorned relation name */
+    static AstQualifiedName getMagicName(const AstQualifiedName& name);
+
+    /** Checks if a given relation name is adorned */
+    static bool isAdorned(const AstQualifiedName& name);
+
+    /** Retrieves an adornment encoded in a given relation name */
+    static std::string getAdornment(const AstQualifiedName& name);
+
+    /** Get all potentially-binding equality constraints in a clause */
+    static std::vector<const AstBinaryConstraint*> getBindingEqualityConstraints(const AstClause* clause);
+
+    /** Creates the magic atom associatd with the given (rel, adornment) pair */
+    std::unique_ptr<AstAtom> createMagicAtom(const AstAtom* atom);
+
+    /** Creates the magic clause centred around the given magic atom */
+    std::unique_ptr<AstClause> createMagicClause(const AstAtom* atom,
+            const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
+            const std::vector<const AstBinaryConstraint*> eqConstraints);
 };
 
 /**
