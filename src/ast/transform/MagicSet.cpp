@@ -823,9 +823,10 @@ AstQualifiedName MagicSetTransformer::getMagicName(const AstQualifiedName& name)
 
 std::unique_ptr<AstAtom> MagicSetTransformer::createMagicAtom(const AstAtom* atom) {
     auto origRelName = atom->getQualifiedName();
+    auto args = atom->getArguments();
+
     auto magicAtom = std::make_unique<AstAtom>(getMagicName(origRelName));
 
-    auto args = atom->getArguments();
     auto adornmentMarker = getAdornment(origRelName);
     for (size_t i = 0; i < args.size(); i++) {
         if (adornmentMarker[i] == 'b') {
@@ -833,7 +834,6 @@ std::unique_ptr<AstAtom> MagicSetTransformer::createMagicAtom(const AstAtom* ato
         }
     }
 
-    magicPredicatesSeen.insert(origRelName);
     return magicAtom;
 }
 
@@ -968,11 +968,12 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         program.removeClause(clause.get());
     }
 
-    for (const auto& originalName : magicPredicatesSeen) {
-        auto adornmentMarker = getAdornment(originalName);
-        auto magicRelName = getMagicName(originalName);
-        auto attributes = getRelation(program, originalName)->getAttributes();
-        auto magicRelation = std::make_unique<AstRelation>(magicRelName);
+    for (const auto* rel : program.getRelations()) {
+        const auto& origName = rel->getQualifiedName();
+        if (!isAdorned(origName)) continue;
+        auto magicRelation = std::make_unique<AstRelation>(getMagicName(origName));
+        auto attributes = getRelation(program, origName)->getAttributes();
+        auto adornmentMarker = getAdornment(origName);
         for (size_t i = 0; i < attributes.size(); i++) {
             if (adornmentMarker[i] == 'b') {
                 magicRelation->addAttribute(souffle::clone(attributes[i]));
