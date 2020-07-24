@@ -230,6 +230,10 @@ private:
     /** Get all potentially-binding equality constraints in a clause */
     static std::vector<const AstBinaryConstraint*> getBindingEqualityConstraints(const AstClause* clause);
 
+    /** Get the closure of the given set of variables under appearance in the given eq constraints */
+    static void addRelevantVariables(
+            std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints);
+
     /** Creates the magic atom associatd with the given (rel, adornment) pair */
     static std::unique_ptr<AstAtom> createMagicAtom(const AstAtom* atom);
 

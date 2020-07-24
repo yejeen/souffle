@@ -837,65 +837,95 @@ std::unique_ptr<AstAtom> MagicSetTransformer::createMagicAtom(const AstAtom* ato
     return magicAtom;
 }
 
+void MagicSetTransformer::addRelevantVariables(
+        std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints) {
+    // Helper method to check if all variables in an argument are bound
+    auto isFullyBound = [&](const AstArgument* arg) {
+        bool fullyBound = true;
+        visitDepthFirst(
+                *arg, [&](const AstVariable& var) { fullyBound &= contains(variables, var.getName()); });
+        return fullyBound;
+    };
+
+    // Helper method to add all newly relevant variables given a lhs = rhs constraint
+    auto addLocallyRelevantVariables = [&](const AstArgument* lhs, const AstArgument* rhs) {
+        const auto* lhsVar = dynamic_cast<const AstVariable*>(lhs);
+        if (lhsVar == nullptr) return true;
+
+        // if the rhs is fully bound, lhs is now bound
+        if (!contains(variables, lhsVar->getName())) {
+            if (isFullyBound(rhs)) {
+                variables.insert(lhsVar->getName());
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        // if the rhs is a record, and lhs is a bound var, then all rhs vars are bound
+        bool fixpointReached = true;
+        if (const auto* rhsRec = dynamic_cast<const AstRecordInit*>(rhs)) {
+            for (const auto* arg : rhsRec->getArguments()) {
+                const auto* subVar = dynamic_cast<const AstVariable*>(arg);
+                assert(subVar != nullptr && "expected only variable arguments");
+                if (!contains(variables, subVar->getName())) {
+                    fixpointReached = false;
+                    variables.insert(subVar->getName());
+                }
+            }
+        }
+
+        return fixpointReached;
+    };
+
+    // Keep adding in relevant variables until we reach a fixpoint
+    bool fixpointReached = false;
+    while (!fixpointReached) {
+        fixpointReached = true;
+        for (const auto* eqConstraint : eqConstraints) {
+            assert(eqConstraint->getOperator() == BinaryConstraintOp::EQ && "expected only eq constraints");
+            fixpointReached &= addLocallyRelevantVariables(eqConstraint->getLHS(), eqConstraint->getRHS());
+            fixpointReached &= addLocallyRelevantVariables(eqConstraint->getRHS(), eqConstraint->getLHS());
+        }
+    }
+}
+
 std::unique_ptr<AstClause> MagicSetTransformer::createMagicClause(const AstAtom* atom,
         const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
         const std::vector<const AstBinaryConstraint*> eqConstraints) {
     auto magicHead = createMagicAtom(atom);
     auto magicClause = std::make_unique<AstClause>();
+
+    // Add in all constraining atoms
     for (const auto& bindingAtom : constrainingAtoms) {
         magicClause->addToBody(souffle::clone(bindingAtom));
     }
 
-    std::set<std::string> seenVariables;
-    visitDepthFirst(constrainingAtoms, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
-    visitDepthFirst(*magicHead, [&](const AstVariable& var) { seenVariables.insert(var.getName()); });
-    bool fixpointReached = false;
-    while (!fixpointReached) {
-        fixpointReached = true;
-        for (const auto* eqConstraint : eqConstraints) {
-            if (dynamic_cast<AstRecordInit*>(eqConstraint->getRHS()) != nullptr) {
-                const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getLHS());
-                if (var != nullptr && contains(seenVariables, var->getName())) {
-                    visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
-                        if (!contains(seenVariables, subVar.getName())) {
-                            fixpointReached = false;
-                            seenVariables.insert(subVar.getName());
-                        }
-                    });
-                }
-            }
-            if (dynamic_cast<AstRecordInit*>(eqConstraint->getLHS()) != nullptr) {
-                const auto* var = dynamic_cast<const AstVariable*>(eqConstraint->getRHS());
-                if (var != nullptr && contains(seenVariables, var->getName())) {
-                    visitDepthFirst(*eqConstraint, [&](const AstVariable& subVar) {
-                        if (!contains(seenVariables, subVar.getName())) {
-                            fixpointReached = false;
-                            seenVariables.insert(subVar.getName());
-                        }
-                    });
-                }
-            }
-        }
-    }
+    // Get the set of all variables that will be relevant to the magic clause
+    std::set<std::string> relevantVariables;
+    visitDepthFirst(
+            constrainingAtoms, [&](const AstVariable& var) { relevantVariables.insert(var.getName()); });
+    visitDepthFirst(*magicHead, [&](const AstVariable& var) { relevantVariables.insert(var.getName()); });
+    addRelevantVariables(relevantVariables, eqConstraints);
 
+    // Add in all eq constraints containing ONLY relevant variables
     for (const auto* eqConstraint : eqConstraints) {
         bool addConstraint = true;
         visitDepthFirst(*eqConstraint, [&](const AstVariable& var) {
-            if (!contains(seenVariables, var.getName())) {
+            if (!contains(relevantVariables, var.getName())) {
                 addConstraint = false;
             }
         });
 
-        if (addConstraint) {
-            magicClause->addToBody(souffle::clone(eqConstraint));
-        }
+        if (addConstraint) magicClause->addToBody(souffle::clone(eqConstraint));
     }
 
     magicClause->setHead(std::move(magicHead));
     return magicClause;
 }
 
-std::vector<const AstBinaryConstraint*> MagicSetTransformer::getBindingEqualityConstraints(const AstClause* clause) {
+std::vector<const AstBinaryConstraint*> MagicSetTransformer::getBindingEqualityConstraints(
+        const AstClause* clause) {
     std::vector<const AstBinaryConstraint*> equalityConstraints;
     for (const auto* lit : clause->getBodyLiterals()) {
         const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
@@ -955,8 +985,10 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 atomsToTheLeft.push_back(souffle::clone(atom));
                 continue;
             }
+
+            // Need to create a magic rule
             auto magicClause = createMagicClause(atom, atomsToTheLeft, eqConstraints);
-            atomsToTheLeft.push_back(std::unique_ptr<AstAtom>(atom->clone()));
+            atomsToTheLeft.push_back(souffle::clone(atom));
             clausesToAdd.insert(std::move(magicClause));
         }
     }
@@ -968,6 +1000,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
         program.removeClause(clause.get());
     }
 
+    // Add in the magic relations
+    bool changed = false;
     for (const auto* rel : program.getRelations()) {
         const auto& origName = rel->getQualifiedName();
         if (!isAdorned(origName)) continue;
@@ -979,10 +1013,10 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                 magicRelation->addAttribute(souffle::clone(attributes[i]));
             }
         }
+        changed = true;
         program.addRelation(std::move(magicRelation));
     }
-
-    return !clausesToRemove.empty() || !clausesToAdd.empty();
+    return changed;
 }
 
 BindingStore::BindingStore(const AstClause* clause, const std::string& adornmentMarker) {
