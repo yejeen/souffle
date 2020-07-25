@@ -47,10 +47,26 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
     std::set<AstQualifiedName> relationsToIgnore;
 
     // - Any relations not specified to magic-set
-    std::vector<std::string> specifiedRelations = splitString(Global::config().get("magic-transform"), ',');
-    if (!contains(specifiedRelations, "*")) {
+    std::vector<AstQualifiedName> specifiedRelations;
+
+    // From config
+    std::vector<std::string> configRels = splitString(Global::config().get("magic-transform"), ',');
+    for (const auto& relStr : configRels) {
+        std::vector<std::string> qualifiers = splitString(relStr, '.');
+        specifiedRelations.push_back(AstQualifiedName(qualifiers));
+    }
+
+    // From relation tags
+    for (const auto* rel : program.getRelations()) {
+        if (rel->hasQualifier(RelationQualifier::MAGIC)) {
+            specifiedRelations.push_back(rel->getQualifiedName());
+        }
+    }
+
+    // Get the complement if not everything is magic'd
+    if (!contains(configRels, "*")) {
         for (const AstRelation* rel : program.getRelations()) {
-            if (!contains(specifiedRelations, toString(rel->getQualifiedName()))) {
+            if (!contains(specifiedRelations, rel->getQualifiedName())) {
                 relationsToIgnore.insert(rel->getQualifiedName());
             }
         }
