@@ -8,6 +8,7 @@
 // preserve stratification, but poslabelling is not.
 
 // Reasoning:
+// Suppose we don't neglabel, and perform MST directly. Then:
 //  * magic[A](X) will depend on C(X) due to the query
 //  * C(X) will negatively-depend on B(X) due to its sole rule
 //  * B(X) will depend on A(X) from its sole rule
