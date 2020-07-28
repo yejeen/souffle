@@ -99,8 +99,8 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(True);
         FORWARD(False);
         FORWARD(EmptinessCheck);
-        FORWARD(ExistenceCheck);
         FORWARD(ProvenanceExistenceCheck);
+        FORWARD(ExistenceCheck);
         FORWARD(Conjunction);
         FORWARD(Negation);
         FORWARD(Constraint);
@@ -120,7 +120,9 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(Choice);
         FORWARD(ParallelIndexChoice);
         FORWARD(IndexChoice);
+        FORWARD(ParallelAggregate);
         FORWARD(Aggregate);
+        FORWARD(ParallelIndexAggregate);
         FORWARD(IndexAggregate);
 
         // Statements
@@ -198,7 +200,9 @@ protected:
     LINK(ParallelIndexChoice, IndexChoice);
     LINK(RelationOperation, TupleOperation);
     LINK(Aggregate, RelationOperation);
+    LINK(ParallelAggregate, Aggregate);
     LINK(IndexAggregate, IndexOperation);
+    LINK(ParallelIndexAggregate, IndexAggregate);
     LINK(IndexOperation, RelationOperation);
     LINK(TupleOperation, NestedOperation);
     LINK(Filter, AbstractConditional);
@@ -214,8 +218,8 @@ protected:
     LINK(Conjunction, Condition);
     LINK(Negation, Condition);
     LINK(Constraint, Condition);
-    LINK(ExistenceCheck, AbstractExistenceCheck);
     LINK(ProvenanceExistenceCheck, AbstractExistenceCheck);
+    LINK(ExistenceCheck, AbstractExistenceCheck);
     LINK(EmptinessCheck, Condition);
     LINK(AbstractExistenceCheck, Condition);
 

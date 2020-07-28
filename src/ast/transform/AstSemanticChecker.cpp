@@ -39,11 +39,14 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/TypeSystem.h"
-#include "ast/analysis/AstGroundAnalysis.h"
-#include "ast/analysis/AstIOTypeAnalysis.h"
-#include "ast/analysis/AstTypeAnalysis.h"
-#include "ast/analysis/AstTypeEnvironmentAnalysis.h"
+#include "ast/analysis/AstGround.h"
+#include "ast/analysis/AstIOType.h"
+#include "ast/analysis/AstType.h"
+#include "ast/analysis/AstTypeEnvironment.h"
 #include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/RecursiveClauses.h"
+#include "ast/analysis/RelationSchedule.h"
+#include "ast/analysis/SCCGraph.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
@@ -57,6 +60,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <typeinfo>
 #include <utility>
@@ -70,10 +74,10 @@ struct AstSemanticCheckerImpl {
 
 private:
     const IOType& ioTypes = *tu.getAnalysis<IOType>();
-    const PrecedenceGraph& precedenceGraph = *tu.getAnalysis<PrecedenceGraph>();
-    const RecursiveClauses& recursiveClauses = *tu.getAnalysis<RecursiveClauses>();
+    const PrecedenceGraphAnalysis& precedenceGraph = *tu.getAnalysis<PrecedenceGraphAnalysis>();
+    const RecursiveClausesAnalysis& recursiveClauses = *tu.getAnalysis<RecursiveClausesAnalysis>();
     const TypeEnvironmentAnalysis& typeEnvAnalysis = *tu.getAnalysis<TypeEnvironmentAnalysis>();
-    const SCCGraph& sccGraph = *tu.getAnalysis<SCCGraph>();
+    const SCCGraphAnalysis& sccGraph = *tu.getAnalysis<SCCGraphAnalysis>();
 
     const TypeEnvironment& typeEnv = typeEnvAnalysis.getTypeEnvironment();
     const AstProgram& program = *tu.getProgram();
@@ -231,7 +235,7 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
                     std::string negOrAgg = hasNegation ? "negation" : "aggregation";
                     messages.push_back(
                             DiagnosticMessage("has cyclic " + negOrAgg, foundLiteral->getSrcLoc()));
-                    report.addDiagnostic(Diagnostic(Diagnostic::ERROR,
+                    report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR,
                             DiagnosticMessage("Unable to stratify relation(s) {" + relationsListStr + "}"),
                             messages));
                     break;
@@ -878,7 +882,7 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
  * Find a cycle consisting entirely of inlined relations.
  * If no cycle exists, then an empty vector is returned.
  */
-std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraph& precedenceGraph,
+std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraphAnalysis& precedenceGraph,
         std::map<const AstRelation*, const AstRelation*>& origins, const AstRelation* current,
         AstRelationSet& unvisited, AstRelationSet& visiting, AstRelationSet& visited) {
     std::vector<AstQualifiedName> result;
@@ -1185,10 +1189,11 @@ void AstSemanticCheckerImpl::checkNamespaces() {
 }
 
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
-    auto* relationSchedule = translationUnit.getAnalysis<RelationSchedule>();
-    auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClauses>();
+    auto* relationSchedule = translationUnit.getAnalysis<RelationScheduleAnalysis>();
+    auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClausesAnalysis>();
+    auto&& report = translationUnit.getErrorReport();
 
-    for (const RelationScheduleStep& step : relationSchedule->schedule()) {
+    for (const RelationScheduleAnalysisStep& step : relationSchedule->schedule()) {
         const std::set<const AstRelation*>& scc = step.computed();
         for (const AstRelation* rel : scc) {
             for (const AstClause* clause : getClauses(*translationUnit.getProgram(), *rel)) {
@@ -1212,7 +1217,7 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
                 if (version <= maxVersion) {
                     for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
                         if (cur.first >= version) {
-                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR,
+                            report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR,
                                     DiagnosticMessage(
                                             "execution plan for version " + std::to_string(cur.first),
                                             cur.second->getSrcLoc()),
@@ -1258,8 +1263,16 @@ void TypeChecker::visitAtom(const AstAtom& atom) {
                 return isA<RecordType>(type) && !isA<SubsetType>(type);
             });
             if (!validAttribute && !Global::config().has("legacy")) {
-                report.addError("Atoms argument type is not a subtype of its declared type",
-                        arguments[i]->getSrcLoc());
+                auto primaryDiagnostic =
+                        DiagnosticMessage("Atom's argument type is not a subtype of its declared type",
+                                arguments[i]->getSrcLoc());
+
+                auto declaredTypeInfo =
+                        DiagnosticMessage(tfm::format("The argument's declared type is %s", typeName),
+                                attributes[i]->getSrcLoc());
+
+                report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR, std::move(primaryDiagnostic),
+                        {std::move(declaredTypeInfo)}));
             }
         }
     }

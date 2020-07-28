@@ -14,36 +14,74 @@
  *
  ***********************************************************************/
 
-#include "AstTranslator.h"
+#include "AstToRamTranslator.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Explain.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
-#include "InterpreterProgInterface.h"
 #include "ParserDriver.h"
 #include "RamTypes.h"
-#include "Synthesiser.h"
 #include "ast/AstNode.h"
 #include "ast/AstProgram.h"
 #include "ast/AstTranslationUnit.h"
-#include "ast/analysis/AstTypeAnalysis.h"
+#include "ast/analysis/AstType.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/transform/AstComponentChecker.h"
 #include "ast/transform/AstPragmaChecker.h"
 #include "ast/transform/AstSemanticChecker.h"
-#include "ast/transform/AstTransforms.h"
-#include "ast/transform/ComponentInstantiationTransformer.h"
-#include "ast/transform/IOAttributesTransformer.h"
-#include "ast/transform/IODefaultsTransformer.h"
+#include "ast/transform/AstUserDefinedFunctors.h"
+#include "ast/transform/ComponentInstantiation.h"
+#include "ast/transform/Conditional.h"
+#include "ast/transform/Fixpoint.h"
+#include "ast/transform/FoldAnonymousRecords.h"
+#include "ast/transform/IOAttributes.h"
+#include "ast/transform/IODefaults.h"
+#include "ast/transform/InlineRelations.h"
 #include "ast/transform/MagicSet.h"
+#include "ast/transform/MaterializeAggregationQueries.h"
+#include "ast/transform/MaterializeSingletonAggregation.h"
+#include "ast/transform/MinimiseProgram.h"
+#include "ast/transform/NameUnnamedVariables.h"
+#include "ast/transform/NormaliseConstraints.h"
+#include "ast/transform/PartitionBodyLiterals.h"
+#include "ast/transform/Pipeline.h"
+#include "ast/transform/PolymorphicObjects.h"
+#include "ast/transform/Provenance.h"
+#include "ast/transform/ReduceExistentials.h"
+#include "ast/transform/RemoveBooleanConstraints.h"
+#include "ast/transform/RemoveEmptyRelations.h"
+#include "ast/transform/RemoveRedundantRelations.h"
+#include "ast/transform/RemoveRedundantSums.h"
+#include "ast/transform/RemoveRelationCopies.h"
+#include "ast/transform/RemoveTypecasts.h"
+#include "ast/transform/ReorderLiterals.h"
+#include "ast/transform/ReplaceSingletonVariables.h"
+#include "ast/transform/ResolveAliases.h"
+#include "ast/transform/ResolveAnonymousRecordsAliases.h"
+#include "ast/transform/UniqueAggregationVariables.h"
 #include "config.h"
+#include "interpreter/InterpreterEngine.h"
+#include "interpreter/InterpreterProgInterface.h"
 #include "profile/Tui.h"
 #include "ram/RamNode.h"
 #include "ram/RamProgram.h"
 #include "ram/RamTranslationUnit.h"
+#include "ram/transform/ChoiceConversion.h"
+#include "ram/transform/CollapseFilters.h"
+#include "ram/transform/EliminateDuplicates.h"
+#include "ram/transform/ExpandFilter.h"
+#include "ram/transform/HoistAggregate.h"
+#include "ram/transform/HoistConditions.h"
+#include "ram/transform/IfConversion.h"
+#include "ram/transform/IndexedInequality.h"
+#include "ram/transform/MakeIndex.h"
+#include "ram/transform/Parallel.h"
 #include "ram/transform/RamTransformer.h"
-#include "ram/transform/RamTransforms.h"
+#include "ram/transform/ReorderConditions.h"
+#include "ram/transform/ReorderFilterBreak.h"
+#include "ram/transform/ReportIndex.h"
+#include "ram/transform/TupleId.h"
+#include "synthesiser/Synthesiser.h"
 #include "utility/FileUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -188,7 +226,7 @@ int main(int argc, char** argv) {
                         "Use profile log-file <FILE> for profile-guided optimization."},
                 {"debug-report", 'r', "FILE", "", false, "Write HTML debug report to <FILE>."},
                 {"pragma", 'P', "OPTIONS", "", false, "Set pragma options."},
-                {"provenance", 't', "[ none | explain | explore | subtreeHeights ]", "", false,
+                {"provenance", 't', "[ none | explain | explore ]", "", false,
                         "Enable provenance instrumentation and interaction."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
                 {"version", '\3', "", "", false, "Version."},
@@ -507,14 +545,14 @@ int main(int argc, char** argv) {
 
         // Output the precedence graph in graphviz dot format and return
         if (Global::config().get("show") == "precedence-graph") {
-            astTranslationUnit->getAnalysis<PrecedenceGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<PrecedenceGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
 
         // Output the scc graph in graphviz dot format and return
         if (Global::config().get("show") == "scc-graph") {
-            astTranslationUnit->getAnalysis<SCCGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<SCCGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
@@ -531,7 +569,7 @@ int main(int argc, char** argv) {
     /* translate AST to RAM */
     debugReport.startSection();
     std::unique_ptr<RamTranslationUnit> ramTranslationUnit =
-            AstTranslator().translateUnit(*astTranslationUnit);
+            AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
     std::unique_ptr<RamTransformer> ramTransform = std::make_unique<RamTransformerSequence>(
@@ -587,18 +625,12 @@ int main(int argc, char** argv) {
                 profiler.join();
             }
             if (Global::config().has("provenance")) {
-                // Test for bugged combination of provenance, interpreted souffle, and concurrency
-                if (Global::config().get("jobs") != "1") {
-                    throw std::runtime_error("Provenance is not supported with parallel interpreted mode");
-                }
-
                 // only run explain interface if interpreted
                 InterpreterProgInterface interface(*interpreter);
-                if (Global::config().get("provenance") == "explain" ||
-                        Global::config().get("provenance") == "subtreeHeights") {
-                    explain(interface, false, Global::config().get("provenance") == "subtreeHeights");
+                if (Global::config().get("provenance") == "explain") {
+                    explain(interface, false);
                 } else if (Global::config().get("provenance") == "explore") {
-                    explain(interface, true, false);
+                    explain(interface, true);
                 }
             }
         } else {
