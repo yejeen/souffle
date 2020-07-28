@@ -383,15 +383,43 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
     // Replace all non-variable-arguments nested inside the node with named variables
     // Also, keeps track of constraints to add to keep the clause semantically equivalent
-    struct constant_normaliser : public AstNodeMapper {
+    struct argument_normaliser : public AstNodeMapper {
         std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
         int& changeCount;
 
-        constant_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
+        argument_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
                 : constraints(constraints), changeCount(changeCount) {}
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            node->apply(*this);
+            if (auto* aggr = dynamic_cast<AstAggregator*>(node.get())) {
+                // Aggregator variable scopes should be maintained, so changes shouldn't propagate
+                // above this level.
+                std::set<std::unique_ptr<AstBinaryConstraint>> subConstraints;
+                argument_normaliser aggrUpdate(subConstraints, changeCount);
+                aggr->apply(aggrUpdate);
+
+                // Add the constraints to this level
+                std::vector<std::unique_ptr<AstLiteral>> newBodyLiterals;
+                for (const auto* lit : aggr->getBodyLiterals()) {
+                    newBodyLiterals.push_back(souffle::clone(lit));
+                }
+                for (auto& constr : subConstraints) {
+                    newBodyLiterals.push_back(souffle::clone(constr));
+                }
+
+                // Update the node to reflect normalised aggregator
+                node = aggr->getTargetExpression() != nullptr
+                               ? std::make_unique<AstAggregator>(aggr->getOperator(),
+                                         souffle::clone(aggr->getTargetExpression()),
+                                         std::move(newBodyLiterals))
+                               : std::make_unique<AstAggregator>(
+                                         aggr->getOperator(), nullptr, std::move(newBodyLiterals));
+            } else {
+                // Otherwise, just normalise children as usual.
+                node->apply(*this);
+            }
+
+            // All non-variables should be normalised
             if (auto* arg = dynamic_cast<AstArgument*>(node.get())) {
                 if (dynamic_cast<AstVariable*>(arg) == nullptr) {
                     std::stringstream name;
@@ -419,7 +447,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     for (auto* clause : program.getClauses()) {
         int changeCount = 0;
         std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
-        constant_normaliser update(constraintsToAdd, changeCount);
+        argument_normaliser update(constraintsToAdd, changeCount);
 
         // Apply to each clause head
         clause->getHead()->apply(update);
