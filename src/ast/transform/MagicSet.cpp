@@ -28,6 +28,8 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/analysis/AstIOType.h"
+#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/SCCGraph.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
@@ -612,7 +614,7 @@ bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
 }
 
 bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
-    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
+    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
     auto& program = *translationUnit.getProgram();
 
     std::set<AstQualifiedName> relationsToLabel;
@@ -678,8 +680,8 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
 
 bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
-    const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>()->graph();
+    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
+    const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraphAnalysis>()->graph();
     auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     // Partition the strata into neglabelled and regular
