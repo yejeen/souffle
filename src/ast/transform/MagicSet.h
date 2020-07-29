@@ -23,6 +23,8 @@
 #include "ast/AstQualifiedName.h"
 #include "ast/AstVisitor.h"
 #include "ast/transform/AstTransformer.h"
+#include "ast/transform/Pipeline.h"
+#include "ast/transform/RemoveRedundantRelations.h"
 #include <map>
 #include <set>
 #include <string>
@@ -34,13 +36,88 @@ namespace souffle {
 class AstTranslationUnit;
 
 /**
+ * Magic Set Transformation.
+ * Involves four stages:
+ *      (1) NormaliseDatabaseTransformer, for assumptions to hold
+ *      (2) LabelDatabaseTransformer, to support negation
+ *      (3) AdornDatabaseTransformer, to annotate information flow
+ *      (4) MagicSetCoreTransformer, to perform the core magifying transformation
+ */
+class MagicSetTransformer : public PipelineTransformer {
+public:
+    // The four horsemen of the apocalyptic transformation
+    class NormaliseDatabaseTransformer;
+    class LabelDatabaseTransformer;
+    class AdornDatabaseTransformer;
+    class MagicSetCoreTransformer;
+
+    MagicSetTransformer()
+            : PipelineTransformer(std::make_unique<NormaliseDatabaseTransformer>(),
+                      std::make_unique<LabelDatabaseTransformer>(),
+                      std::make_unique<RemoveRedundantRelationsTransformer>(),
+                      std::make_unique<AdornDatabaseTransformer>(),
+                      std::make_unique<MagicSetCoreTransformer>()) {}
+
+    std::string getName() const override {
+        return "MagicSetTransformer";
+    }
+
+    MagicSetTransformer* clone() const override {
+        return new MagicSetTransformer();
+    }
+};
+
+/**
+ * Core section of the magic set transformer.
+ * Creates all magic rules and relations based on the preceding adornment, and adds them into rules as needed.
+ * Assumes that Normalisation, Labelling, and Adornment have all been performed.
+ */
+class MagicSetTransformer::MagicSetCoreTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "MagicSetCoreTransformer";
+    }
+
+    MagicSetCoreTransformer* clone() const override {
+        return new MagicSetCoreTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    /** Gets a unique magic identifier for a given adorned relation name */
+    static AstQualifiedName getMagicName(const AstQualifiedName& name);
+
+    /** Checks if a given relation name is adorned */
+    static bool isAdorned(const AstQualifiedName& name);
+
+    /** Retrieves an adornment encoded in a given relation name */
+    static std::string getAdornment(const AstQualifiedName& name);
+
+    /** Get all potentially-binding equality constraints in a clause */
+    static std::vector<const AstBinaryConstraint*> getBindingEqualityConstraints(const AstClause* clause);
+
+    /** Get the closure of the given set of variables under appearance in the given eq constraints */
+    static void addRelevantVariables(
+            std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints);
+
+    /** Creates the magic atom associatd with the given (rel, adornment) pair */
+    static std::unique_ptr<AstAtom> createMagicAtom(const AstAtom* atom);
+
+    /** Creates the magic clause centred around the given magic atom */
+    static std::unique_ptr<AstClause> createMagicClause(const AstAtom* atom,
+            const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
+            const std::vector<const AstBinaryConstraint*> eqConstraints);
+};
+
+/**
  * Database normaliser for MST.
  * Effects:
  *  - Partitions database into [input|intermediate|queries]
  *  - Normalises all arguments and constraints
  * Prerequisite for adornment.
  */
-class NormaliseDatabaseTransformer : public AstTransformer {
+class MagicSetTransformer::NormaliseDatabaseTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "NormaliseDatabaseTransformer";
@@ -87,7 +164,7 @@ private:
  * Database labeller. Runs the magic-set labelling algorithm.
  * Necessary for supporting negation in MST.
  */
-class LabelDatabaseTransformer : public AstTransformer {
+class MagicSetTransformer::LabelDatabaseTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "LabelDatabaseTransformer";
@@ -136,7 +213,7 @@ private:
  * Adorns the rules of a database with variable flow and binding information.
  * Prerequisite for the magic set transformation.
  */
-class AdornDatabaseTransformer : public AstTransformer {
+class MagicSetTransformer::AdornDatabaseTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "AdornDatabaseTransformer";
@@ -196,51 +273,6 @@ private:
      * Returns the adorned version of a clause.
      */
     std::unique_ptr<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
-};
-
-/**
- * Magic Set Transformation.
- * Before running this transformation, need to run:
- *      (1) NormaliseDatabaseTransformer, for assumptions to hold
- *      (2) LabelDatabaseTransformer, to support negation
- *      (3) AdornDatabaseTransformer, to annotate information flow
- */
-class MagicSetTransformer : public AstTransformer {
-public:
-    std::string getName() const override {
-        return "MagicSetTransformer";
-    }
-
-    MagicSetTransformer* clone() const override {
-        return new MagicSetTransformer();
-    }
-
-private:
-    bool transform(AstTranslationUnit& translationUnit) override;
-
-    /** Gets a unique magic identifier for a given adorned relation name */
-    static AstQualifiedName getMagicName(const AstQualifiedName& name);
-
-    /** Checks if a given relation name is adorned */
-    static bool isAdorned(const AstQualifiedName& name);
-
-    /** Retrieves an adornment encoded in a given relation name */
-    static std::string getAdornment(const AstQualifiedName& name);
-
-    /** Get all potentially-binding equality constraints in a clause */
-    static std::vector<const AstBinaryConstraint*> getBindingEqualityConstraints(const AstClause* clause);
-
-    /** Get the closure of the given set of variables under appearance in the given eq constraints */
-    static void addRelevantVariables(
-            std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints);
-
-    /** Creates the magic atom associatd with the given (rel, adornment) pair */
-    static std::unique_ptr<AstAtom> createMagicAtom(const AstAtom* atom);
-
-    /** Creates the magic clause centred around the given magic atom */
-    static std::unique_ptr<AstClause> createMagicClause(const AstAtom* atom,
-            const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
-            const std::vector<const AstBinaryConstraint*> eqConstraints);
 };
 
 /**
