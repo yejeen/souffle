@@ -30,7 +30,9 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/analysis/AstGround.h"
+#include "ast/transform/MagicSet.h"
 #include "ast/transform/MinimiseProgram.h"
+#include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
 #include "utility/StringUtil.h"
@@ -434,17 +436,20 @@ TEST(AstUtils, MagicSet) {
 
     const auto& program = *tu->getProgram();
 
-    /* Stage 1: Database Normalisation */
-    std::make_unique<NormaliseDatabaseTransformer>()->apply(*tu);
+    /* Stage 1: Database normalisation */
+    std::make_unique<MagicSetTransformer::NormaliseDatabaseTransformer>()->apply(*tu);
 
     /* Stage 2: Database negative and positive labelling */
-    std::make_unique<LabelDatabaseTransformer>()->apply(*tu);
+    std::make_unique<MagicSetTransformer::LabelDatabaseTransformer>()->apply(*tu);
+
+    /* Stage 3: Remove redundant relations created through labelling */
+    std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
 
     /* Stage 3: Database adornment */
-    std::make_unique<AdornDatabaseTransformer>()->apply(*tu);
+    std::make_unique<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
 
     /* Stage 4: MST core transformation */
-    std::make_unique<MagicSetTransformer>()->apply(*tu);
+    std::make_unique<MagicSetTransformer::MagicSetCoreTransformer>()->apply(*tu);
 }
 
 }  // namespace test
