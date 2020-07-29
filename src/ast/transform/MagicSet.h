@@ -215,6 +215,9 @@ private:
  */
 class MagicSetTransformer::AdornDatabaseTransformer : public AstTransformer {
 public:
+    // Helper class for determining variable binding involving functors
+    class BindingStore;
+
     std::string getName() const override {
         return "AdornDatabaseTransformer";
     }
@@ -279,7 +282,7 @@ private:
  * A storage of bound variables that dynamically determines the set of bound variables
  * within a clause.
  */
-class BindingStore {
+class MagicSetTransformer::AdornDatabaseTransformer::BindingStore {
 public:
     BindingStore(const AstClause* clause, const std::string& adornmentMarker);
 

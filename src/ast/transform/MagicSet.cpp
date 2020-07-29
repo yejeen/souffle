@@ -38,6 +38,11 @@
 #include <utility>
 
 namespace souffle {
+typedef MagicSetTransformer::NormaliseDatabaseTransformer NormaliseDatabaseTransformer;
+typedef MagicSetTransformer::LabelDatabaseTransformer LabelDatabaseTransformer;
+typedef MagicSetTransformer::AdornDatabaseTransformer AdornDatabaseTransformer;
+typedef MagicSetTransformer::MagicSetCoreTransformer MagicSetCoreTransformer;
+typedef MagicSetTransformer::AdornDatabaseTransformer::BindingStore BindingStore;
 
 /**
  * Get set of relations to ignore during the MST process.
@@ -151,7 +156,7 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
     return relationsToIgnore;
 }
 
-bool MagicSetTransformer::NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
     /** (1) Partition input and output relations */
@@ -173,7 +178,7 @@ bool MagicSetTransformer::NormaliseDatabaseTransformer::transform(AstTranslation
     return changed;
 }
 
-bool MagicSetTransformer::NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUnit) {
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
@@ -241,7 +246,7 @@ bool MagicSetTransformer::NormaliseDatabaseTransformer::partitionIO(AstTranslati
     return !relationsToSplit.empty();
 }
 
-bool MagicSetTransformer::NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
 
@@ -304,7 +309,7 @@ bool MagicSetTransformer::NormaliseDatabaseTransformer::extractIDB(AstTranslatio
     return !inputRelationNames.empty();
 }
 
-bool MagicSetTransformer::NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
     // Helper method to check if a relation is a single-rule output query
@@ -378,7 +383,7 @@ bool MagicSetTransformer::NormaliseDatabaseTransformer::querifyOutputRelations(A
     return !outputRelationNames.empty();
 }
 
-bool MagicSetTransformer::NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& translationUnit) {
+bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
 
     // Replace all non-variable-arguments nested inside the node with named variables
@@ -481,7 +486,7 @@ bool MagicSetTransformer::NormaliseDatabaseTransformer::normaliseArguments(AstTr
     return changed;
 }
 
-AstQualifiedName MagicSetTransformer::AdornDatabaseTransformer::getAdornmentID(
+AstQualifiedName AdornDatabaseTransformer::getAdornmentID(
         const AstQualifiedName& relName, const std::string& adornmentMarker) {
     if (adornmentMarker == "") return relName;
     AstQualifiedName adornmentID(relName);
@@ -491,7 +496,7 @@ AstQualifiedName MagicSetTransformer::AdornDatabaseTransformer::getAdornmentID(
     return adornmentID;
 }
 
-std::unique_ptr<AstClause> MagicSetTransformer::AdornDatabaseTransformer::adornClause(
+std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
         const AstClause* clause, const std::string& adornmentMarker) {
     const auto& relName = clause->getHead()->getQualifiedName();
     const auto& headArgs = clause->getHead()->getArguments();
@@ -561,7 +566,7 @@ std::unique_ptr<AstClause> MagicSetTransformer::AdornDatabaseTransformer::adornC
     return adornedClause;
 }
 
-bool MagicSetTransformer::AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
 
@@ -613,13 +618,13 @@ bool MagicSetTransformer::AdornDatabaseTransformer::transform(AstTranslationUnit
     return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
-AstQualifiedName MagicSetTransformer::LabelDatabaseTransformer::getNegativeLabel(const AstQualifiedName& name) {
+AstQualifiedName LabelDatabaseTransformer::getNegativeLabel(const AstQualifiedName& name) {
     AstQualifiedName newName(name);
     newName.prepend("@neglabel");
     return newName;
 }
 
-AstQualifiedName MagicSetTransformer::LabelDatabaseTransformer::getPositiveLabel(const AstQualifiedName& name, size_t count) {
+AstQualifiedName LabelDatabaseTransformer::getPositiveLabel(const AstQualifiedName& name, size_t count) {
     std::stringstream label;
     label << "@poscopy_" << count;
     AstQualifiedName labelledName(name);
@@ -627,13 +632,13 @@ AstQualifiedName MagicSetTransformer::LabelDatabaseTransformer::getPositiveLabel
     return labelledName;
 }
 
-bool MagicSetTransformer::LabelDatabaseTransformer::isNegativelyLabelled(const AstQualifiedName& name) {
+bool LabelDatabaseTransformer::isNegativelyLabelled(const AstQualifiedName& name) {
     auto qualifiers = name.getQualifiers();
     assert(!qualifiers.empty() && "unexpected empty qualifier list");
     return qualifiers[0] == "@neglabel";
 }
 
-bool MagicSetTransformer::LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
+bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
     changed |= runNegativeLabelling(translationUnit);
     if (changed) translationUnit.invalidateAnalyses();
@@ -641,7 +646,7 @@ bool MagicSetTransformer::LabelDatabaseTransformer::transform(AstTranslationUnit
     return changed;
 }
 
-bool MagicSetTransformer::LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
+bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
     auto& program = *translationUnit.getProgram();
 
@@ -706,7 +711,7 @@ bool MagicSetTransformer::LabelDatabaseTransformer::runNegativeLabelling(AstTran
     return !relationsToLabel.empty();
 }
 
-bool MagicSetTransformer::LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
+bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
     const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraphAnalysis>()->graph();
@@ -830,7 +835,7 @@ bool MagicSetTransformer::LabelDatabaseTransformer::runPositiveLabelling(AstTran
     return changed;
 }
 
-bool MagicSetTransformer::MagicSetCoreTransformer::isAdorned(const AstQualifiedName& name) {
+bool MagicSetCoreTransformer::isAdorned(const AstQualifiedName& name) {
     // Grab the final qualifier - this is where the adornment is if it exists
     auto qualifiers = name.getQualifiers();
     assert(!qualifiers.empty() && "unexpected empty qualifier list");
@@ -850,7 +855,7 @@ bool MagicSetTransformer::MagicSetCoreTransformer::isAdorned(const AstQualifiedN
     return false;
 }
 
-std::string MagicSetTransformer::MagicSetCoreTransformer::getAdornment(const AstQualifiedName& name) {
+std::string MagicSetCoreTransformer::getAdornment(const AstQualifiedName& name) {
     assert(isAdorned(name) && "relation not adorned");
     auto qualifiers = name.getQualifiers();
     auto finalQualifier = qualifiers[qualifiers.size() - 1];
@@ -861,14 +866,14 @@ std::string MagicSetTransformer::MagicSetCoreTransformer::getAdornment(const Ast
     return binding.str();
 }
 
-AstQualifiedName MagicSetTransformer::MagicSetCoreTransformer::getMagicName(const AstQualifiedName& name) {
+AstQualifiedName MagicSetCoreTransformer::getMagicName(const AstQualifiedName& name) {
     assert(isAdorned(name) && "cannot magify unadorned predicates");
     AstQualifiedName magicRelName(name);
     magicRelName.prepend("@magic");
     return magicRelName;
 }
 
-std::unique_ptr<AstAtom> MagicSetTransformer::MagicSetCoreTransformer::createMagicAtom(const AstAtom* atom) {
+std::unique_ptr<AstAtom> MagicSetCoreTransformer::createMagicAtom(const AstAtom* atom) {
     auto origRelName = atom->getQualifiedName();
     auto args = atom->getArguments();
 
@@ -884,7 +889,7 @@ std::unique_ptr<AstAtom> MagicSetTransformer::MagicSetCoreTransformer::createMag
     return magicAtom;
 }
 
-void MagicSetTransformer::MagicSetCoreTransformer::addRelevantVariables(
+void MagicSetCoreTransformer::addRelevantVariables(
         std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints) {
     // Helper method to check if all variables in an argument are bound
     auto isFullyBound = [&](const AstArgument* arg) {
@@ -937,7 +942,7 @@ void MagicSetTransformer::MagicSetCoreTransformer::addRelevantVariables(
     }
 }
 
-std::unique_ptr<AstClause> MagicSetTransformer::MagicSetCoreTransformer::createMagicClause(const AstAtom* atom,
+std::unique_ptr<AstClause> MagicSetCoreTransformer::createMagicClause(const AstAtom* atom,
         const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
         const std::vector<const AstBinaryConstraint*> eqConstraints) {
     auto magicHead = createMagicAtom(atom);
@@ -971,7 +976,7 @@ std::unique_ptr<AstClause> MagicSetTransformer::MagicSetCoreTransformer::createM
     return magicClause;
 }
 
-std::vector<const AstBinaryConstraint*> MagicSetTransformer::MagicSetCoreTransformer::getBindingEqualityConstraints(
+std::vector<const AstBinaryConstraint*> MagicSetCoreTransformer::getBindingEqualityConstraints(
         const AstClause* clause) {
     std::vector<const AstBinaryConstraint*> equalityConstraints;
     for (const auto* lit : clause->getBodyLiterals()) {
@@ -989,7 +994,7 @@ std::vector<const AstBinaryConstraint*> MagicSetTransformer::MagicSetCoreTransfo
     return equalityConstraints;
 }
 
-bool MagicSetTransformer::MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
+bool MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     std::set<std::unique_ptr<AstClause>> clausesToRemove;
     std::set<std::unique_ptr<AstClause>> clausesToAdd;
