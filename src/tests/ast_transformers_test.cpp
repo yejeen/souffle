@@ -388,5 +388,64 @@ TEST(AstTransformers, RemoveClauseRedundancies) {
     EXPECT_EQ("q(X) :- \n   a(X).", toString(*qClauses[0]));
 }
 
+/**
+ * Test the magic-set transformation on an example that covers all subtransformers, namely:
+ *      (1) NormaliseDatabaseTransformer
+ *      (2) LabelDatabaseTransformer
+ *      (3) AdornDatabaseTransformer
+ *      (4) MagicSetTransformer
+ */
+TEST(AstUtils, MagicSet) {
+    ErrorReport e;
+    DebugReport d;
+
+    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+            R"(
+                // Stratum 0 - Base Relations
+                .decl BaseOne(X:number)
+                .decl BaseTwo(X:number)
+                .input BaseOne, BaseTwo
+
+                // Stratum 1 [depends on: 0]
+                .decl A(X:number)
+                .decl B(X:number)
+                A(X) :- BaseOne(X).
+                A(X) :- BaseOne(X), B(X).
+                B(X) :- BaseTwo(X), A(X).
+
+                // Stratum 2 [depends on: 0,1]
+                .decl C(X:number)
+                C(X) :- BaseTwo(X), A(X), B(X), X != 1.
+
+                // Stratum 3 [depends on: 0,1]
+                .decl R(X:number)
+                R(X) :- BaseTwo(X), A(X), B(X), X != 0.
+
+                // Stratum 4 [depends on: 0,1,2,3]
+                .decl D(X:number)
+                D(X) :- BaseOne(X), A(X), !C(X), !R(X).
+
+                // Stratum 4 - Query [depends on: 0,1,4]
+                .decl Query(X:number)
+                .output Query
+                Query(X) :- BaseOne(X), D(X), A(X).
+            )",
+            e, d);
+
+    const auto& program = *tu->getProgram();
+
+    /* Stage 1: Database Normalisation */
+    std::make_unique<NormaliseDatabaseTransformer>()->apply(*tu);
+
+    /* Stage 2: Database negative and positive labelling */
+    std::make_unique<LabelDatabaseTransformer>()->apply(*tu);
+
+    /* Stage 3: Database adornment */
+    std::make_unique<AdornDatabaseTransformer>()->apply(*tu);
+
+    /* Stage 4: MST core transformation */
+    std::make_unique<MagicSetTransformer>()->apply(*tu);
+}
+
 }  // namespace test
 }  // namespace souffle
