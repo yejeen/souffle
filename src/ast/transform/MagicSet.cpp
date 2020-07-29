@@ -156,6 +156,20 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
     return relationsToIgnore;
 }
 
+bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
+    if (!shouldRun(translationUnit)) return false;
+    return PipelineTransformer::transform(translationUnit);
+}
+
+bool MagicSetTransformer::shouldRun(const AstTranslationUnit& translationUnit) {
+    const auto& program = *translationUnit.getProgram();
+    if (Global::config().has("magic-transform")) return true;
+    for (const auto* rel : program.getRelations()) {
+        if (rel->hasQualifier(RelationQualifier::MAGIC)) return true;
+    }
+    return false;
+}
+
 bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 

@@ -65,6 +65,12 @@ public:
     MagicSetTransformer* clone() const override {
         return new MagicSetTransformer();
     }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    /** Determines whether any part of the MST should be run. */
+    static bool shouldRun(const AstTranslationUnit& translationUnit);
 };
 
 /**
