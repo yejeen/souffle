@@ -170,8 +170,15 @@ private:
  * Database labeller. Runs the magic-set labelling algorithm.
  * Necessary for supporting negation in MST.
  */
-class MagicSetTransformer::LabelDatabaseTransformer : public AstTransformer {
+class MagicSetTransformer::LabelDatabaseTransformer : public PipelineTransformer {
 public:
+    class NegativeLabellingTransformer;
+    class PositiveLabellingTransformer;
+
+    LabelDatabaseTransformer()
+            : PipelineTransformer(std::make_unique<NegativeLabellingTransformer>(),
+                      std::make_unique<PositiveLabellingTransformer>()) {}
+
     std::string getName() const override {
         return "LabelDatabaseTransformer";
     }
@@ -181,37 +188,60 @@ public:
     }
 
 private:
+    /**
+     * Check if a relation is negatively labelled.
+     */
+    static bool isNegativelyLabelled(const AstQualifiedName& name);
+};
+
+/**
+ * Runs the first stage of the labelling algorithm.
+ * Separates out negated appearances of relations from the main SCC graph, preventing them from affecting
+ * stratification once magic dependencies are added.
+ */
+class MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "NegativeLabellingTransformer";
+    }
+
+    NegativeLabellingTransformer* clone() const override {
+        return new NegativeLabellingTransformer();
+    }
+
+private:
     bool transform(AstTranslationUnit& translationUnit) override;
-
-    /**
-     * Runs the first stage of the labelling algorithm.
-     * Separates out negated appearances of relations from the main SCC graph, preventing
-     * them from affecting stratification once magic dependencies are added.
-     */
-    static bool runNegativeLabelling(AstTranslationUnit& translationUnit);
-
-    /**
-     * Runs the second stage of the labelling algorithm.
-     * Separates out the dependencies of negatively labelled atoms from the main SCC
-     * graph, preventing them from affecting stratification after magic.
-     * Negative labelling must have been run first.
-     */
-    static bool runPositiveLabelling(AstTranslationUnit& translationUnit);
 
     /**
      * Provide a unique name for negatively-labelled relations.
      */
     static AstQualifiedName getNegativeLabel(const AstQualifiedName& name);
+};
+
+/**
+ * Runs the second stage of the labelling algorithm.
+ * Separates out the dependencies of negatively labelled atoms from the main SCC graph, preventing them from
+ * affecting stratification after magic.
+ * Note: Negative labelling must have been run first.
+ */
+class MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "PositiveLabellingTransformer";
+    }
+
+    PositiveLabellingTransformer* clone() const override {
+        return new PositiveLabellingTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
 
     /**
      * Provide a unique name for a positively labelled relation copy.
      */
     static AstQualifiedName getPositiveLabel(const AstQualifiedName& name, size_t count);
 
-    /**
-     * Check if a relation is negatively labelled.
-     */
-    static bool isNegativelyLabelled(const AstQualifiedName& name);
 };
 
 /**

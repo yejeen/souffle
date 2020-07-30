@@ -44,6 +44,11 @@ typedef MagicSetTransformer::AdornDatabaseTransformer AdornDatabaseTransformer;
 typedef MagicSetTransformer::MagicSetCoreTransformer MagicSetCoreTransformer;
 typedef MagicSetTransformer::AdornDatabaseTransformer::BindingStore BindingStore;
 
+typedef MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer
+        NegativeLabellingTransformer;
+typedef MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer
+        PositiveLabellingTransformer;
+
 /**
  * Get set of relations to ignore during the MST process.
  * Ignored relations are relations that should not be copied or altered beyond normalisation.
@@ -632,13 +637,13 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     return !adornedClauses.empty() || !redundantClauses.empty();
 }
 
-AstQualifiedName LabelDatabaseTransformer::getNegativeLabel(const AstQualifiedName& name) {
+AstQualifiedName NegativeLabellingTransformer::getNegativeLabel(const AstQualifiedName& name) {
     AstQualifiedName newName(name);
     newName.prepend("@neglabel");
     return newName;
 }
 
-AstQualifiedName LabelDatabaseTransformer::getPositiveLabel(const AstQualifiedName& name, size_t count) {
+AstQualifiedName PositiveLabellingTransformer::getPositiveLabel(const AstQualifiedName& name, size_t count) {
     std::stringstream label;
     label << "@poscopy_" << count;
     AstQualifiedName labelledName(name);
@@ -652,15 +657,7 @@ bool LabelDatabaseTransformer::isNegativelyLabelled(const AstQualifiedName& name
     return qualifiers[0] == "@neglabel";
 }
 
-bool LabelDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
-    bool changed = false;
-    changed |= runNegativeLabelling(translationUnit);
-    if (changed) translationUnit.invalidateAnalyses();
-    changed |= runPositiveLabelling(translationUnit);
-    return changed;
-}
-
-bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translationUnit) {
+bool NegativeLabellingTransformer::transform(AstTranslationUnit& translationUnit) {
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
     auto& program = *translationUnit.getProgram();
 
@@ -725,7 +722,7 @@ bool LabelDatabaseTransformer::runNegativeLabelling(AstTranslationUnit& translat
     return !relationsToLabel.empty();
 }
 
-bool LabelDatabaseTransformer::runPositiveLabelling(AstTranslationUnit& translationUnit) {
+bool PositiveLabellingTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
     const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
     const auto& precedenceGraph = translationUnit.getAnalysis<PrecedenceGraphAnalysis>()->graph();
