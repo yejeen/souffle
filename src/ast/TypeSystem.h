@@ -206,6 +206,28 @@ protected:
 };
 
 /**
+ * Sum type
+ */
+class SumType : public Type {
+public:
+    struct Branch {
+        std::string name;  // < the name of the branch
+        const Type& type;  // < the refined type of the branch
+    };
+
+    void setBranches(std::vector<Branch> bs) {
+        branches = std::move(bs);
+    }
+
+private:
+    SumType(const TypeEnvironment& env, AstQualifiedName name) : Type(env, std::move(name)) {}
+
+    friend class TypeEnvironment;
+
+    std::vector<Branch> branches;
+};
+
+/**
  * A collection to represent sets of types. In addition to ordinary set capabilities
  * it may also represent the set of all types -- without being capable of iterating over those.
  *

@@ -95,10 +95,11 @@ private:
     void checkRelationDeclaration(const AstRelation& relation);
     void checkRelation(const AstRelation& relation);
 
-    void checkType(const AstType& type);
+    void checkTypesDeclarations();
     void checkRecordType(const AstRecordType& type);
     void checkSubsetType(const AstSubsetType& type);
     void checkUnionType(const AstUnionType& type);
+    void checkSumType(const AstSumType& type);
 
     void checkNamespaces();
     void checkIO();
@@ -174,10 +175,7 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
         }
     }
 
-    // Check types in AST.
-    for (const auto* astType : program.getTypes()) {
-        checkType(*astType);
-    }
+    checkTypesDeclarations();
 
     // check rules
     for (auto* rel : program.getRelations()) {
@@ -678,6 +676,39 @@ void AstSemanticCheckerImpl::checkRecordType(const AstRecordType& type) {
     }
 }
 
+void AstSemanticCheckerImpl::checkSumType(const AstSumType& type) {
+    // check if all branches contain properly defined types.
+    for (auto& branch : type.getBranches()) {
+        if (!typeEnv.isType(branch.type)) {
+            report.addError(
+                    tfm::format("Undefined type %s in definition of branch %s", branch.type, branch.name),
+                    branch.loc);
+        }
+    }
+
+    // Check if all the branch names are unique.
+    // std::map<std::string, std::vector<SrcLocation>> branchToLocation;
+    // for (auto* branch : type.getBranches()) {
+    //     branchToLocation[branch->getName()].push_back(branch->getSrcLoc());
+    // }
+
+    // for (auto& branchLocationsPair : branchToLocation) {
+    //     auto&& branchName = branchLocationsPair.first;
+    //     auto&& srcLocs = branchLocationsPair.second;
+
+    //     if (srcLocs.size() == 1) {
+    //         continue;  // All good
+    //     }
+
+    //     for (auto& loc : srcLocs) {
+    //         report.addError(tfm::format("Branch %s is defined multiple times, in the definition of type
+    //         %s",
+    //                                 branchName, type.getQualifiedName()),
+    //                 loc);
+    //     }
+    // }
+}
+
 void AstSemanticCheckerImpl::checkSubsetType(const AstSubsetType& astType) {
     if (typeEnvAnalysis.isCyclic(astType.getQualifiedName())) {
         report.addError(
@@ -702,20 +733,53 @@ void AstSemanticCheckerImpl::checkSubsetType(const AstSubsetType& astType) {
     }
 }
 
-void AstSemanticCheckerImpl::checkType(const AstType& type) {
-    if (typeEnv.isPrimitiveType(type.getQualifiedName())) {
-        report.addError("Redefinition of the predefined type", type.getSrcLoc());
-        return;
+void AstSemanticCheckerImpl::checkTypesDeclarations() {
+    // The redefinitions of types is checked by checkNamespaces
+
+    for (auto* type : program.getTypes()) {
+        if (typeEnv.isPrimitiveType(type->getQualifiedName())) {
+            report.addError("Redefinition of the predefined type", type->getSrcLoc());
+            continue;
+        }
+
+        if (isA<AstUnionType>(type)) {
+            checkUnionType(*as<AstUnionType>(type));
+        } else if (isA<AstRecordType>(type)) {
+            checkRecordType(*as<AstRecordType>(type));
+        } else if (isA<AstSubsetType>(type)) {
+            checkSubsetType(*as<AstSubsetType>(type));
+        } else if (isA<AstSumType>(type)) {
+            checkSumType(*as<AstSumType>(type));
+        } else {
+            fatal("unsupported type construct: %s", typeid(type).name());
+        }
     }
 
-    if (isA<AstUnionType>(type)) {
-        checkUnionType(*as<AstUnionType>(type));
-    } else if (isA<AstRecordType>(type)) {
-        checkRecordType(*as<AstRecordType>(type));
-    } else if (isA<AstSubsetType>(type)) {
-        checkSubsetType(*as<AstSubsetType>(type));
-    } else {
-        fatal("unsupported type construct: %s", typeid(type).name());
+    // Check if all the branch names are unique in sum types.
+    std::map<std::string, std::vector<SrcLocation>> branchToLocation;
+    visitDepthFirst(program.getTypes(), [&](const AstSumType& type) {
+        for (auto&& branch : type.getBranches()) {
+            branchToLocation[branch.name].push_back(branch.loc);
+        }
+    });
+
+    for (auto& branchLocs : branchToLocation) {
+        auto& branch = branchLocs.first;
+        auto& locs = branchLocs.second;
+
+        // If a branch is used only once, then everything is fine.
+        if (locs.size() == 1) continue;
+
+        auto primaryDiagnostic =
+                DiagnosticMessage(tfm::format("Branch %s is defined multiple times", branch));
+
+        std::vector<DiagnosticMessage> branchDeclarations;
+        for (auto& loc : locs) {
+            branchDeclarations.push_back(DiagnosticMessage(tfm::format("Branch %s defined", branch), loc));
+        }
+
+        report.addDiagnostic(Diagnostic(
+                Diagnostic::Type::ERROR, std::move(primaryDiagnostic), std::move(branchDeclarations)));
     }
 }
 

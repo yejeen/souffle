@@ -274,54 +274,56 @@
 %token L_NOT                     "lnot"
 
 /* -- Non-Terminal Types -- */
-%type <Mov<RuleBody>>                       aggregate_body
-%type <AggregateOp>                         aggregate_func
-%type <Mov<Own<AstArgument>>>               arg
-%type <Mov<VecOwn<AstArgument>>>            arg_list
-%type <Mov<Own<AstAtom>>>                   atom
-%type <Mov<VecOwn<AstAttribute>>>           attributes_list
-%type <Mov<RuleBody>>                       body
-%type <Mov<Own<AstComponentType>>>          comp_type
-%type <Mov<Own<AstComponentInit>>>          comp_init
-%type <Mov<Own<AstComponent>>>              component
-%type <Mov<Own<AstComponent>>>              component_body
-%type <Mov<Own<AstComponent>>>              component_head
-%type <Mov<RuleBody>>                       conjunction
-%type <Mov<Own<AstConstraint>>>             constraint
-%type <Mov<RuleBody>>                       disjunction
-%type <Mov<Own<AstExecutionOrder>>>         exec_order
-%type <Mov<Own<AstExecutionPlan>>>          exec_plan
-%type <Mov<Own<AstExecutionPlan>>>          exec_plan_list
-%type <Mov<Own<AstClause>>>                 fact
-%type <Mov<std::vector<TypeAttribute>>>     functor_arg_type_list
-%type <Mov<std::string>>                    functor_built_in
-%type <Mov<Own<AstFunctorDeclaration>>>     functor_decl
-%type <Mov<VecOwn<AstAtom>>>                head
-%type <Mov<AstQualifiedName>>               identifier
-%type <Mov<VecOwn<AstIO>>>                  io_directive_list
-%type <Mov<VecOwn<AstIO>>>                  io_head
-%type <AstIoType>                           io_head_decl
-%type <Mov<VecOwn<AstIO>>>                  io_relation_list
-%type <Mov<std::string>>                    kvp_value
-%type <Mov<VecOwn<AstArgument>>>            non_empty_arg_list
-%type <Mov<VecOwn<AstAttribute>>>           non_empty_attributes
-%type <Mov<AstExecutionOrder::ExecOrder>>   non_empty_exec_order_list
-%type <Mov<std::vector<TypeAttribute>>>     non_empty_functor_arg_type_list
+%type <Mov<RuleBody>>                        aggregate_body
+%type <AggregateOp>                          aggregate_func
+%type <Mov<Own<AstArgument>>>                arg
+%type <Mov<VecOwn<AstArgument>>>             arg_list
+%type <Mov<Own<AstAtom>>>                    atom
+%type <Mov<VecOwn<AstAttribute>>>            attributes_list
+%type <Mov<RuleBody>>                        body
+%type <Mov<Own<AstComponentType>>>           comp_type
+%type <Mov<Own<AstComponentInit>>>           comp_init
+%type <Mov<Own<AstComponent>>>               component
+%type <Mov<Own<AstComponent>>>               component_body
+%type <Mov<Own<AstComponent>>>               component_head
+%type <Mov<RuleBody>>                        conjunction
+%type <Mov<Own<AstConstraint>>>              constraint
+%type <Mov<RuleBody>>                        disjunction
+%type <Mov<Own<AstExecutionOrder>>>          exec_order
+%type <Mov<Own<AstExecutionPlan>>>           exec_plan
+%type <Mov<Own<AstExecutionPlan>>>           exec_plan_list
+%type <Mov<Own<AstClause>>>                  fact
+%type <Mov<std::vector<TypeAttribute>>>      functor_arg_type_list
+%type <Mov<std::string>>                     functor_built_in
+%type <Mov<Own<AstFunctorDeclaration>>>      functor_decl
+%type <Mov<VecOwn<AstAtom>>>                 head
+%type <Mov<AstQualifiedName>>                identifier
+%type <Mov<VecOwn<AstIO>>>                   io_directive_list
+%type <Mov<VecOwn<AstIO>>>                   io_head
+%type <AstIoType>                            io_head_decl
+%type <Mov<VecOwn<AstIO>>>                   io_relation_list
+%type <Mov<std::string>>                     kvp_value
+%type <Mov<VecOwn<AstArgument>>>             non_empty_arg_list
+%type <Mov<VecOwn<AstAttribute>>>            non_empty_attributes
+%type <Mov<AstExecutionOrder::ExecOrder>>    non_empty_exec_order_list
+%type <Mov<std::vector<TypeAttribute>>>      non_empty_functor_arg_type_list
 %type <Mov<std::vector<std::pair
-            <std::string, std::string>>>>   non_empty_key_value_pairs
-%type <Mov<VecOwn<AstRelation>>>            non_empty_relation_list
-%type <Mov<Own<AstPragma>>>                 pragma
-%type <TypeAttribute>                       predefined_type
-%type <Mov<VecOwn<AstAttribute>>>           record_type_list
-%type <Mov<VecOwn<AstRelation>>>            relation_decl
-%type <std::set<RelationTag>>               relation_tags
-%type <Mov<VecOwn<AstClause>>>              rule
-%type <Mov<VecOwn<AstClause>>>              rule_def
-%type <Mov<RuleBody>>                       term
-%type <Mov<Own<AstType>>>                   type
-%type <Mov<std::vector<AstQualifiedName>>>  type_params
-%type <Mov<std::vector<AstQualifiedName>>>  type_param_list
-%type <Mov<std::vector<AstQualifiedName>>>  union_type_list
+            <std::string, std::string>>>>    non_empty_key_value_pairs
+%type <Mov<VecOwn<AstRelation>>>             non_empty_relation_list
+%type <Mov<Own<AstPragma>>>                  pragma
+%type <TypeAttribute>                        predefined_type
+%type <Mov<VecOwn<AstAttribute>>>            record_type_list
+%type <Mov<VecOwn<AstRelation>>>             relation_decl
+%type <std::set<RelationTag>>                relation_tags
+%type <Mov<VecOwn<AstClause>>>               rule
+%type <Mov<VecOwn<AstClause>>>               rule_def
+%type <Mov<RuleBody>>                        term
+%type <Mov<Own<AstType>>>                    type
+%type <Mov<std::vector<AstQualifiedName>>>   type_params
+%type <Mov<std::vector<AstQualifiedName>>>   type_param_list
+%type <Mov<std::vector<AstQualifiedName>>>   union_type_list
+%type <Mov<std::vector<AstSumType::Branch>>> sum_branch_list
+%type <AstSumType::Branch>                   sum_branch
 
 /* -- Operator precedence -- */
 %left L_OR
@@ -381,11 +383,10 @@ identifier
 
 /* Type declarations */
 type
-  : TYPE IDENT[name] SUBTYPE IDENT[base_type_name] {
-        $$ = mk<AstSubsetType>($name, $base_type_name, @$);
-   }
-  | TYPE IDENT EQUALS    union_type_list  { $$ = mk<AstUnionType >($2, $4, @$); }
-  | TYPE IDENT EQUALS   record_type_list  { $$ = mk<AstRecordType>($2, $4, @$); }
+  : TYPE IDENT SUBTYPE IDENT             { $$ = mk<AstSubsetType>($2, $4, @$); }
+  | TYPE IDENT EQUALS  union_type_list   { $$ = mk<AstUnionType>($2, $4, @$); }
+  | TYPE IDENT EQUALS  record_type_list  { $$ = mk<AstRecordType>($2, $4, @$); }
+  | TYPE IDENT EQUALS  sum_branch_list   { $$ = mk<AstSumType>($2, $4, @$); }
     /* deprecated subset type forms */
   | NUMBER_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "number", @$); }
   | SYMBOL_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$); }
@@ -396,6 +397,15 @@ type
 union_type_list
   :                       identifier {          $$.push_back($identifier); }
   | union_type_list PIPE  identifier { $$ = $1; $$.push_back($identifier); }
+  ;
+
+sum_branch_list
+  : sum_branch                           {          $$.push_back($sum_branch); }
+  | sum_branch_list SEMICOLON sum_branch { $$ = $1; $$.push_back($sum_branch); }
+  ;
+
+sum_branch
+  : IDENT[name] COLON identifier[type] { $$ = AstSumType::Branch($name, $type, @$); }
   ;
 
 /**
