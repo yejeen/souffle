@@ -475,7 +475,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(
             *tu);
     const auto relations2 = program.getRelations();
-    EXPECT_EQ(16, relations2.size());
+    EXPECT_EQ(14, relations2.size());
     EXPECT_EQ(14, program.getClauses().size());
 
     // Original strata - neglabels should appear on all negated appearances of relations
@@ -545,15 +545,32 @@ TEST(AstTransformers, MagicSetComprehensive) {
     /* Stage 2.2: Positive labelling */
     std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(
             *tu);
+    const auto relations3 = program.getRelations();
+    EXPECT_EQ(33, relations3.size());
+    EXPECT_EQ(27, program.getClauses().size());
+
+    // TODO: poslabel results
 
     /* Stage 2.3: Remove unnecessary labelled relations */
     std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
+    const auto relations4 = program.getRelations();
+    EXPECT_EQ(12, relations4.size());
+    EXPECT_EQ(13, program.getClauses().size());
+
+    // TODO: poslabel results after removal
 
     /* Stage 3: Database adornment */
     std::make_unique<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
+    const auto relations5 = program.getRelations();
+    // TODO: fix poscopy magic being ignored
+    // EXPECT_EQ(19, relations5.size());
+    // EXPECT_EQ(23, program.getClauses().size());
+
+    // TODO: adornment results
 
     /* Stage 4: MST core transformation */
     std::make_unique<MagicSetTransformer::MagicSetCoreTransformer>()->apply(*tu);
+    // TODO: mst core results
 }
 
 }  // namespace test

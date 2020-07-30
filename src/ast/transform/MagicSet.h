@@ -56,6 +56,7 @@ public:
                       std::make_unique<LabelDatabaseTransformer>(),
                       std::make_unique<RemoveRedundantRelationsTransformer>(),
                       std::make_unique<AdornDatabaseTransformer>(),
+                      std::make_unique<RemoveRedundantRelationsTransformer>(),
                       std::make_unique<MagicSetCoreTransformer>()) {}
 
     std::string getName() const override {

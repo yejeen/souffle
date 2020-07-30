@@ -61,8 +61,10 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
 
     // - Any relations not specified to magic-set
     std::vector<AstQualifiedName> specifiedRelations;
+    // TODO: make sure you dont ignore poslabel ones
 
     // From config
+    // TODO: check that this is done correctly
     std::vector<std::string> configRels = splitString(Global::config().get("magic-transform"), ',');
     for (const auto& relStr : configRels) {
         std::vector<std::string> qualifiers = splitString(relStr, '.');
@@ -691,6 +693,7 @@ bool NegativeLabellingTransformer::transform(AstTranslationUnit& translationUnit
         std::map<AstQualifiedName, AstQualifiedName> newSccFriendNames;
         for (const auto* rel : stratumRels) {
             auto relName = rel->getQualifiedName();
+            if (contains(ignoredRelations, relName)) continue;
             relationsToLabel.insert(relName);
             newSccFriendNames[relName] = getNegativeLabel(relName);
         }
