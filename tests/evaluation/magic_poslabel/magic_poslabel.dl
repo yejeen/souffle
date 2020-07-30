@@ -17,6 +17,8 @@
 //      D -> neglabel[C] -> A -> magic[A] -> D
 // Positive labelling copies out dependent strata to prevent this
 
+.pragma "magic-transform" "*"
+
 // Stratum 0 - Base Relations
 .decl BaseOne(X:number)
 .decl BaseTwo(X:number)

@@ -21,6 +21,8 @@
 // the domain if they did so in the original program, so care has to be taken
 // with head-bound variables, which should be handled internally by the MST.
 
+.pragma "magic-transform" "*"
+
 // Upper bound seed for generation
 .decl seed(X:number)
 .input seed

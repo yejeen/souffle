@@ -17,6 +17,8 @@
 //      magic[A] -> C -> B -> A -> magic[A]
 // Negative labelling separates out the negated level to prevent this
 
+.pragma "magic-transform" "*"
+
 // Stratum 0 - Base Input
 .decl Base(X:number)
 .input Base()

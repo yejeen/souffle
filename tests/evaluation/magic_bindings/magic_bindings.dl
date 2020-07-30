@@ -6,6 +6,7 @@
 
 // Tests magic-set bindings in the presence of functors.
 // All argument appearances are bound, which should be propagated down.
+.pragma "magic-transform" "*"
 
 .decl BaseOne(X:number)
 .input BaseOne
