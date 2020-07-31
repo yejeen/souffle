@@ -101,6 +101,9 @@ private:
     void checkUnionType(const AstUnionType& type);
     void checkSumType(const AstSumType& type);
 
+    /** check if all the branches refer to the existing types. */
+    void checkADTinits();
+
     void checkNamespaces();
     void checkIO();
     void checkWitnessProblem();
@@ -176,6 +179,8 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
     }
 
     checkTypesDeclarations();
+
+    checkADTinits();
 
     // check rules
     for (auto* rel : program.getRelations()) {
@@ -259,6 +264,22 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
     for (const AstArgument* arg : atom.getArguments()) {
         checkArgument(*arg);
     }
+}
+
+void AstSemanticCheckerImpl::checkADTinits() {
+    std::set<std::string> declaredBranches;
+    // Check if all the adt branches refer to the existing types.
+    visitDepthFirst(program.getTypes(), [&](const AstSumType& sumType) {
+        for (auto& branch : sumType.getBranches()) {
+            declaredBranches.insert(branch.name);
+        }
+    });
+
+    visitDepthFirst(program.getClauses(), [&](const AstADTinit& adt) {
+        if (!contains(declaredBranches, adt.getBranch())) {
+            report.addError("Undeclared branch", adt.getSrcLoc());
+        }
+    });
 }
 
 namespace {
@@ -425,6 +446,8 @@ bool isConstantArgument(const AstArgument* arg) {
         return all_of(term->getArguments(), isConstantArgument);
     } else if (isA<AstConstant>(arg)) {
         return true;
+    } else if (auto* adt = as<AstADTinit>(arg)) {
+        return isConstantArgument(adt->getArgument());
     } else {
         fatal("unsupported argument type: %s", typeid(arg).name());
     }
@@ -685,28 +708,6 @@ void AstSemanticCheckerImpl::checkSumType(const AstSumType& type) {
                     branch.loc);
         }
     }
-
-    // Check if all the branch names are unique.
-    // std::map<std::string, std::vector<SrcLocation>> branchToLocation;
-    // for (auto* branch : type.getBranches()) {
-    //     branchToLocation[branch->getName()].push_back(branch->getSrcLoc());
-    // }
-
-    // for (auto& branchLocationsPair : branchToLocation) {
-    //     auto&& branchName = branchLocationsPair.first;
-    //     auto&& srcLocs = branchLocationsPair.second;
-
-    //     if (srcLocs.size() == 1) {
-    //         continue;  // All good
-    //     }
-
-    //     for (auto& loc : srcLocs) {
-    //         report.addError(tfm::format("Branch %s is defined multiple times, in the definition of type
-    //         %s",
-    //                                 branchName, type.getQualifiedName()),
-    //                 loc);
-    //     }
-    // }
 }
 
 void AstSemanticCheckerImpl::checkSubsetType(const AstSubsetType& astType) {
@@ -1577,11 +1578,18 @@ void GroundedTermsChecker::verify(AstTranslationUnit& translationUnit) {
         }
 
         // all records need to be grounded
-        for (auto&& cur : getRecords(clause)) {
-            if (!isGrounded[cur]) {
-                report.addError("Ungrounded record", cur->getSrcLoc());
+        visitDepthFirst(clause, [&](const AstRecordInit& record) {
+            if (!isGrounded[&record]) {
+                report.addError("Ungrounded record", record.getSrcLoc());
             }
-        }
+        });
+
+        // All sums need to be grounded
+        visitDepthFirst(clause, [&](const AstADTinit& adt) {
+            if (!isGrounded[&adt]) {
+                report.addError("Ungrounded record", adt.getSrcLoc());
+            }
+        });
     });
 }
 

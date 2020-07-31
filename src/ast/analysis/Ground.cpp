@@ -146,106 +146,116 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 }
 }  // namespace
 
+struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
+    const RelationDetailCacheAnalysis& relCache;
+    std::set<const AstAtom*> ignore;
+
+    Analysis(const AstTranslationUnit& tu) : relCache(*tu.getAnalysis<RelationDetailCacheAnalysis>()) {}
+
+    // atoms are producing grounded variables
+    void visitAtom(const AstAtom& cur) override {
+        // some atoms need to be skipped (head or negation)
+        if (ignore.find(&cur) != ignore.end()) {
+            return;
+        }
+
+        // all arguments are grounded
+        for (const auto& arg : cur.getArguments()) {
+            addConstraint(isTrue(getVar(arg)));
+        }
+    }
+
+    // negations need to be skipped
+    void visitNegation(const AstNegation& cur) override {
+        // add nested atom to black-list
+        ignore.insert(cur.getAtom());
+    }
+
+    // also skip head if we don't have an inline qualifier
+    void visitClause(const AstClause& clause) override {
+        if (auto clauseHead = clause.getHead()) {
+            auto relation = relCache.getRelation(clauseHead->getQualifiedName());
+            // Only skip the head if the relation ISN'T inline. Keeping the head will ground
+            // any mentioned variables, allowing us to pretend they're grounded.
+            if (!(relation && relation->hasQualifier(RelationQualifier::INLINE))) {
+                ignore.insert(clauseHead);
+            }
+        }
+    }
+
+    // binary equality relations propagates groundness
+    void visitBinaryConstraint(const AstBinaryConstraint& cur) override {
+        // only target equality
+        if (!isEqConstraint(cur.getOperator())) {
+            return;
+        }
+
+        // if equal, link right and left side
+        auto lhs = getVar(cur.getLHS());
+        auto rhs = getVar(cur.getRHS());
+
+        addConstraint(imply(lhs, rhs));
+        addConstraint(imply(rhs, lhs));
+    }
+
+    // record init nodes
+    void visitRecordInit(const AstRecordInit& init) override {
+        auto cur = getVar(init);
+
+        std::vector<BoolDisjunctVar> vars;
+
+        // if record is grounded, so are all its arguments
+        for (const auto& arg : init.getArguments()) {
+            auto arg_var = getVar(arg);
+            addConstraint(imply(cur, arg_var));
+            vars.push_back(arg_var);
+        }
+
+        // if all arguments are grounded, so is the record
+        addConstraint(imply(vars, cur));
+    }
+
+    void visitADTinit(const AstADTinit& adt) override {
+        auto branchVar = getVar(adt);
+        auto argVar = getVar(adt.getArgument());
+
+        // If the argument is grounded so is whole the branch.
+        addConstraint(imply(branchVar, argVar));
+
+        // if the branch is grounded so is its argument.
+        addConstraint(imply(argVar, branchVar));
+    }
+
+    // constants are also sources of grounded values
+    void visitConstant(const AstConstant& c) override {
+        addConstraint(isTrue(getVar(c)));
+    }
+
+    // aggregators are grounding values
+    void visitAggregator(const AstAggregator& c) override {
+        addConstraint(isTrue(getVar(c)));
+    }
+
+    // functors with grounded values are grounded values
+    void visitFunctor(const AstFunctor& cur) override {
+        auto fun = getVar(cur);
+        std::vector<BoolDisjunctVar> varArgs;
+        for (const auto& arg : cur.getArguments()) {
+            varArgs.push_back(getVar(arg));
+        }
+        addConstraint(imply(varArgs, fun));
+    }
+
+    // casts propogate groundedness in and out
+    void visitTypeCast(const AstTypeCast& cast) override {
+        addConstraint(imply(getVar(cast.getValue()), getVar(cast)));
+    }
+};
+
 /***
  * computes for variables in the clause whether they are grounded
  */
-
 std::map<const AstArgument*, bool> getGroundedTerms(const AstTranslationUnit& tu, const AstClause& clause) {
-    struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
-        const RelationDetailCacheAnalysis& relCache;
-        std::set<const AstAtom*> ignore;
-
-        Analysis(const AstTranslationUnit& tu) : relCache(*tu.getAnalysis<RelationDetailCacheAnalysis>()) {}
-
-        // atoms are producing grounded variables
-        void visitAtom(const AstAtom& cur) override {
-            // some atoms need to be skipped (head or negation)
-            if (ignore.find(&cur) != ignore.end()) {
-                return;
-            }
-
-            // all arguments are grounded
-            for (const auto& arg : cur.getArguments()) {
-                addConstraint(isTrue(getVar(arg)));
-            }
-        }
-
-        // negations need to be skipped
-        void visitNegation(const AstNegation& cur) override {
-            // add nested atom to black-list
-            ignore.insert(cur.getAtom());
-        }
-
-        // also skip head if we don't have an inline qualifier
-        void visitClause(const AstClause& clause) override {
-            if (auto clauseHead = clause.getHead()) {
-                auto relation = relCache.getRelation(clauseHead->getQualifiedName());
-                // Only skip the head if the relation ISN'T inline. Keeping the head will ground
-                // any mentioned variables, allowing us to pretend they're grounded.
-                if (!(relation && relation->hasQualifier(RelationQualifier::INLINE))) {
-                    ignore.insert(clauseHead);
-                }
-            }
-        }
-
-        // binary equality relations propagates groundness
-        void visitBinaryConstraint(const AstBinaryConstraint& cur) override {
-            // only target equality
-            if (!isEqConstraint(cur.getOperator())) {
-                return;
-            }
-
-            // if equal, link right and left side
-            auto lhs = getVar(cur.getLHS());
-            auto rhs = getVar(cur.getRHS());
-
-            addConstraint(imply(lhs, rhs));
-            addConstraint(imply(rhs, lhs));
-        }
-
-        // record init nodes
-        void visitRecordInit(const AstRecordInit& init) override {
-            auto cur = getVar(init);
-
-            std::vector<BoolDisjunctVar> vars;
-
-            // if record is grounded, so are all its arguments
-            for (const auto& arg : init.getArguments()) {
-                auto arg_var = getVar(arg);
-                addConstraint(imply(cur, arg_var));
-                vars.push_back(arg_var);
-            }
-
-            // if all arguments are grounded, so is the record
-            addConstraint(imply(vars, cur));
-        }
-
-        // constants are also sources of grounded values
-        void visitConstant(const AstConstant& c) override {
-            addConstraint(isTrue(getVar(c)));
-        }
-
-        // aggregators are grounding values
-        void visitAggregator(const AstAggregator& c) override {
-            addConstraint(isTrue(getVar(c)));
-        }
-
-        // functors with grounded values are grounded values
-        void visitFunctor(const AstFunctor& cur) override {
-            auto fun = getVar(cur);
-            std::vector<BoolDisjunctVar> varArgs;
-            for (const auto& arg : cur.getArguments()) {
-                varArgs.push_back(getVar(arg));
-            }
-            addConstraint(imply(varArgs, fun));
-        }
-
-        // casts propogate groundedness in and out
-        void visitTypeCast(const AstTypeCast& cast) override {
-            addConstraint(imply(getVar(cast.getValue()), getVar(cast)));
-        }
-    };
-
     // run analysis on given clause
     return Analysis(tu).analyse(clause);
 }
