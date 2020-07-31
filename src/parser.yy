@@ -615,6 +615,8 @@ arg
   /* TODO (azreika): in next version: prepend records with identifiers */
   | LBRACKET arg_list RBRACKET { $$ = mk<AstRecordInit>($arg_list, @$); }
 
+  | DOLLAR IDENT[branch] LPAREN arg RPAREN { $$ = mk<AstADTinit>($branch, $4, @$); }
+
   |     LPAREN arg                  RPAREN { $$ = $2; }
   | AS  LPAREN arg COMMA identifier RPAREN { $$ = mk<AstTypeCast>($3, $identifier, @$); }
 
