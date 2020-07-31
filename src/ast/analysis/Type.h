@@ -28,7 +28,6 @@
 namespace souffle {
 
 class AstArgument;
-class AstProgram;
 class AstTranslationUnit;
 
 class TypeAnalysis : public AstAnalysis {
@@ -59,7 +58,7 @@ public:
      * @return a map mapping each contained argument to a a set of types
      */
     static std::map<const AstArgument*, TypeSet> analyseTypes(
-            const TypeEnvironment&, const AstClause&, const AstProgram&, std::ostream* /*logs*/ = nullptr);
+            const AstTranslationUnit&, const AstClause&, std::ostream* /*logs*/ = nullptr);
 
 private:
     std::map<const AstArgument*, TypeSet> argumentTypes;

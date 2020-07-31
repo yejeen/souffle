@@ -45,6 +45,7 @@
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
 #include "ast/analysis/SCCGraph.h"
+#include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "utility/ContainerUtil.h"
@@ -78,6 +79,7 @@ private:
     const RecursiveClausesAnalysis& recursiveClauses = *tu.getAnalysis<RecursiveClausesAnalysis>();
     const TypeEnvironmentAnalysis& typeEnvAnalysis = *tu.getAnalysis<TypeEnvironmentAnalysis>();
     const SCCGraphAnalysis& sccGraph = *tu.getAnalysis<SCCGraphAnalysis>();
+    const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
 
     const TypeEnvironment& typeEnv = typeEnvAnalysis.getTypeEnvironment();
     const AstProgram& program = *tu.getProgram();
@@ -139,6 +141,7 @@ private:
     void visitNumericConstant(const AstNumericConstant& constant) override;
     void visitNilConstant(const AstNilConstant& constant) override;
     void visitRecordInit(const AstRecordInit& rec) override;
+    void visitADTinit(const AstADTinit& adt) override;
     void visitTypeCast(const AstTypeCast& cast) override;
     void visitIntrinsicFunctor(const AstIntrinsicFunctor& fun) override;
     void visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) override;
@@ -267,16 +270,8 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
 }
 
 void AstSemanticCheckerImpl::checkADTinits() {
-    std::set<std::string> declaredBranches;
-    // Check if all the adt branches refer to the existing types.
-    visitDepthFirst(program.getTypes(), [&](const AstSumType& sumType) {
-        for (auto& branch : sumType.getBranches()) {
-            declaredBranches.insert(branch.name);
-        }
-    });
-
     visitDepthFirst(program.getClauses(), [&](const AstADTinit& adt) {
-        if (!contains(declaredBranches, adt.getBranch())) {
+        if (sumTypesBranches.getType(adt.getBranch()) == nullptr) {
             report.addError("Undeclared branch", adt.getSrcLoc());
         }
     });
@@ -1409,6 +1404,29 @@ void TypeChecker::visitRecordInit(const AstRecordInit& rec) {
     }
 }
 
+void TypeChecker::visitADTinit(const AstADTinit& adt) {
+    TypeSet types = typeAnalysis.getTypes(&adt);
+
+    if (!isOfKind(types, TypeAttribute::Sum) || types.isAll() || types.size() != 1) {
+        report.addError("Ambiguous branch", adt.getSrcLoc());
+        return;
+    }
+
+    // We know now that the set "types" is a singleton
+    auto& sumType = *as<SumType>(*types.begin());
+
+    auto& argumentType = sumType.getBranchType(adt.getBranch());
+
+    auto argTypes = typeAnalysis.getTypes(adt.getArgument());
+
+    // Check if the argument's type agrees with the branch declarations
+    if (!all_of(argTypes, [&](const Type& t) { return isSubtypeOf(t, argumentType); })) {
+        // TODO: Give better error
+        report.addError(
+                "Branch argument's type doesn't match its declared type", adt.getArgument()->getSrcLoc());
+    }
+}
+
 void TypeChecker::visitTypeCast(const AstTypeCast& cast) {
     if (!typeEnv.isType(cast.getType())) {
         report.addError(
@@ -1472,6 +1490,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                 report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
                 break;
             case TypeAttribute::Record: fatal("Invalid return type");
+            case TypeAttribute::Sum: fatal("Invalid return type");
         }
     }
 
@@ -1492,6 +1511,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                     report.addError("Non-float argument for functor", arg->getSrcLoc());
                     break;
                 case TypeAttribute::Record: fatal("Invalid argument type");
+                case TypeAttribute::Sum: fatal("Invalid argument type");
             }
         }
         ++i;
@@ -1535,6 +1555,7 @@ void TypeChecker::visitBinaryConstraint(const AstBinaryConstraint& constraint) {
                               case TypeAttribute::Unsigned: out << "`unsigned`"; break;
                               case TypeAttribute::Float: out << "`float`"; break;
                               case TypeAttribute::Record: out << "a record"; break;
+                              case TypeAttribute::Sum: out << "a sum"; break;
                           }
                       });
                 report.addError(ss.str(), side.getSrcLoc());

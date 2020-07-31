@@ -136,6 +136,8 @@ souffle_sources = \
         ast/analysis/ProfileUse.h                          \
         ast/analysis/Type.cpp                              \
         ast/analysis/Type.h                                \
+        ast/analysis/SumTypeBranches.cpp                   \
+        ast/analysis/SumTypeBranches.h                     \
         ast/analysis/TypeEnvironment.cpp                   \
         ast/analysis/TypeEnvironment.h                     \
         ast/analysis/AuxArity.cpp                          \

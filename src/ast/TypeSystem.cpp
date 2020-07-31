@@ -93,6 +93,7 @@ struct TypeVisitor {
         FORWARD(Subset);
         FORWARD(Union);
         FORWARD(Record);
+        FORWARD(Sum);
 
         fatal("Unsupported type encountered!");
     }
@@ -107,6 +108,7 @@ struct TypeVisitor {
     VISIT(Subset)
     VISIT(Union)
     VISIT(Record)
+    VISIT(Sum)
 
     virtual R visitType(const Type& /*type*/) const {
         return R();
@@ -150,6 +152,11 @@ bool isOfRootType(const Type& type, const Type& root) {
         bool visitSubsetType(const SubsetType& type) const override {
             return type == root || isOfRootType(type.getBaseType(), root);
         }
+
+        bool visitSumType(const SumType& type) const override {
+            return type == root;
+        }
+
         bool visitUnionType(const UnionType& type) const override {
             return type == root ||
                    all_of(type.getElementTypes(), [&](const Type* cur) { return this->visit(*cur); });
@@ -170,7 +177,10 @@ bool isOfRootType(const Type& type, const Type& root) {
 bool isOfKind(const Type& type, TypeAttribute kind) {
     if (kind == TypeAttribute::Record) {
         return isA<RecordType>(type);
+    } else if (kind == TypeAttribute::Sum) {
+        return isA<SumType>(type);
     }
+
     return isOfRootType(type, type.getTypeEnvironment().getConstantType(kind));
 }
 
@@ -206,6 +216,8 @@ std::string getTypeQualifier(const Type& type) {
                 str.append("s");
             } else if (isOfKind(type, TypeAttribute::Record)) {
                 str.append("r");
+            } else if (isOfKind(type, TypeAttribute::Sum)) {
+                str.append("+");
             } else {
                 fatal("Unsupported kind");
             }

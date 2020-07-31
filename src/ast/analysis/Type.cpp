@@ -34,6 +34,7 @@
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Constraint.h"
+#include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
@@ -544,12 +545,13 @@ std::unique_ptr<AstClause> createAnnotatedClause(
  */
 class TypeConstraintsAnalysis : public AstConstraintAnalysis<TypeVar> {
 public:
-    TypeConstraintsAnalysis(const TypeEnvironment& typeEnv, const AstProgram& program)
-            : typeEnv(typeEnv), program(program) {}
+    TypeConstraintsAnalysis(const AstTranslationUnit& tu) : tu(tu) {}
 
 private:
-    const TypeEnvironment& typeEnv;
-    const AstProgram& program;
+    const AstTranslationUnit& tu;
+    const TypeEnvironment& typeEnv = tu.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
+    const AstProgram& program = *tu.getProgram();
+    const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
 
     // Sinks = {head} ∪ {negated atoms}
     std::set<const AstAtom*> sinks;
@@ -707,6 +709,25 @@ private:
         }
     }
 
+    void visitADTinit(const AstADTinit& adt) override {
+        auto* correspondingType = sumTypesBranches.getType(adt.getBranch());
+
+        if (correspondingType == nullptr) {
+            return;  // malformed program.
+        }
+
+        // sanity check
+        assert(isA<SumType>(correspondingType));
+
+        // $Branch(x) <: ADTtype
+        // x <: branchType
+        addConstraint(isSubtypeOf(getVar(adt), *correspondingType));
+
+        auto argVar = getVar(adt.getArgument());
+        auto& branchType = as<SumType>(correspondingType)->getBranchType(adt.getBranch());
+        addConstraint(isSubtypeOf(argVar, branchType));
+    }
+
     void visitAggregator(const AstAggregator& agg) override {
         if (agg.getOperator() == AggregateOp::COUNT) {
             addConstraint(isSubtypeOf(getVar(agg), typeEnv.getConstantType(TypeAttribute::Signed)));
@@ -750,16 +771,16 @@ private:
     }
 };
 
-std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvironment& typeEnv,
-        const AstClause& clause, const AstProgram& program, std::ostream* logs) {
-    return TypeConstraintsAnalysis(typeEnv, program).analyse(clause, logs);
+std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
+        const AstTranslationUnit& tu, const AstClause& clause, std::ostream* logs) {
+    return TypeConstraintsAnalysis(tu).analyse(clause, logs);
 }
 
 void TypeAnalysis::print(std::ostream& os) const {
     os << "-- Analysis logs --" << std::endl;
     os << analysisLogs.str() << std::endl;
     os << "-- Result --" << std::endl;
-    for (const auto& cur : annotatedClauses) {
+    for (auto& cur : annotatedClauses) {
         os << *cur << std::endl;
     }
 }
@@ -770,12 +791,10 @@ void TypeAnalysis::run(const AstTranslationUnit& translationUnit) {
     if (Global::config().has("debug-report") || Global::config().has("show", "type-analysis")) {
         debugStream = &analysisLogs;
     }
-    const auto& program = *translationUnit.getProgram();
-    auto& typeEnv = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
     // Analyse types, clause by clause.
-    for (const AstClause* clause : program.getClauses()) {
-        auto clauseArgumentTypes = analyseTypes(typeEnv, *clause, program, debugStream);
+    for (const AstClause* clause : translationUnit.getProgram()->getClauses()) {
+        auto clauseArgumentTypes = analyseTypes(translationUnit, *clause, debugStream);
         argumentTypes.insert(clauseArgumentTypes.begin(), clauseArgumentTypes.end());
 
         if (debugStream != nullptr) {

@@ -264,4 +264,13 @@ TEST(TypeSystem, EquivTypes) {
     EXPECT_TRUE(areEquivalentTypes(A, U));
 }
 
+TEST(TypeSystem, SumType) {
+    TypeEnvironment env;
+
+    auto& A = env.createType<SumType>("A");
+
+    EXPECT_TRUE(isSubtypeOf(A, A));
+    EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, A)));
+}
+
 }  // namespace souffle::test
