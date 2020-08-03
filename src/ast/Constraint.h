@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/Literal.h"
+#include "Literal.h"
 
 namespace souffle {
 

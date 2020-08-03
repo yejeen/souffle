@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "ast/QualifiedName.h"
-#include "ast/analysis/Analysis.h"
+#include "../QualifiedName.h"
+#include "Analysis.h"
 #include "profile/ProgramRun.h"
 #include <cstddef>
 #include <iostream>

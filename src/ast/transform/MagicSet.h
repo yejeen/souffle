@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include "ast/Argument.h"
-#include "ast/Atom.h"
-#include "ast/Clause.h"
-#include "ast/Literal.h"
-#include "ast/QualifiedName.h"
-#include "ast/Variable.h"
-#include "ast/Visitor.h"
-#include "ast/analysis/Analysis.h"
-#include "ast/transform/Transformer.h"
+#include "../Argument.h"
+#include "../Atom.h"
+#include "../Clause.h"
+#include "../Literal.h"
+#include "../QualifiedName.h"
+#include "../Variable.h"
+#include "../Visitor.h"
+#include "../analysis/Analysis.h"
+#include "../transform/Transformer.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
 #include <cstddef>

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/transform/Meta.h"
+#include "Meta.h"
 #include <set>
 #include <string>
 #include <vector>

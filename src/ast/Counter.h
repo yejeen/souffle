@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/Argument.h"
+#include "Argument.h"
 #include <ostream>
 
 namespace souffle {

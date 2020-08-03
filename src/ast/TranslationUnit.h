@@ -18,10 +18,10 @@
 
 #include "DebugReport.h"
 #include "Global.h"
-#include "ast/Program.h"
-#include "ast/analysis/Analysis.h"
-#include "ast/analysis/PrecedenceGraph.h"
-#include "ast/analysis/SCCGraph.h"
+#include "Program.h"
+#include "analysis/Analysis.h"
+#include "analysis/PrecedenceGraph.h"
+#include "analysis/SCCGraph.h"
 #include <map>
 #include <memory>
 #include <sstream>

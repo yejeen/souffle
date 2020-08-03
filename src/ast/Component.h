@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "ast/Clause.h"
-#include "ast/ComponentInit.h"
-#include "ast/ComponentType.h"
-#include "ast/IO.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/Relation.h"
-#include "ast/Type.h"
+#include "Clause.h"
+#include "ComponentInit.h"
+#include "ComponentType.h"
+#include "IO.h"
+#include "Node.h"
+#include "NodeMapper.h"
+#include "Relation.h"
+#include "Type.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

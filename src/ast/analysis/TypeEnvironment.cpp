@@ -14,16 +14,16 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/TypeEnvironment.h"
+#include "TypeEnvironment.h"
+#include "../Attribute.h"
+#include "../Program.h"
+#include "../RecordType.h"
+#include "../SubsetType.h"
+#include "../TranslationUnit.h"
+#include "../Type.h"
+#include "../UnionType.h"
 #include "GraphUtils.h"
-#include "ast/Attribute.h"
-#include "ast/Program.h"
-#include "ast/RecordType.h"
-#include "ast/SubsetType.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Type.h"
-#include "ast/UnionType.h"
-#include "ast/analysis/TypeSystem.h"
+#include "TypeSystem.h"
 #include "utility/MiscUtil.h"
 #include "utility/tinyformat.h"
 #include <algorithm>

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "ast/transform/Transformer.h"
+#include "Transformer.h"
 #include <string>
 
 namespace souffle {

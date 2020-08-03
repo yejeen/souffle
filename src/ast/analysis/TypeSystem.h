@@ -16,8 +16,8 @@
 
 #pragma once
 
+#include "../QualifiedName.h"
 #include "TypeAttribute.h"
-#include "ast/QualifiedName.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"

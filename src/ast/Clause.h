@@ -16,12 +16,12 @@
 
 #pragma once
 
+#include "Atom.h"
+#include "ExecutionPlan.h"
+#include "Literal.h"
+#include "Node.h"
+#include "NodeMapper.h"
 #include "SrcLocation.h"
-#include "ast/Atom.h"
-#include "ast/ExecutionPlan.h"
-#include "ast/Literal.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

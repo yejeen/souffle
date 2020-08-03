@@ -16,9 +16,9 @@
 
 #pragma once
 
+#include "Node.h"
 #include "SrcLocation.h"
 #include "TypeAttribute.h"
-#include "ast/Node.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

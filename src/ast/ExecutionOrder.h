@@ -18,6 +18,7 @@
 
 #include "Node.h"
 #include "SrcLocation.h"
+#include "utility/StreamUtil.h"
 #include <ostream>
 #include <string>
 #include <utility>

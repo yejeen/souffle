@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/Node.h"
+#include "Node.h"
 
 namespace souffle {
 
