@@ -30,7 +30,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <optional>
 #include <queue>
 
 namespace souffle {

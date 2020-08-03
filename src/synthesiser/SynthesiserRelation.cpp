@@ -198,26 +198,14 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> gencmp = [&](size_t i) {
                 size_t attrib = ind[i];
-
-                std::string element_type_cast("");
-
-                switch (types[attrib][0]) {
-                    case 'i': element_type_cast = "ramBitCast<RamSigned>"; break;
-                    case 'u':
-                        element_type_cast = "ramBitCast<RamUnsigned>";
-                        break;
-                        // case 'f': element_type_cast = "ramBitCast<RamFloat>"; break;
-                }
-
-                out << "(" << element_type_cast << "(a[" << attrib << "]) < " << element_type_cast << "(b["
-                    << attrib << "])) ? -1 : ((" << element_type_cast << "(a[" << attrib << "]) > "
-                    << element_type_cast << "(b[" << attrib << "])) ? 1 :(";
+                out << "(a[" << attrib << "] < b[" << attrib << "]) ? -1 : (a[" << attrib << "] > b["
+                    << attrib << "]) ? 1 :(";
                 if (i + 1 < bound) {
                     gencmp(i + 1);
                 } else {
                     out << "0";
                 }
-                out << "))";
+                out << ")";
             };
             gencmp(0);
             out << ";\n }\n";
@@ -226,23 +214,11 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             std::function<void(size_t)> genless = [&](size_t i) {
                 size_t attrib = ind[i];
 
-                std::string element_type_cast("");
-
-                switch (types[attrib][0]) {
-                    case 'i': element_type_cast = "ramBitCast<RamSigned>"; break;
-                    case 'u':
-                        element_type_cast = "ramBitCast<RamUnsigned>";
-                        break;
-                        // case 'f': element_type_cast = "ramBitCast<RamFloat>"; break;
-                }
-
-                out << " " << element_type_cast << "(a[" << attrib << "]) < " << element_type_cast << "(b["
-                    << attrib << "])";
+                out << "a[" << attrib << "] < b[" << attrib << "]";
                 if (i + 1 < bound) {
-                    out << "|| (" << element_type_cast << "(a[" << attrib << "]) == " << element_type_cast
-                        << "(b[" << attrib << "]) && (";
+                    out << "|| a[" << attrib << "] == b[" << attrib << "] && (";
                     genless(i + 1);
-                    out << "))";
+                    out << ")";
                 }
             };
             genless(0);
@@ -251,19 +227,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "return ";
             std::function<void(size_t)> geneq = [&](size_t i) {
                 size_t attrib = ind[i];
-
-                std::string element_type_cast("");
-
-                switch (types[attrib][0]) {
-                    case 'i': element_type_cast = "ramBitCast<RamSigned>"; break;
-                    case 'u':
-                        element_type_cast = "ramBitCast<RamUnsigned>";
-                        break;
-                        // case 'f': element_type_cast = "ramBitCast<RamFloat>"; break;
-                }
-
-                out << "" << element_type_cast << "(a[" << attrib << "]) == " << element_type_cast << "(b["
-                    << attrib << "])";
+                out << "a[" << attrib << "] == b[" << attrib << "]";
                 if (i + 1 < bound) {
                     out << "&&";
                     geneq(i + 1);
