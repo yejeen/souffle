@@ -15,10 +15,12 @@
 #include "ast/transform/MaterializeAggregationQueries.h"
 #include "AggregateOp.h"
 #include "RamTypes.h"
-#include "ast/Abstract.h"
+#include "ast/Aggregator.h"
 #include "ast/Argument.h"
+#include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/Clause.h"
+#include "ast/LambdaNodeMapper.h"
 #include "ast/Literal.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -26,7 +28,9 @@
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/TypeSystem.h"
+#include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
+#include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Ground.h"
 #include "ast/analysis/Type.h"
@@ -47,7 +51,6 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
     bool changed = false;
 
     AstProgram& program = *translationUnit.getProgram();
-    const TypeEnvironment& env = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
     // if an aggregator has a body consisting of more than an atom => create new relation
     int counter = 0;

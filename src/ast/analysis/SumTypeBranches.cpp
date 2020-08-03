@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ast/analysis/SumTypeBranches.h"
+#include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/TypeSystem.h"
 #include "ast/Visitor.h"

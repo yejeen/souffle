@@ -13,11 +13,15 @@
  ***********************************************************************/
 
 #include "ast/transform/ADTtoRecords.h"
+#include "ast/ADTinit.h"
 #include "ast/Argument.h"
 #include "ast/Node.h"
+#include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/TypeSystem.h"
 #include "ast/analysis/TypeEnvironment.h"
+#include <cassert>
+#include <memory>
 
 namespace souffle {
 
