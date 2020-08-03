@@ -10,7 +10,7 @@
  *
  * @file BooleanConstraint.h
  *
- * Defines a class for boolean constraints.
+ * Defines the boolean constraint class
  *
  ***********************************************************************/
 
@@ -27,21 +27,25 @@
 namespace souffle {
 
 /**
- * Boolean Constraint
+ * @class AstBooleanConstraint
+ * @brief Boolean constraint class
  *
- * Representing either 'true' or 'false' values
+ * Example:
+ *       true
+ *
+ * Boolean constraint representing either the 'true' or the 'false' value
  */
 class AstBooleanConstraint : public AstConstraint {
 public:
     AstBooleanConstraint(bool truthValue, SrcLocation loc = {})
             : AstConstraint(std::move(loc)), truthValue(truthValue) {}
 
-    /** check whether constraint holds */
+    /** Check whether constraint holds */
     bool isTrue() const {
         return truthValue;
     }
 
-    /** set truth value */
+    /** Set truth value */
     void set(bool value) {
         truthValue = value;
     }
@@ -61,7 +65,7 @@ protected:
         return truthValue == other.truthValue;
     }
 
-    /** truth value */
+    /** Truth value of Boolean constraint */
     bool truthValue;
 };
 

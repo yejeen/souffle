@@ -10,6 +10,8 @@
  *
  * @file Constant.h
  *
+ * Defines an abstract class for constants
+ *
  ***********************************************************************/
 
 #pragma once
@@ -24,13 +26,14 @@
 namespace souffle {
 
 /**
- * Abstract Constant
+ * @class AstConstant
+ * @brief Abstract constant class
  */
 class AstConstant : public AstArgument {
 public:
     AstConstant* clone() const override = 0;
 
-    /** @return String representation of Constant */
+    /** Get string representation of Constant */
     const std::string& getConstant() const {
         return constant;
     }
@@ -49,6 +52,7 @@ protected:
             : AstArgument(std::move(loc)), constant(std::move(value)){};
 
 private:
+    /** String representation of constant */
     const std::string constant;
 };
 

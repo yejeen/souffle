@@ -10,17 +10,17 @@
  *
  * @file Negation.h
  *
- * Define class for negated atoms.
+ * Define the negated atom class
  *
  ***********************************************************************/
 
 #pragma once
 
+#include "Atom.h"
+#include "Literal.h"
+#include "Node.h"
+#include "NodeMapper.h"
 #include "SrcLocation.h"
-#include "ast/Atom.h"
-#include "ast/Literal.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
@@ -33,15 +33,20 @@
 namespace souffle {
 
 /**
- * Subclass of Literal that represents a negated atom, * e.g., !parent(x,y).
- * A Negated atom occurs in a body of clause and cannot occur in a head of a clause.
+ * @class AstNegation
+ * @brief Negation of an atom negated atom
+ *
+ * Example:
+ *     !parent(x,y).
+ *
+ * A negated atom can only occur in the body of a clause.
  */
 class AstNegation : public AstLiteral {
 public:
     AstNegation(Own<AstAtom> atom, SrcLocation loc = {})
             : AstLiteral(std::move(loc)), atom(std::move(atom)) {}
 
-    /** get negated atom */
+    /** Get negated atom */
     AstAtom* getAtom() const {
         return atom.get();
     }
@@ -69,7 +74,7 @@ protected:
         return equal_ptr(atom, other.atom);
     }
 
-    /** negated atom */
+    /** Negated atom */
     Own<AstAtom> atom;
 };
 

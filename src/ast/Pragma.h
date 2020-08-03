@@ -10,7 +10,7 @@
  *
  * @file Pragma.h
  *
- * Define the class AstPragma to update global options based on parameter.
+ * Defines the pragma class
  *
  ***********************************************************************/
 

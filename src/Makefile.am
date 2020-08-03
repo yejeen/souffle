@@ -89,6 +89,8 @@ souffle_sources = \
         LogStatement.h                                     \
         ParserDriver.cpp                                   \
         ParserDriver.h                                     \
+        ParserUtils.cpp                                    \
+        ParserUtils.h                                      \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
         ReadStream.h                                       \
@@ -130,8 +132,6 @@ souffle_sources = \
         ast/Node.h                                         \
         ast/NodeMapper.h                                   \
         ast/NumericConstant.h                              \
-        ast/ParserUtils.cpp                                \
-        ast/ParserUtils.h                                  \
         ast/Pragma.h                                       \
         ast/Program.h                                      \
         ast/ProvenanceNegation.h                           \
@@ -146,8 +146,6 @@ souffle_sources = \
         ast/TranslationUnit.h                              \
         ast/Type.h                                         \
         ast/TypeCast.h                                     \
-        ast/TypeSystem.cpp                                 \
-        ast/TypeSystem.h                                   \
         ast/UnionType.h                                    \
         ast/UnnamedVariable.h                              \
         ast/UserDefinedFunctor.h                           \
@@ -183,6 +181,8 @@ souffle_sources = \
         ast/analysis/TopologicallySortedSCCGraph.h         \
         ast/analysis/Type.cpp                              \
         ast/analysis/Type.h                                \
+        ast/analysis/TypeSystem.cpp                        \
+        ast/analysis/TypeSystem.h                          \
         ast/analysis/TypeEnvironment.cpp                   \
         ast/analysis/TypeEnvironment.h                     \
         ast/transform/ComponentChecker.cpp                 \

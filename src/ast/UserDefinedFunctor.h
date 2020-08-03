@@ -10,12 +10,14 @@
  *
  * @file UserDefinedFunctor.h
  *
+ * Defines the user-defined functor class
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "RamTypes.h"
 #include "SrcLocation.h"
+#include "TypeAttribute.h"
 #include "ast/Functor.h"
 #include "ast/Node.h"
 #include "utility/ContainerUtil.h"
@@ -31,10 +33,10 @@
 #include <vector>
 
 namespace souffle {
-class AstArgument;
 
 /**
- * User-Defined Functor
+ * @class AstUserDefinedFunctor
+ * @brief User-Defined functor class
  */
 class AstUserDefinedFunctor : public AstFunctor {
 public:
@@ -43,27 +45,29 @@ public:
     AstUserDefinedFunctor(std::string name, VecOwn<AstArgument> args, SrcLocation loc = {})
             : AstFunctor(std::move(args), std::move(loc)), name(std::move(name)){};
 
-    /** get name */
+    /** return the name */
     const std::string& getName() const {
         return name;
     }
 
-    /** get type of the functor argument*/
+    /** return an argument type */
     TypeAttribute getArgType(const size_t arg) const override {
         return argTypes->at(arg);
     }
 
-    /** get type of the functor argument*/
+    /** get the return type of the functor */
     TypeAttribute getReturnType() const override {
         return returnType.value();
     }
 
+    /** set types of functor */
     void setTypes(std::vector<TypeAttribute> argumentsTypes, TypeAttribute retType) {
         assert(argumentsTypes.size() == args.size() && "Size of types must match size of arguments");
         argTypes = std::move(argumentsTypes);
         returnType = retType;
     }
 
+    /** get argument types */
     const std::vector<TypeAttribute>& getArgsTypes() const {
         return argTypes.value();
     }
@@ -87,10 +91,13 @@ protected:
         return name == other.name && AstFunctor::equal(node);
     }
 
+    /** Argument types */
     std::optional<std::vector<TypeAttribute>> argTypes;
+
+    /** Return type */
     std::optional<TypeAttribute> returnType;
 
-    /** name of user-defined functor */
+    /** Name */
     const std::string name;
 };
 

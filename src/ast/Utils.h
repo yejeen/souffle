@@ -10,7 +10,7 @@
  *
  * @file Utils.h
  *
- * A collection of utilities operating on AST constructs.
+ * A collection of utilities operating on AST
  *
  ***********************************************************************/
 

@@ -10,6 +10,8 @@
  *
  * @file Counter.h
  *
+ * Defines a counter functor class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -20,7 +22,8 @@
 namespace souffle {
 
 /**
- * Counter
+ * @class AstCounter
+ * @brief counter functor (incrementing a value after each invocation)
  */
 class AstCounter : public AstArgument {
 public:

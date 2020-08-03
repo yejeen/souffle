@@ -10,6 +10,8 @@
  *
  * @file Aggregator.h
  *
+ * Defines the aggregator class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -32,7 +34,14 @@
 namespace souffle {
 
 /**
- * An argument aggregating a value from a sub-query.
+ * @class AstAggregator
+ * @brief Defines the aggregator class
+ *
+ * Example:
+ *   sum y+x: {A(y),B(x)}
+ *
+ * Aggregates over a sub-query using an aggregate operator
+ * and an expression.
  */
 class AstAggregator : public AstArgument {
 public:
@@ -41,7 +50,7 @@ public:
             : AstArgument(std::move(loc)), fun(fun), targetExpression(std::move(expr)),
               body(std::move(body)) {}
 
-    /** Get aggregate operator */
+    /** Return aggregate operator */
     AggregateOp getOperator() const {
         return fun;
     }
@@ -51,16 +60,17 @@ public:
         fun = op;
     }
 
-    /** Get target expression */
+    /** Return target expression */
     const AstArgument* getTargetExpression() const {
         return targetExpression.get();
     }
 
-    /** Get body literals */
+    /** Return body literals */
     std::vector<AstLiteral*> getBodyLiterals() const {
         return toPtrVector(body);
     }
 
+    /** Set body */
     void setBody(VecOwn<AstLiteral> bodyLiterals) {
         body = std::move(bodyLiterals);
     }
@@ -105,10 +115,10 @@ protected:
     }
 
 private:
-    /** Aggregation operator */
+    /** Aggregate operator */
     AggregateOp fun;
 
-    /** Aggregation expression */
+    /** Aggregate expression */
     Own<AstArgument> targetExpression;
 
     /** Body literal of sub-query */

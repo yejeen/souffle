@@ -10,7 +10,7 @@
  *
  * @file RecordType.h
  *
- * Defines a type, i.e., disjoint supersets of the universe
+ * Defines the record type class
  *
  ***********************************************************************/
 
@@ -34,27 +34,28 @@
 namespace souffle {
 
 /**
- * A record type aggregates a list of fields into a new type.
- * Each record type has a name making it unique. Two record
- * types are unrelated to all other types (they do not have
- * any super or sub types).
+ * @class AstRecordType
+ * @brief Record type class for record type declarations
+ *
+ * A record type aggregates a list of fields (i.e. name & type) into a new type.
+ * Each record type has a name making the record type unique.
  */
 class AstRecordType : public AstType {
 public:
     AstRecordType(AstQualifiedName name, VecOwn<AstAttribute> fields, SrcLocation loc = {})
             : AstType(std::move(name), std::move(loc)), fields(std::move(fields)) {}
 
-    /** add field to record type */
+    /** Add field to record type */
     void add(std::string name, AstQualifiedName type) {
         fields.push_back(mk<AstAttribute>(std::move(name), std::move(type)));
     }
 
-    /** get fields of record */
+    /** Get fields of record */
     std::vector<AstAttribute*> getFields() const {
         return toPtrVector(fields);
     }
 
-    /** set field type */
+    /** Set field type */
     void setFieldType(size_t idx, AstQualifiedName type) {
         fields.at(idx)->setTypeName(std::move(type));
     }

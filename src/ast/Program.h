@@ -10,8 +10,9 @@
  *
  * @file Program.h
  *
- * Define a class that represents a Datalog program consisting of types,
- * relations, and clauses.
+ * Defines the program class
+ *
+ * TODO(b-scholz): Remove ast/Utils.h dependency!
  *
  ***********************************************************************/
 
@@ -42,8 +43,8 @@
 namespace souffle {
 
 /**
- *  Intermediate representation of a datalog program
- *          that consists of relations, clauses and types
+ * @class AstProgram
+ * @brief The program class consists of relations, clauses and types.
  */
 class AstProgram : public AstNode {
 public:

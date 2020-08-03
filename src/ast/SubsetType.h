@@ -10,7 +10,7 @@
  *
  * @file SubsetType.h
  *
- * Defines a type, i.e., disjoint supersets of the universe
+ * Defines the subset type class
  *
  ***********************************************************************/
 
@@ -27,7 +27,11 @@
 namespace souffle {
 
 /**
- * A subset type. Can be derived from any type except union.
+ * @class AstSubsetType
+ * @brief Defines subset type class
+ *
+ * Example:
+ *    .type A <: B
  */
 class AstSubsetType : public AstType {
 public:
@@ -38,6 +42,7 @@ public:
         return new AstSubsetType(getQualifiedName(), getBaseType(), getSrcLoc());
     }
 
+    /** Return base type */
     const AstQualifiedName& getBaseType() const {
         return baseType;
     }
@@ -53,6 +58,7 @@ protected:
     }
 
 private:
+    /** Base type */
     const AstQualifiedName baseType;
 };
 

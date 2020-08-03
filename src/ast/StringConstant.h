@@ -10,6 +10,8 @@
  *
  * @file StringConstant.h
  *
+ * Defines the string constant class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -23,7 +25,8 @@
 namespace souffle {
 
 /**
- * String Constant
+ * @class AstStringConstant
+ * @brief String constant class
  */
 class AstStringConstant : public AstConstant {
 public:

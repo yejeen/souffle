@@ -10,6 +10,8 @@
  *
  * @file Variable.h
  *
+ * Define the variable class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -24,19 +26,20 @@
 namespace souffle {
 
 /**
- * Named Variable
+ * @class AstVariable
+ * @brief Named variable class
  */
 class AstVariable : public AstArgument {
 public:
     AstVariable(std::string name, SrcLocation loc = {})
             : AstArgument(std::move(loc)), name(std::move(name)) {}
 
-    /** set variable name */
+    /** Set variable name */
     void setName(std::string name) {
         this->name = std::move(name);
     }
 
-    /** @return variable name */
+    /** Return variable name */
     const std::string& getName() const {
         return name;
     }
@@ -55,7 +58,7 @@ protected:
         return name == other.name;
     }
 
-    /** variable name */
+    /** Name */
     std::string name;
 };
 

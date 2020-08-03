@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ast/ParserUtils.h"
+#include "ParserUtils.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"

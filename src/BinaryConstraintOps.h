@@ -17,6 +17,7 @@
 #pragma once
 
 #include "RamTypes.h"
+#include "TypeAttribute.h"
 #include "utility/MiscUtil.h"
 #include <iostream>
 #include <string>

@@ -10,7 +10,7 @@
  *
  * @file BinaryConstraint.h
  *
- * Defines a class for binary constraints.
+ * Defines the binary constraint class
  *
  ***********************************************************************/
 
@@ -35,30 +35,36 @@
 namespace souffle {
 
 /**
- * Subclass of Constraint that represents a binary constraint
- * e.g., x = y.
+ * @class AstBinaryConstraint
+ * @brief Binary constraint class
+ *
+ * Example:
+ *      x = y
+ *
+ * A binary constraint has a constraint operator, a left-hand side
+ * expression, and right-hand side expression.
  */
 class AstBinaryConstraint : public AstConstraint {
 public:
     AstBinaryConstraint(BinaryConstraintOp o, Own<AstArgument> ls, Own<AstArgument> rs, SrcLocation loc = {})
             : AstConstraint(std::move(loc)), operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
-    /** get LHS argument */
+    /** Return left-hand side argument */
     AstArgument* getLHS() const {
         return lhs.get();
     }
 
-    /** get RHS argument */
+    /** Return right-hand side argument */
     AstArgument* getRHS() const {
         return rhs.get();
     }
 
-    /** get binary operator */
+    /** Return binary operator */
     BinaryConstraintOp getOperator() const {
         return operation;
     }
 
-    /** set binary operator */
+    /** Set binary operator */
     void setOperator(BinaryConstraintOp op) {
         operation = op;
     }
@@ -87,13 +93,13 @@ protected:
         return operation == other.operation && equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);
     }
 
-    /** constraint operator */
+    /** Constraint operator */
     BinaryConstraintOp operation;
 
-    /** left-hand side of binary constraint */
+    /** Left-hand side argument of binary constraint */
     Own<AstArgument> lhs;
 
-    /** right-hand side of binary constraint */
+    /** Right-hand side argument of binary constraint */
     Own<AstArgument> rhs;
 };
 

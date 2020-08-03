@@ -10,6 +10,8 @@
  *
  * @file RecordInit.h
  *
+ * Defines the record initialization class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -25,10 +27,10 @@
 #include <vector>
 
 namespace souffle {
-class AstArgument;
 
 /**
- * Record
+ * @class AstRecordInit
+ * @brief Defines a record initialization class
  */
 class AstRecordInit : public AstTerm {
 public:

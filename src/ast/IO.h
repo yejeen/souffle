@@ -10,7 +10,7 @@
  *
  * @file IO.h
  *
- * Define the classes representing IO operations.
+ * Defines the I/O operation class
  *
  ***********************************************************************/
 
@@ -50,42 +50,42 @@ public:
     AstIO(AstIoType type, AstQualifiedName name, SrcLocation loc = {})
             : AstNode(std::move(loc)), type(type), name(std::move(name)) {}
 
-    /** get I/O type */
+    /** Get I/O type */
     AstIoType getType() const {
         return type;
     }
 
-    /** set I/O type */
+    /** Set I/O type */
     void setType(AstIoType type) {
         this->type = type;
     }
 
-    /** get relation name */
+    /** Get relation name */
     const AstQualifiedName& getQualifiedName() const {
         return name;
     }
 
-    /** set relation name */
+    /** Set relation name */
     void setQualifiedName(AstQualifiedName name) {
         this->name = std::move(name);
     }
 
-    /** get value of I/O directive */
+    /** Get value of I/O directive */
     const std::string& getDirective(const std::string& key) const {
         return directives.at(key);
     }
 
-    /** add new I/O directive */
+    /** Add new I/O directive */
     void addDirective(const std::string& key, std::string value) {
         directives[key] = std::move(value);
     }
 
-    /** check for I/O directive */
+    /** Check for I/O directive */
     bool hasDirective(const std::string& key) const {
         return directives.find(key) != directives.end();
     }
 
-    /** get I/O-directive map */
+    /** Get I/O-directive map */
     const std::map<std::string, std::string>& getDirectives() const {
         return directives;
     }
@@ -111,10 +111,10 @@ protected:
         return other.type == type && other.name == name && other.directives == directives;
     }
 
-    /** type of I/O operation */
+    /** Type of I/O operation */
     AstIoType type;
 
-    /** relation name of I/O operation */
+    /** Relation name of I/O operation */
     AstQualifiedName name;
 
     /** I/O directives */

@@ -10,7 +10,7 @@
  *
  * @file Literal.h
  *
- * Abstract class definitions for AST nodes
+ * Defines the literal class
  *
  ***********************************************************************/
 
@@ -21,8 +21,10 @@
 namespace souffle {
 
 /**
- * Literal
- * e.g. atoms, binary relations, and negated atoms
+ * @class AstLiteral
+ * @brief Defines an abstract class for literals in a horn clause.
+ *
+ * Literals can be atoms, binary relations, and negated atoms
  * in the body and head of a clause.
  */
 class AstLiteral : public AstNode {

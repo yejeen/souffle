@@ -10,6 +10,8 @@
  *
  * @file SubroutineArgument.h
  *
+ * Defines the subroutine argument class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -25,7 +27,8 @@
 namespace souffle {
 
 /**
- * Subroutine Argument
+ * @class AstSubroutineArgument
+ * @brief Defines the argument class for subrountines
  */
 class AstSubroutineArgument : public AstArgument {
 public:
@@ -42,7 +45,7 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-        os << "arg_" << index;
+        os << "arg(" << index << ")";
     }
 
     bool equal(const AstNode& node) const override {
@@ -51,7 +54,7 @@ protected:
     }
 
 private:
-    /** Index of argument in argument list*/
+    /** Index of subroutine argument */
     size_t index;
 };
 

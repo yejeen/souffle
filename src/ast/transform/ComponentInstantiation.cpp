@@ -384,7 +384,7 @@ ComponentContent getInstantiatedContent(AstProgram& program, const AstComponentI
             for (size_t i = 0; i < variants.size(); i++) {
                 auto pos = typeNameMapping.find(variants[i]);
                 if (pos != typeNameMapping.end()) {
-                    const_cast<AstUnionType&>(unionType).setVariantType(i, pos->second);
+                    const_cast<AstUnionType&>(unionType).setType(i, pos->second);
                 }
             }
         });

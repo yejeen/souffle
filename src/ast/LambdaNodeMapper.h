@@ -10,13 +10,13 @@
  *
  * @file LambdaNodeMapper.h
  *
- * Abstract class definitions for AST nodes
+ * Defines lambda node mappers class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "ast/NodeMapper.h"
+#include "NodeMapper.h"
 #include <memory>
 #include <utility>
 

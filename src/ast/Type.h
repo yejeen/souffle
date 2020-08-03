@@ -10,7 +10,7 @@
  *
  * @file Type.h
  *
- * Defines a type, i.e., disjoint supersets of the universe
+ * Defines the type class
  *
  ***********************************************************************/
 
@@ -26,19 +26,19 @@ namespace souffle {
 
 /**
  *  @class Type
- *  @brief An abstract base class for types within the AST.
+ *  @brief An abstract base class for types
  */
 class AstType : public AstNode {
 public:
     AstType(AstQualifiedName name = {}, SrcLocation loc = {})
             : AstNode(std::move(loc)), name(std::move(name)) {}
 
-    /** get type name */
+    /** Return type name */
     const AstQualifiedName& getQualifiedName() const {
         return name;
     }
 
-    /** set type name */
+    /** Set type name */
     void setQualifiedName(AstQualifiedName name) {
         this->name = std::move(name);
     }

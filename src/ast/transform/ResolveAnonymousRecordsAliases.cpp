@@ -24,11 +24,11 @@
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
 #include "ast/TranslationUnit.h"
-#include "ast/TypeSystem.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
 #include "ast/analysis/Type.h"
+#include "ast/analysis/TypeSystem.h"
 #include "utility/MiscUtil.h"
 #include <map>
 #include <memory>
