@@ -293,6 +293,7 @@ souffle_sources = \
         ram/transform/ChoiceConversion.h                   \
         ram/transform/CollapseFilters.cpp                  \
         ram/transform/CollapseFilters.h                    \
+        ram/transform/Conditional.h                        \
         ram/transform/EliminateDuplicates.cpp              \
         ram/transform/EliminateDuplicates.h                \
         ram/transform/ExpandFilter.cpp                     \
@@ -305,10 +306,13 @@ souffle_sources = \
         ram/transform/IfConversion.h                       \
         ram/transform/IndexedInequality.cpp                \
         ram/transform/IndexedInequality.h                  \
+        ram/transform/Loop.h                               \
+        ram/transform/Meta.h                               \
         ram/transform/MakeIndex.cpp                        \
         ram/transform/MakeIndex.h                          \
         ram/transform/Parallel.cpp                         \
         ram/transform/Parallel.h                           \
+        ram/transform/Sequence.h                           \
         ram/transform/Transformer.cpp                      \
         ram/transform/Transformer.h                        \
         ram/transform/ReorderConditions.cpp                \
