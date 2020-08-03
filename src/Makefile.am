@@ -274,7 +274,9 @@ souffle_sources = \
         parser/SrcLocation.h                               \
         ram/Condition.h                                    \
         ram/Expression.h                                   \
+        ram/LambdaNodeMapper.h                             \
         ram/Node.h                                         \
+        ram/NodeMapper.h                                   \
         ram/Operation.h                                    \
         ram/Program.h                                      \
         ram/Relation.h                                     \
