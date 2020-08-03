@@ -20,6 +20,7 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
+#include "ram/NodeMapper.h"
 #include "ram/Relation.h"
 #include "ram/Utils.h"
 #include "utility/ContainerUtil.h"

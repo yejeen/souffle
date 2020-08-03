@@ -26,6 +26,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Relation.h"
+#include "ram/SignedConstant.h"
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
 #include "tests/test.h"
@@ -33,6 +34,7 @@
 #include <cstddef>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>

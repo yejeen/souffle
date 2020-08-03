@@ -18,7 +18,15 @@
 
 #include "FunctorOps.h"
 #include "RamTypes.h"
+#include "ram/AutoIncrement.h"
 #include "ram/Expression.h"
+#include "ram/IntrinsicOperator.h"
+#include "ram/PackRecord.h"
+#include "ram/SignedConstant.h"
+#include "ram/SubroutineArgument.h"
+#include "ram/TupleElement.h"
+#include "ram/UndefValue.h"
+#include "ram/UserDefinedOperator.h"
 #include <memory>
 #include <string>
 #include <utility>

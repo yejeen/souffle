@@ -17,12 +17,7 @@
 #pragma once
 
 #include <cassert>
-#include <functional>
-#include <iostream>
 #include <memory>
-#include <typeinfo>
-#include <utility>
-#include <vector>
 
 namespace souffle {
 

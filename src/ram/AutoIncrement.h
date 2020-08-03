@@ -16,17 +16,27 @@
 
 #pragma once
 
-#include "ram/Node.h"
+#include "ram/Expression.h"
+#include <ostream>
 
 namespace souffle {
 
 /**
- * @class RamExpression
- * @brief Abstract class for describing scalar values in RAM
+ * @class RamAutoIncrement
+ * @brief Increment a counter and return its value.
+ *
+ * Note that there exists a single counter only.
  */
-class RamExpression : public RamNode {
+class RamAutoIncrement : public RamExpression {
 public:
-    RamExpression* clone() const override = 0;
+    RamAutoIncrement* clone() const override {
+        return new RamAutoIncrement();
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "autoinc()";
+    }
 };
 
 }  // end of namespace souffle

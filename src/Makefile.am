@@ -264,24 +264,47 @@ souffle_sources = \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
-        parser/parser.cc                                   \
-        parser/parser.hh                                   \
         parser/ParserDriver.cpp                            \
         parser/ParserDriver.h                              \
         parser/ParserUtils.cpp                             \
         parser/ParserUtils.h                               \
         parser/SrcLocation.cpp                             \
         parser/SrcLocation.h                               \
+        parser/parser.cc                                   \
+        parser/parser.hh                                   \
+        parser/scanner.cc                                  \
+        parser/stack.hh                                    \
+        ram/AbstractExistenceCheck.h                       \
+        ram/AbstractOperator.h                             \
+        ram/AutoIncrement.h                                \
         ram/Condition.h                                    \
+        ram/Conjunction.h                                  \
+        ram/Constant.h                                     \
+        ram/Constraint.h                                   \
+        ram/EmptinessCheck.h                               \
+        ram/ExistenceCheck.h                               \
         ram/Expression.h                                   \
+        ram/False.h                                        \
+        ram/FloatConstant.h                                \
+        ram/IntrinsicOperator.h                            \
         ram/LambdaNodeMapper.h                             \
+        ram/Negation.h                                     \
         ram/Node.h                                         \
         ram/NodeMapper.h                                   \
         ram/Operation.h                                    \
+        ram/PackRecord.h                                   \
         ram/Program.h                                      \
+        ram/ProvenanceExistenceCheck.h                     \
         ram/Relation.h                                     \
+        ram/SignedConstant.h                               \
         ram/Statement.h                                    \
+        ram/SubroutineArgument.h                           \
         ram/TranslationUnit.h                              \
+        ram/True.h                                         \
+        ram/TupleElement.h                                 \
+        ram/UndefValue.h                                   \
+        ram/UnsignedConstant.h                             \
+        ram/UserDefinedOperator.h                          \
         ram/Utils.h                                        \
         ram/Visitor.h                                      \
         ram/analysis/Analysis.h                            \
@@ -309,23 +332,21 @@ souffle_sources = \
         ram/transform/IndexedInequality.cpp                \
         ram/transform/IndexedInequality.h                  \
         ram/transform/Loop.h                               \
-        ram/transform/Meta.h                               \
         ram/transform/MakeIndex.cpp                        \
         ram/transform/MakeIndex.h                          \
+        ram/transform/Meta.h                               \
         ram/transform/Parallel.cpp                         \
         ram/transform/Parallel.h                           \
-        ram/transform/Sequence.h                           \
-        ram/transform/Transformer.cpp                      \
-        ram/transform/Transformer.h                        \
         ram/transform/ReorderConditions.cpp                \
         ram/transform/ReorderConditions.h                  \
         ram/transform/ReorderFilterBreak.cpp               \
         ram/transform/ReorderFilterBreak.h                 \
         ram/transform/ReportIndex.h                        \
+        ram/transform/Sequence.h                           \
+        ram/transform/Transformer.cpp                      \
+        ram/transform/Transformer.h                        \
         ram/transform/TupleId.cpp                          \
         ram/transform/TupleId.h                            \
-        parser/scanner.cc                                  \
-        parser/stack.hh                                    \
         synthesiser/Synthesiser.cpp                        \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \

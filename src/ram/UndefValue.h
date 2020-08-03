@@ -16,17 +16,27 @@
 
 #pragma once
 
-#include "ram/Node.h"
+#include "ram/Expression.h"
+#include <ostream>
 
 namespace souffle {
 
 /**
- * @class RamExpression
- * @brief Abstract class for describing scalar values in RAM
+ * @class RamUndefValue
+ * @brief An undefined expression
+ *
+ * Output is ⊥
  */
-class RamExpression : public RamNode {
+class RamUndefValue : public RamExpression {
 public:
-    RamExpression* clone() const override = 0;
+    RamUndefValue* clone() const override {
+        return new RamUndefValue();
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "⊥";
+    }
 };
 
 }  // end of namespace souffle

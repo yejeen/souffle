@@ -16,17 +16,33 @@
 
 #pragma once
 
-#include "ram/Node.h"
+#include "RamTypes.h"
+#include "ram/Expression.h"
 
 namespace souffle {
 
 /**
- * @class RamExpression
- * @brief Abstract class for describing scalar values in RAM
+ * @class RamConstant
+ * @brief Represents a Ram Constant
+ *
  */
-class RamExpression : public RamNode {
+class RamConstant : public RamExpression {
 public:
-    RamExpression* clone() const override = 0;
+    /** @brief Get constant */
+    RamDomain getConstant() const {
+        return constant;
+    }
+
+protected:
+    explicit RamConstant(RamDomain constant) : constant(constant) {}
+
+    bool equal(const RamNode& node) const override {
+        const auto& other = static_cast<const RamConstant&>(node);
+        return constant == other.constant;
+    }
+
+    /** Constant value */
+    const RamDomain constant;
 };
 
 }  // end of namespace souffle

@@ -19,6 +19,7 @@
 
 #include "ram/Condition.h"
 #include "ram/Node.h"
+#include "ram/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
