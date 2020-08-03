@@ -203,8 +203,10 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
                 switch (types[attrib][0]) {
                     case 'i': element_type_cast = "ramBitCast<RamSigned>"; break;
-                    case 'u': element_type_cast = "ramBitCast<RamUnsigned>"; break;
-                    case 'f': element_type_cast = "ramBitCast<RamFloat>"; break;
+                    case 'u':
+                        element_type_cast = "ramBitCast<RamUnsigned>";
+                        break;
+                        // case 'f': element_type_cast = "ramBitCast<RamFloat>"; break;
                 }
 
                 out << "(" << element_type_cast << "(a[" << attrib << "]) < " << element_type_cast << "(b["
