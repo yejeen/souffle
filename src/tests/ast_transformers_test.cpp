@@ -436,39 +436,37 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     auto& program = *tu->getProgram();
 
+    auto mappifyRelations = [&](const AstProgram& program) {
+        std::map<AstQualifiedName, std::vector<std::string>> result;
+        for (const auto* rel : program.getRelations()) {
+            std::vector<std::string> clauseStrings;
+            auto relName = rel->getQualifiedName();
+            for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+                clauseStrings.push_back(toString(*clause));
+            }
+            result[relName] = clauseStrings;
+        }
+        return result;
+    };
+
     /* Stage 1: Database normalisation */
     // Constants should now be extracted from the inequality constraints
     std::make_unique<MagicSetTransformer::NormaliseDatabaseTransformer>()->apply(*tu);
     const auto relations1 = program.getRelations();
-    EXPECT_EQ(8, relations1.size());
+    EXPECT_EQ(8, program.getRelations().size());
     EXPECT_EQ(7, program.getClauses().size());
 
-    const auto aClauses1 = getClauses(program, "A");
-    EXPECT_EQ(2, aClauses1.size());
-    EXPECT_EQ("A(X) :- \n   BaseOne(X).", toString(*aClauses1[0]));
-    EXPECT_EQ("A(X) :- \n   BaseOne(X),\n   B(X).", toString(*aClauses1[1]));
-
-    const auto bClauses1 = getClauses(program, "B");
-    EXPECT_EQ(1, bClauses1.size());
-    EXPECT_EQ("B(X) :- \n   BaseTwo(X),\n   A(X).", toString(*bClauses1[0]));
-
-    const auto qClauses1 = getClauses(program, "Query");
-    EXPECT_EQ(1, qClauses1.size());
-    EXPECT_EQ("Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X).", toString(*qClauses1[0]));
-
-    const auto cClauses1 = getClauses(program, "C");
-    EXPECT_EQ(1, cClauses1.size());
-    EXPECT_EQ("C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1.",
-            toString(*cClauses1[0]));
-
-    const auto rClauses1 = getClauses(program, "R");
-    EXPECT_EQ(1, rClauses1.size());
-    EXPECT_EQ("R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0.",
-            toString(*rClauses1[0]));
-
-    const auto dClauses1 = getClauses(program, "D");
-    EXPECT_EQ(1, dClauses1.size());
-    EXPECT_EQ("D(X) :- \n   BaseOne(X),\n   A(X),\n   !C(X),\n   !R(X).", toString(*dClauses1[0]));
+    auto expectedNormalisation = std::map<AstQualifiedName, std::vector<std::string>>({
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"C", {"C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"R", {"R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !C(X),\n   !R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+    });
+    EXPECT_EQ(expectedNormalisation, mappifyRelations(program));
 
     /* Stage 2: Database negative and positive labelling, keeping only the relevant ones */
     /* Stage 2.1: Negative labelling */
