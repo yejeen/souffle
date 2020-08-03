@@ -437,14 +437,14 @@ TEST(AstTransformers, MagicSetComprehensive) {
     auto& program = *tu->getProgram();
 
     auto mappifyRelations = [&](const AstProgram& program) {
-        std::map<AstQualifiedName, std::vector<std::string>> result;
+        std::map<std::string, std::vector<std::string>> result;
         for (const auto* rel : program.getRelations()) {
             std::vector<std::string> clauseStrings;
             auto relName = rel->getQualifiedName();
             for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
                 clauseStrings.push_back(toString(*clause));
             }
-            result[relName] = clauseStrings;
+            result[toString(relName)] = clauseStrings;
         }
         return result;
     };
@@ -456,7 +456,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(8, program.getRelations().size());
     EXPECT_EQ(7, program.getClauses().size());
 
-    auto expectedNormalisation = std::map<AstQualifiedName, std::vector<std::string>>({
+    auto expectedNormalisation = std::map<std::string, std::vector<std::string>>({
             {"BaseOne", {}},
             {"BaseTwo", {}},
             {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
@@ -472,73 +472,32 @@ TEST(AstTransformers, MagicSetComprehensive) {
     /* Stage 2.1: Negative labelling */
     std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(
             *tu);
-    const auto relations2 = program.getRelations();
-    EXPECT_EQ(14, relations2.size());
+    EXPECT_EQ(14, program.getRelations().size());
     EXPECT_EQ(14, program.getClauses().size());
 
-    // Original strata - neglabels should appear on all negated appearances of relations
-    const auto aClauses2 = getClauses(program, "A");
-    EXPECT_EQ(2, aClauses2.size());
-    EXPECT_EQ("A(X) :- \n   BaseOne(X).", toString(*aClauses2[0]));
-    EXPECT_EQ("A(X) :- \n   BaseOne(X),\n   B(X).", toString(*aClauses2[1]));
+    auto expectedNegLabelling = std::map<std::string, std::vector<std::string>>({
+            // Original strata - neglabels should appear on all negated appearances of relations
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"C", {"C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"R", {"R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
 
-    const auto bClauses2 = getClauses(program, "B");
-    EXPECT_EQ(1, bClauses2.size());
-    EXPECT_EQ("B(X) :- \n   BaseTwo(X),\n   A(X).", toString(*bClauses2[0]));
-
-    const auto qClauses2 = getClauses(program, "Query");
-    EXPECT_EQ(1, qClauses2.size());
-    EXPECT_EQ("Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X).", toString(*qClauses2[0]));
-
-    const auto cClauses2 = getClauses(program, "C");
-    EXPECT_EQ(1, cClauses2.size());
-    EXPECT_EQ("C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1.",
-            toString(*cClauses2[0]));
-
-    const auto rClauses2 = getClauses(program, "R");
-    EXPECT_EQ(1, rClauses2.size());
-    EXPECT_EQ("R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0.",
-            toString(*rClauses2[0]));
-
-    const auto dClauses2 = getClauses(program, "D");
-    EXPECT_EQ(1, dClauses2.size());
-    EXPECT_EQ("D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X).",
-            toString(*dClauses2[0]));
-
-    // Neglaelled strata - relations should be copied and neglabelled one stratum at a time
-    const auto negaClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "A"})));
-    EXPECT_EQ(2, negaClauses2.size());
-    EXPECT_EQ("@neglabel.A(X) :- \n   BaseOne(X).", toString(*negaClauses2[0]));
-    EXPECT_EQ("@neglabel.A(X) :- \n   BaseOne(X),\n   @neglabel.B(X).", toString(*negaClauses2[1]));
-
-    const auto negbClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "B"})));
-    EXPECT_EQ(1, negbClauses2.size());
-    EXPECT_EQ("@neglabel.B(X) :- \n   BaseTwo(X),\n   @neglabel.A(X).", toString(*negbClauses2[0]));
-
-    const auto negqClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "Query"})));
-    EXPECT_EQ(1, negqClauses2.size());
-    EXPECT_EQ("@neglabel.Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X).", toString(*negqClauses2[0]));
-
-    const auto negcClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "C"})));
-    EXPECT_EQ(1, negcClauses2.size());
-    EXPECT_EQ("@neglabel.C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1.",
-            toString(*negcClauses2[0]));
-
-    const auto negrClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "R"})));
-    EXPECT_EQ(1, negrClauses2.size());
-    EXPECT_EQ("@neglabel.R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0.",
-            toString(*negrClauses2[0]));
-
-    const auto negdClauses2 =
-            getClauses(program, AstQualifiedName(std::vector<std::string>({"@neglabel", "D"})));
-    EXPECT_EQ(1, negdClauses2.size());
-    EXPECT_EQ("@neglabel.D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X).",
-            toString(*negdClauses2[0]));
+            // Neglaelled strata - relations should be copied and neglabelled one stratum at a time
+            {"@neglabel.A", {"@neglabel.A(X) :- \n   BaseOne(X).",
+                                    "@neglabel.A(X) :- \n   BaseOne(X),\n   @neglabel.B(X)."}},
+            {"@neglabel.B", {"@neglabel.B(X) :- \n   BaseTwo(X),\n   @neglabel.A(X)."}},
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   "
+                             "@abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   "
+                             "@abdul0 = 0."}},
+            {"@neglabel.D", {"@neglabel.D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   "
+                             "!@neglabel.R(X)."}},
+            {"@neglabel.Query", {"@neglabel.Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+    });
 
     /* Stage 2.2: Positive labelling */
     std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(
