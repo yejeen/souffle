@@ -102,6 +102,7 @@ souffle_sources = \
         SignalHandler.h                                    \
         SrcLocation.cpp                                    \
         SrcLocation.h                                      \
+        TypeAttribute.h                                    \
         Util.cpp                                           \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
