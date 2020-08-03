@@ -158,6 +158,8 @@ souffle_sources = \
         ast/analysis/SCCGraph.h                            \
         ast/analysis/TopologicallySortedSCCGraph.cpp       \
         ast/analysis/TopologicallySortedSCCGraph.h         \
+        ast/transform/ADTtoRecords.cpp                     \
+        ast/transform/ADTtoRecords.h                       \
         ast/transform/ComponentChecker.cpp                 \
         ast/transform/ComponentChecker.h                   \
         ast/transform/PragmaChecker.cpp                    \
