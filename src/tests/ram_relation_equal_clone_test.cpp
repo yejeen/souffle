@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "RamRelation.h"
 #include "RelationTag.h"
+#include "ram/Relation.h"
 #include <string>
 
 namespace souffle {

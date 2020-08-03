@@ -15,24 +15,27 @@
  ***********************************************************************/
 
 #include "ParserDriver.h"
-#include "AstClause.h"
-#include "AstComponent.h"
-#include "AstFunctorDeclaration.h"
-#include "AstIO.h"
-#include "AstPragma.h"
-#include "AstProgram.h"
-#include "AstQualifiedName.h"
-#include "AstRelation.h"
-#include "AstTranslationUnit.h"
-#include "AstType.h"
-#include "AstUtils.h"
 #include "ErrorReport.h"
+#include "Global.h"
+#include "ast/Clause.h"
+#include "ast/Component.h"
+#include "ast/ComponentInit.h"
+#include "ast/FunctorDeclaration.h"
+#include "ast/IO.h"
+#include "ast/Pragma.h"
+#include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/SubsetType.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Type.h"
+#include "ast/Utils.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
 #include "utility/tinyformat.h"
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -100,7 +103,7 @@ void ParserDriver::addPragma(std::unique_ptr<AstPragma> p) {
 void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> f) {
     const std::string& name = f->getName();
     if (const AstFunctorDeclaration* prev = getFunctorDeclaration(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of functor " + toString(name), f->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -112,7 +115,7 @@ void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> 
 void ParserDriver::addRelation(std::unique_ptr<AstRelation> r) {
     const auto& name = r->getQualifiedName();
     if (AstRelation* prev = getRelation(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of relation " + toString(name), r->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -125,7 +128,7 @@ void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
     if (d->getType() == AstIoType::printsize) {
         for (const auto& cur : translationUnit->getProgram()->getIOs()) {
             if (cur->getQualifiedName() == d->getQualifiedName() && cur->getType() == AstIoType::printsize) {
-                Diagnostic err(Diagnostic::ERROR,
+                Diagnostic err(Diagnostic::Type::ERROR,
                         DiagnosticMessage("Redefinition of printsize directives for relation " +
                                                   toString(d->getQualifiedName()),
                                 d->getSrcLoc()),
@@ -141,7 +144,7 @@ void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
 void ParserDriver::addType(std::unique_ptr<AstType> type) {
     const auto& name = type->getQualifiedName();
     if (const AstType* prev = getType(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of type " + toString(name), type->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -217,7 +220,8 @@ void ParserDriver::error(const SrcLocation& loc, const std::string& msg) {
     translationUnit->getErrorReport().addError(msg, loc);
 }
 void ParserDriver::error(const std::string& msg) {
-    translationUnit->getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR, DiagnosticMessage(msg)));
+    translationUnit->getErrorReport().addDiagnostic(
+            Diagnostic(Diagnostic::Type::ERROR, DiagnosticMessage(msg)));
 }
 
 }  // end of namespace souffle

@@ -20,15 +20,15 @@
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
-#include "RamExpression.h"
-#include "RamOperation.h"
-#include "RamProgram.h"
-#include "RamRelation.h"
-#include "RamStatement.h"
-#include "RamTranslationUnit.h"
 #include "RamTypes.h"
 #include "SymbolTable.h"
+#include "interpreter/InterpreterEngine.h"
+#include "ram/Expression.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
+#include "ram/TranslationUnit.h"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -51,7 +51,7 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
 
     Global::config().set("jobs", "1");
     std::unique_ptr<RamStatement> query =
-            std::make_unique<RamQuery>(std::make_unique<RamSubroutineReturnValue>(std::move(returnValues)));
+            std::make_unique<RamQuery>(std::make_unique<RamSubroutineReturn>(std::move(returnValues)));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
     subs.insert(std::make_pair("test", std::move(query)));
     std::vector<std::unique_ptr<RamRelation>> rels;

@@ -17,10 +17,10 @@
 #include "tests/test.h"
 
 #include "BinaryConstraintOps.h"
-#include "RamCondition.h"
-#include "RamExpression.h"
-#include "RamRelation.h"
 #include "RelationTag.h"
+#include "ram/Condition.h"
+#include "ram/Expression.h"
+#include "ram/Relation.h"
 #include <memory>
 #include <string>
 #include <utility>

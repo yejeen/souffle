@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "AstQualifiedName.h"
-#include "AstTranslationUnit.h"
 #include "RamTypes.h"
 #include "RelationTag.h"
 #include "SrcLocation.h"
+#include "ast/QualifiedName.h"
+#include "ast/TranslationUnit.h"
 #include "parser.hh"
 #include <cstdio>
 #include <memory>

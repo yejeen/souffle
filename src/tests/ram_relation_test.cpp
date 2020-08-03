@@ -8,30 +8,30 @@
 
 /************************************************************************
  *
- * @file ram_arithmetic_test.cpp
+ * @file ram_relation_test.cpp
  *
  * Tests arithmetic evaluation by the Interpreter.
  *
  ***********************************************************************/
 
-#include "tests/test.h"
-
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
-#include "RamExpression.h"
-#include "RamOperation.h"
-#include "RamProgram.h"
-#include "RamRelation.h"
-#include "RamStatement.h"
-#include "RamTranslationUnit.h"
 #include "RamTypes.h"
 #include "RelationTag.h"
 #include "SymbolTable.h"
+#include "interpreter/InterpreterEngine.h"
 #include "json11.h"
+#include "ram/Expression.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
+#include "ram/TranslationUnit.h"
+#include "tests/test.h"
 #include <algorithm>
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -59,7 +59,7 @@ const std::string testInterpreterStore(std::vector<std::string> attribs,
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types = Json::object{{"test",
+    Json types = Json::object{{"relation",
             Json::object{{"arity", static_cast<long long>(arity)}, {"auxArity", static_cast<long long>(0)},
                     {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
@@ -169,6 +169,8 @@ TEST(IO_store, Float) {
     }
 
     std::stringstream expected;
+    expected << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
+
     expected << "---------------"
              << "\n"
              << "test"
@@ -246,10 +248,10 @@ TEST(IO_store, SignedChangedDelimiter) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> dirs = {{"operation", "output"}, {"IO", "stdout"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"delimiter", delimiter}, {"types", types.dump()}};
@@ -320,10 +322,10 @@ TEST(IO_store, MixedTypes) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> dirs = {{"operation", "output"}, {"IO", "stdout"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"types", types.dump()}};
@@ -334,10 +336,11 @@ TEST(IO_store, MixedTypes) {
     DebugReport debugReport;
 
     std::vector<std::unique_ptr<RamExpression>> exprs;
+    RamFloat floatValue = 27.75;
     exprs.push_back(std::make_unique<RamSignedConstant>(3));
     exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamUnsigned>(27))));
-    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(27.27))));
-    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(27.27))));
+    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(floatValue))));
+    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(floatValue))));
     exprs.push_back(std::make_unique<RamSignedConstant>(symbolTable.lookup("meow")));
 
     std::unique_ptr<RamStatement> main = std::make_unique<RamSequence>(
@@ -363,13 +366,14 @@ TEST(IO_store, MixedTypes) {
     std::cout.rdbuf(oldCoutStreambuf);
 
     std::stringstream expected;
+    expected << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     expected << "---------------"
              << "\n"
              << "test"
              << "\n"
              << "==============="
              << "\n"
-             << 3 << "\t" << 27 << "\t" << 27.27 << "\t" << 27.27 << "\t"
+             << 3 << "\t" << 27 << "\t" << floatValue << "\t" << floatValue << "\t"
              << "meow"
              << "\n"
              << "==============="
@@ -394,10 +398,10 @@ TEST(IO_load, Signed) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> readDirs = {{"operation", "input"}, {"IO", "stdin"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"types", types.dump()}};
@@ -460,10 +464,10 @@ TEST(IO_load, Float) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> readDirs = {{"operation", "input"}, {"IO", "stdin"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"types", types.dump()}};
@@ -526,10 +530,10 @@ TEST(IO_load, Unsigned) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> readDirs = {{"operation", "input"}, {"IO", "stdin"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"types", types.dump()}};
@@ -578,7 +582,7 @@ test
 
 TEST(IO_load, MixedTypesLoad) {
     std::streambuf* backupCin = std::cin.rdbuf();
-    std::istringstream testInput("meow	-3	3	0.3");
+    std::istringstream testInput("meow	-3	3	0.5");
     std::cin.rdbuf(testInput.rdbuf());
 
     Global::config().set("jobs", "1");
@@ -592,10 +596,10 @@ TEST(IO_load, MixedTypesLoad) {
     std::unique_ptr<RamRelationReference> ref1 = std::make_unique<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = std::make_unique<RamRelationReference>(myrel.get());
 
-    Json types =
-            Json::object{{"test", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
-                                          {"auxArity", static_cast<long long>(0)},
-                                          {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
+    Json types = Json::object{
+            {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
+                                 {"auxArity", static_cast<long long>(0)},
+                                 {"types", Json::array(attribsTypes.begin(), attribsTypes.end())}}}};
 
     std::map<std::string, std::string> readDirs = {{"operation", "input"}, {"IO", "stdin"},
             {"attributeNames", "x\ty"}, {"name", "test"}, {"types", types.dump()}};
@@ -634,7 +638,7 @@ TEST(IO_load, MixedTypesLoad) {
     std::string expected = R"(---------------
 test
 ===============
-meow	-3	3	0.3
+meow	-3	3	0.5
 ===============
 )";
 

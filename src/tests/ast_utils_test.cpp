@@ -16,21 +16,23 @@
 
 #include "tests/test.h"
 
-#include "AstAbstract.h"
-#include "AstArgument.h"
-#include "AstClause.h"
-#include "AstGroundAnalysis.h"
-#include "AstLiteral.h"
-#include "AstNode.h"
-#include "AstProgram.h"
-#include "AstQualifiedName.h"
-#include "AstTransforms.h"
-#include "AstTranslationUnit.h"
-#include "AstUtils.h"
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ParserDriver.h"
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/BinaryConstraint.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Negation.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/Variable.h"
+#include "ast/analysis/Ground.h"
 #include "utility/StringUtil.h"
 #include <algorithm>
 #include <map>
@@ -129,172 +131,6 @@ TEST(AstUtils, GroundedRecords) {
     // check selected sub-terms
     EXPECT_TRUE(isGrounded[s->getArguments()[0]]);
     EXPECT_TRUE(isGrounded[r->getArguments()[0]]);
-}
-
-TEST(AstUtils, GroundTermPropagation) {
-    ErrorReport e;
-    DebugReport d;
-    // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-                .type D <: symbol
-                .decl p(a:D,b:D)
-
-                p(a,b) :- p(x,y), r = [x,y], s = r, s = [w,v], [w,v] = [a,b].
-            )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    // check types in clauses
-    AstClause* a = getClauses(program, "p")[0];
-
-    EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
-            toString(*a));
-
-    std::unique_ptr<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
-    std::unique_ptr<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
-
-    EXPECT_EQ(
-            "p(x,y) :- \n   p(x,y),\n   [x,y] = [x,y],\n   [x,y] = [x,y],\n   [x,y] = [x,y],\n   [x,y] = "
-            "[x,y].",
-            toString(*res));
-    EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*cleaned));
-}
-
-TEST(AstUtils, GroundTermPropagation2) {
-    ErrorReport e;
-    DebugReport d;
-    // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-               .type D <: symbol
-               .decl p(a:D,b:D)
-
-               p(a,b) :- p(x,y), x = y, x = a, y = b.
-           )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    // check types in clauses
-    AstClause* a = getClauses(program, "p")[0];
-
-    EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   x = y,\n   x = a,\n   y = b.", toString(*a));
-
-    std::unique_ptr<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
-    std::unique_ptr<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
-
-    EXPECT_EQ("p(b,b) :- \n   p(b,b),\n   b = b,\n   b = b,\n   b = b.", toString(*res));
-    EXPECT_EQ("p(b,b) :- \n   p(b,b).", toString(*cleaned));
-}
-
-TEST(AstUtils, ResolveGroundedAliases) {
-    // load some test program
-    ErrorReport e;
-    DebugReport d;
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-                .type D <: symbol
-                .decl p(a:D,b:D)
-
-                p(a,b) :- p(x,y), r = [x,y], s = r, s = [w,v], [w,v] = [a,b].
-            )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
-            toString(*getClauses(program, "p")[0]));
-
-    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
-
-    EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*getClauses(program, "p")[0]));
-}
-
-TEST(AstUtils, ResolveAliasesWithTermsInAtoms) {
-    // load some test program
-    ErrorReport e;
-    DebugReport d;
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-                .type D <: symbol
-                .decl p(a:D,b:D)
-
-                p(x,c) :- p(x,b), p(b,c), c = b+1, x=c+2.
-            )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
-            toString(*getClauses(program, "p")[0]));
-
-    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
-
-    EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
-            toString(*getClauses(program, "p")[0]));
-}
-
-TEST(AstUtils, RemoveRelationCopies) {
-    ErrorReport e;
-    DebugReport d;
-    // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-                .type D = number
-                .decl a(a:D,b:D)
-                .decl b(a:D,b:D)
-                .decl c(a:D,b:D)
-                .decl d(a:D,b:D)
-
-                a(1,2).
-                b(x,y) :- a(x,y).
-                c(x,y) :- b(x,y).
-
-                d(x,y) :- b(x,y), c(y,x).
-
-            )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    EXPECT_EQ(4, program.getRelations().size());
-
-    RemoveRelationCopiesTransformer::removeRelationCopies(*tu);
-
-    EXPECT_EQ(2, program.getRelations().size());
-}
-
-TEST(AstUtils, RemoveRelationCopiesOutput) {
-    ErrorReport e;
-    DebugReport d;
-    // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
-            R"(
-                .type D = number
-                .decl a(a:D,b:D)
-                .decl b(a:D,b:D)
-                .decl c(a:D,b:D)
-                .output c
-                .decl d(a:D,b:D)
-
-                a(1,2).
-                b(x,y) :- a(x,y).
-                c(x,y) :- b(x,y).
-
-                d(x,y) :- b(x,y), c(y,x).
-
-            )",
-            e, d);
-
-    AstProgram& program = *tu->getProgram();
-
-    EXPECT_EQ(4, program.getRelations().size());
-
-    RemoveRelationCopiesTransformer::removeRelationCopies(*tu);
-
-    EXPECT_EQ(3, program.getRelations().size());
 }
 
 TEST(AstUtils, ReorderClauseAtoms) {

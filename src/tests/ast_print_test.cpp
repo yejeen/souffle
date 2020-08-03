@@ -17,16 +17,18 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
-#include "AstAbstract.h"
-#include "AstArgument.h"
-#include "AstClause.h"
-#include "AstLiteral.h"
-#include "AstNode.h"
-#include "AstProgram.h"
-#include "AstTranslationUnit.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ParserDriver.h"
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Variable.h"
+#include <algorithm>
 #include <iosfwd>
 #include <memory>
 #include <string>

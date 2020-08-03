@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file type_system_test.h
+ * @file type_system_test.cpp
  *
  * Tests souffle's type system operations.
  *
@@ -17,7 +17,7 @@
 #include "tests/test.h"
 
 #include "RamTypes.h"
-#include "TypeSystem.h"
+#include "ast/TypeSystem.h"
 #include "utility/StringUtil.h"
 #include <string>
 #include <vector>
@@ -253,6 +253,15 @@ TEST(TypeSystem, RecordSubsets) {
     EXPECT_PRED2(isSubtypeOf, A, R);
 
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, R)));
+}
+
+TEST(TypeSystem, EquivTypes) {
+    TypeEnvironment env;
+
+    auto& A = env.createType<SubsetType>("A", env.getType("number"));
+    auto& U = env.createType<UnionType>("U", toVector(dynamic_cast<const Type*>(&A)));
+
+    EXPECT_TRUE(areEquivalentTypes(A, U));
 }
 
 }  // namespace souffle::test

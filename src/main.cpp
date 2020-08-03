@@ -14,33 +14,78 @@
  *
  ***********************************************************************/
 
-#include "AstComponentChecker.h"
-#include "AstNode.h"
-#include "AstPragmaChecker.h"
-#include "AstProgram.h"
-#include "AstSemanticChecker.h"
-#include "AstTransforms.h"
-#include "AstTranslationUnit.h"
-#include "AstTranslator.h"
-#include "AstTypeAnalysis.h"
-#include "ComponentInstantiationTransformer.h"
+#include "AstToRamTranslator.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Explain.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
-#include "InterpreterProgInterface.h"
 #include "ParserDriver.h"
-#include "PrecedenceGraph.h"
-#include "RamNode.h"
-#include "RamProgram.h"
-#include "RamTransformer.h"
-#include "RamTransforms.h"
-#include "RamTranslationUnit.h"
 #include "RamTypes.h"
-#include "Synthesiser.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/SCCGraph.h"
+#include "ast/analysis/Type.h"
+#include "ast/transform/ComponentChecker.h"
+#include "ast/transform/ComponentInstantiation.h"
+#include "ast/transform/Conditional.h"
+#include "ast/transform/ExecutionPlanChecker.h"
+#include "ast/transform/Fixpoint.h"
+#include "ast/transform/FoldAnonymousRecords.h"
+#include "ast/transform/GroundedTermsChecker.h"
+#include "ast/transform/IOAttributes.h"
+#include "ast/transform/IODefaults.h"
+#include "ast/transform/InlineRelations.h"
+#include "ast/transform/MagicSet.h"
+#include "ast/transform/MaterializeAggregationQueries.h"
+#include "ast/transform/MaterializeSingletonAggregation.h"
+#include "ast/transform/MinimiseProgram.h"
+#include "ast/transform/NameUnnamedVariables.h"
+#include "ast/transform/NormaliseConstraints.h"
+#include "ast/transform/PartitionBodyLiterals.h"
+#include "ast/transform/Pipeline.h"
+#include "ast/transform/PolymorphicObjects.h"
+#include "ast/transform/PragmaChecker.h"
+#include "ast/transform/Provenance.h"
+#include "ast/transform/ReduceExistentials.h"
+#include "ast/transform/RemoveBooleanConstraints.h"
+#include "ast/transform/RemoveEmptyRelations.h"
+#include "ast/transform/RemoveRedundantRelations.h"
+#include "ast/transform/RemoveRedundantSums.h"
+#include "ast/transform/RemoveRelationCopies.h"
+#include "ast/transform/RemoveTypecasts.h"
+#include "ast/transform/ReorderLiterals.h"
+#include "ast/transform/ReplaceSingletonVariables.h"
+#include "ast/transform/ResolveAliases.h"
+#include "ast/transform/ResolveAnonymousRecordsAliases.h"
+#include "ast/transform/SemanticChecker.h"
+#include "ast/transform/UniqueAggregationVariables.h"
+#include "ast/transform/UserDefinedFunctors.h"
 #include "config.h"
+#include "interpreter/InterpreterEngine.h"
+#include "interpreter/InterpreterProgInterface.h"
 #include "profile/Tui.h"
+#include "ram/Node.h"
+#include "ram/Program.h"
+#include "ram/TranslationUnit.h"
+#include "ram/transform/ChoiceConversion.h"
+#include "ram/transform/CollapseFilters.h"
+#include "ram/transform/EliminateDuplicates.h"
+#include "ram/transform/ExpandFilter.h"
+#include "ram/transform/HoistAggregate.h"
+#include "ram/transform/HoistConditions.h"
+#include "ram/transform/IfConversion.h"
+#include "ram/transform/IndexedInequality.h"
+#include "ram/transform/MakeIndex.h"
+#include "ram/transform/Parallel.h"
+#include "ram/transform/ReorderConditions.h"
+#include "ram/transform/ReorderFilterBreak.h"
+#include "ram/transform/ReportIndex.h"
+#include "ram/transform/Transformer.h"
+#include "ram/transform/TupleId.h"
+#include "synthesiser/Synthesiser.h"
+#include "utility/ContainerUtil.h"
 #include "utility/FileUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -50,6 +95,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -77,7 +123,7 @@ void executeBinary(const std::string& binaryFilename) {
         for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
             ldPath += library + ':';
         }
-        ldPath.back() = ' ';
+        ldPath.pop_back();
         setenv("LD_LIBRARY_PATH", ldPath.c_str(), 1);
         setenv("DYLD_LIBRARY_PATH", ldPath.c_str(), 1);
     }
@@ -167,8 +213,8 @@ int main(int argc, char** argv) {
                 {"swig", 's', "LANG", "", false,
                         "Generate SWIG interface for given language. The values <LANG> accepts is java and "
                         "python. "},
-                {"library-dir", 'L', "DIR", "", true, "Specify directory for library files."},
-                {"libraries", 'l', "FILE", "", true, "Specify libraries."},
+                {"library-dir", 'L', "DIR", "", false, "Specify directory for library files."},
+                {"libraries", 'l', "FILE", "", false, "Specify libraries."},
                 {"no-warn", 'w', "", "", false, "Disable warnings."},
                 {"magic-transform", 'm', "RELATIONS", "", false,
                         "Enable magic set transformation changes on the given relations, use '*' "
@@ -185,7 +231,7 @@ int main(int argc, char** argv) {
                         "Use profile log-file <FILE> for profile-guided optimization."},
                 {"debug-report", 'r', "FILE", "", false, "Write HTML debug report to <FILE>."},
                 {"pragma", 'P', "OPTIONS", "", false, "Set pragma options."},
-                {"provenance", 't', "[ none | explain | explore | subtreeHeights ]", "", false,
+                {"provenance", 't', "[ none | explain | explore ]", "", false,
                         "Enable provenance instrumentation and interaction."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
                 {"version", '\3', "", "", false, "Version."},
@@ -253,7 +299,7 @@ int main(int argc, char** argv) {
         }
 #else
         // Check that -j option has not been changed from the default
-        if (Global::config().get("jobs") != "1") {
+        if (Global::config().get("jobs") != "1" && !Global::config().has("no-warn")) {
             std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
         }
 #endif
@@ -418,7 +464,7 @@ int main(int argc, char** argv) {
 
     // Main pipeline
     auto pipeline = std::make_unique<PipelineTransformer>(std::make_unique<AstComponentChecker>(),
-            std::make_unique<ComponentInstantiationTransformer>(),
+            std::make_unique<ComponentInstantiationTransformer>(), std::make_unique<IODefaultsTransformer>(),
             std::make_unique<UniqueAggregationVariablesTransformer>(),
             std::make_unique<AstUserDefinedFunctorsTransformer>(),
             std::make_unique<FixpointTransformer>(
@@ -447,7 +493,7 @@ int main(int argc, char** argv) {
             std::make_unique<RemoveEmptyRelationsTransformer>(),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<ReorderLiteralsTransformer>(),
             std::move(magicPipeline), std::make_unique<AstExecutionPlanChecker>(),
-            std::move(provenancePipeline));
+            std::move(provenancePipeline), std::make_unique<IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {
@@ -499,14 +545,14 @@ int main(int argc, char** argv) {
 
         // Output the precedence graph in graphviz dot format and return
         if (Global::config().get("show") == "precedence-graph") {
-            astTranslationUnit->getAnalysis<PrecedenceGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<PrecedenceGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
 
         // Output the scc graph in graphviz dot format and return
         if (Global::config().get("show") == "scc-graph") {
-            astTranslationUnit->getAnalysis<SCCGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<SCCGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
@@ -523,7 +569,7 @@ int main(int argc, char** argv) {
     /* translate AST to RAM */
     debugReport.startSection();
     std::unique_ptr<RamTranslationUnit> ramTranslationUnit =
-            AstTranslator().translateUnit(*astTranslationUnit);
+            AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
     std::unique_ptr<RamTransformer> ramTransform = std::make_unique<RamTransformerSequence>(
@@ -532,9 +578,9 @@ int main(int argc, char** argv) {
                     std::make_unique<HoistConditionsTransformer>(), std::make_unique<MakeIndexTransformer>()
                     // not sure if I need to move out the filter transform
                     )),
-            std::make_unique<IndexedInequalityTransformer>(), std::make_unique<IfConversionTransformer>(),
-            std::make_unique<ChoiceConversionTransformer>(), std::make_unique<CollapseFiltersTransformer>(),
-            std::make_unique<TupleIdTransformer>(),
+            std::make_unique<RamLoopTransformer>(std::make_unique<IndexedInequalityTransformer>()),
+            std::make_unique<IfConversionTransformer>(), std::make_unique<ChoiceConversionTransformer>(),
+            std::make_unique<CollapseFiltersTransformer>(), std::make_unique<TupleIdTransformer>(),
             std::make_unique<RamLoopTransformer>(std::make_unique<RamTransformerSequence>(
                     std::make_unique<HoistAggregateTransformer>(), std::make_unique<TupleIdTransformer>())),
             std::make_unique<ExpandFilterTransformer>(), std::make_unique<HoistConditionsTransformer>(),
@@ -579,18 +625,12 @@ int main(int argc, char** argv) {
                 profiler.join();
             }
             if (Global::config().has("provenance")) {
-                // Test for bugged combination of provenance, interpreted souffle, and concurrency
-                if (Global::config().get("jobs") != "1") {
-                    throw std::runtime_error("Provenance is not supported with parallel interpreted mode");
-                }
-
                 // only run explain interface if interpreted
                 InterpreterProgInterface interface(*interpreter);
-                if (Global::config().get("provenance") == "explain" ||
-                        Global::config().get("provenance") == "subtreeHeights") {
-                    explain(interface, false, Global::config().get("provenance") == "subtreeHeights");
+                if (Global::config().get("provenance") == "explain") {
+                    explain(interface, false);
                 } else if (Global::config().get("provenance") == "explore") {
-                    explain(interface, true, false);
+                    explain(interface, true);
                 }
             }
         } else {

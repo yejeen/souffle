@@ -62,10 +62,6 @@ eqrel_datastructure_test_SOURCES = eqrel_datastructure_test.cpp test.h
 check_PROGRAMS += compiled_tuple_test
 compiled_tuple_test_SOURCES = compiled_tuple_test.cpp test.h
 
-# compiled ram index utils test
-check_PROGRAMS += compiled_index_utils_test
-compiled_index_utils_test_SOURCES = compiled_index_utils_test.cpp test.h
-
 # interpreter relation test
 check_PROGRAMS += interpreter_relation_test
 interpreter_relation_test_SOURCES = interpreter_relation_test.cpp test.h
@@ -90,6 +86,11 @@ ast_print_test_LDADD = ../libsouffle.la
 check_PROGRAMS += ast_program_test
 ast_program_test_SOURCES = ast_program_test.cpp test.h
 ast_program_test_LDADD = ../libsouffle.la
+
+# ast transformers test
+check_PROGRAMS += ast_transformers_test
+ast_transformers_test_SOURCES = ast_transformers_test.cpp test.h
+ast_transformers_test_LDADD = ../libsouffle.la
 
 # ast utils test
 check_PROGRAMS += ast_utils_test

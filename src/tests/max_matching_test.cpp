@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file max_matching_test.h
+ * @file max_matching_test.cpp
  *
  * Test cases for the computation of maximum matching.
  *
@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "RamAnalysis.h"
-#include "RamIndexAnalysis.h"
+#include "ram/analysis/Analysis.h"
+#include "ram/analysis/IndexAnalysis.h"
 #include <set>
 #include <string>
 
