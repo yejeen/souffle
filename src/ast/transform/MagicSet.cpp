@@ -61,7 +61,6 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
 
     // - Any relations not specified to magic-set
     std::vector<AstQualifiedName> specifiedRelations;
-    // TODO: make sure you dont ignore poslabel ones
 
     // From config
     // TODO: check that this is done correctly
@@ -547,7 +546,13 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
     // Add in adorned body literals
     std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
     for (const auto* lit : clause->getBodyLiterals()) {
-        if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
+        if (const auto* negation = dynamic_cast<const AstNegation*>(lit)) {
+            // Negated atoms should not be adorned, but their clauses should be anyway
+            const auto negatedAtomName = negation->getAtom()->getQualifiedName();
+            assert(contains(relationsToIgnore, negatedAtomName) && "negated atoms should not be adorned");
+            queueAdornment(negatedAtomName, "");
+            continue;
+        } else if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
             // Non-atoms are added directly
             adornedBodyLiterals.push_back(souffle::clone(lit));
             continue;

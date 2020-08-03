@@ -434,7 +434,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
             )",
             e, d);
 
-    const auto& program = *tu->getProgram();
+    auto& program = *tu->getProgram();
 
     /* Stage 1: Database normalisation */
     // Constants should now be extracted from the inequality constraints
@@ -548,7 +548,6 @@ TEST(AstTransformers, MagicSetComprehensive) {
     const auto relations3 = program.getRelations();
     EXPECT_EQ(33, relations3.size());
     EXPECT_EQ(27, program.getClauses().size());
-
     // TODO: poslabel results
 
     /* Stage 2.3: Remove unnecessary labelled relations */
@@ -556,16 +555,13 @@ TEST(AstTransformers, MagicSetComprehensive) {
     const auto relations4 = program.getRelations();
     EXPECT_EQ(12, relations4.size());
     EXPECT_EQ(13, program.getClauses().size());
-
     // TODO: poslabel results after removal
 
     /* Stage 3: Database adornment */
     std::make_unique<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
     const auto relations5 = program.getRelations();
-    // TODO: fix poscopy magic being ignored
-    // EXPECT_EQ(19, relations5.size());
-    // EXPECT_EQ(23, program.getClauses().size());
-
+    EXPECT_EQ(19, relations5.size());
+    EXPECT_EQ(23, program.getClauses().size());
     // TODO: adornment results
 
     /* Stage 4: MST core transformation */
