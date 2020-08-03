@@ -10,7 +10,7 @@
  *
  * @file ParserUtils.cpp
  *
- * Defines a rewrite class for multi-heads and disjunction
+ * Implements a rewrite class for multi-heads and disjunction
  *
  ***********************************************************************/
 
