@@ -551,8 +551,9 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
             const auto negatedAtomName = negation->getAtom()->getQualifiedName();
             assert(contains(relationsToIgnore, negatedAtomName) && "negated atoms should not be adorned");
             queueAdornment(negatedAtomName, "");
-            continue;
-        } else if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
+        }
+
+        if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
             // Non-atoms are added directly
             adornedBodyLiterals.push_back(souffle::clone(lit));
             continue;
