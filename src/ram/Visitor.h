@@ -17,13 +17,22 @@
 
 #pragma once
 
+#include "ram/AbstractExistenceCheck.h"
 #include "ram/Condition.h"
+#include "ram/Conjunction.h"
+#include "ram/Constraint.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
+#include "ram/False.h"
+#include "ram/Negation.h"
 #include "ram/Node.h"
 #include "ram/Operation.h"
 #include "ram/Program.h"
+#include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
+#include "ram/True.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
 #include <cstddef>

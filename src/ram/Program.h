@@ -20,6 +20,7 @@
 #include "ram/Relation.h"
 #include "ram/Statement.h"
 #include "utility/ContainerUtil.h"
+#include "utility/MiscUtil.h"
 #include <cassert>
 #include <map>
 #include <memory>

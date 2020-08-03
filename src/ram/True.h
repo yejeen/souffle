@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Condition.h
+ * @file True.h
  *
  * Defines a class for evaluating conditions in the Relational Algebra
  * Machine.
@@ -17,17 +17,27 @@
 
 #pragma once
 
-#include "ram/Node.h"
+#include "ram/Condition.h"
+#include <ostream>
 
 namespace souffle {
 
 /**
- * @class RamCondition
- * @brief Abstract class for conditions and boolean values in RAM
+ * @class RamTrue
+ * @brief True value condition
+ *
+ * Output is "true"
  */
-class RamCondition : public RamNode {
+class RamTrue : public RamCondition {
 public:
-    RamCondition* clone() const override = 0;
+    RamTrue* clone() const override {
+        return new RamTrue();
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "true";
+    }
 };
 
 }  // end of namespace souffle

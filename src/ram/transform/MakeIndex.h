@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ram/Constraint.h"
 #include "ram/Operation.h"
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/LevelAnalysis.h"

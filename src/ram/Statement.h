@@ -22,6 +22,7 @@
 #include "ram/Operation.h"
 #include "ram/Relation.h"
 #include "utility/ContainerUtil.h"
+#include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
 #include <algorithm>
