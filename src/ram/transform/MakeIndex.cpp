@@ -376,7 +376,6 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
     if (condition == nullptr) {
         condition = std::make_unique<RamTrue>();
     }
-
     return condition;
 }
 
@@ -400,7 +399,6 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
                     agg->getTupleId());
         }
     }
-
     return nullptr;
 }
 

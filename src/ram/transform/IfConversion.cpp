@@ -46,7 +46,7 @@ std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const Ra
 
         size_t arity = indexScan->getRangePattern().first.size();
         for (size_t i = 0; i < arity; ++i) {
-            if (*indexScan->getRangePattern().first[i] != *indexScan->getRangePattern().second[i]) {
+            if (*(indexScan->getRangePattern().first[i]) != *(indexScan->getRangePattern().second[i])) {
                 return nullptr;
             }
         }

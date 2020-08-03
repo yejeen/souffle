@@ -55,7 +55,6 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 auto indexSelection = idxAnalysis->getIndexes(indexOperation->getRelation());
                 auto attributesToDischarge = indexSelection.getAttributesToDischarge(
                         idxAnalysis->getSearchSignature(indexOperation), indexOperation->getRelation());
-
                 auto pattern = indexOperation->getRangePattern();
                 std::unique_ptr<RamCondition> condition;
                 RamPattern updatedPattern;
@@ -135,6 +134,7 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
         };
         const_cast<RamQuery*>(&query)->apply(makeLambdaRamMapper(indexToFilterRewriter));
     });
+
     visitDepthFirst(program, [&](const RamQuery& query) {
         std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> removeEmptyIndexRewriter =
                 [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
