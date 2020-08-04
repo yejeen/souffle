@@ -8,17 +8,18 @@
 
 /************************************************************************
  *
- * @file ComponentLookupAnalysis.cpp
+ * @file ComponentLookup.cpp
  *
  * Implements the component lookup
  *
  ***********************************************************************/
 
 #include "ast/analysis/ComponentLookup.h"
-#include "ast/AstComponent.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstVisitor.h"
+#include "ast/Component.h"
+#include "ast/ComponentType.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Visitor.h"
 #include "utility/StringUtil.h"
 
 namespace souffle {

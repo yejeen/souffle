@@ -16,36 +16,25 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ParserDriver.h"
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstNode.h"
-#include "ast/AstProgram.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstUtils.h"
-#include "ast/analysis/AstGround.h"
+#include "ast/Clause.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
 #include "ast/transform/MagicSet.h"
 #include "ast/transform/MinimiseProgram.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
 #include "utility/StringUtil.h"
-#include <algorithm>
-#include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace souffle {
-
-class AstRelation;
 
 namespace test {
 

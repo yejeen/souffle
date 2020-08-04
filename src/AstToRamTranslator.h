@@ -18,13 +18,17 @@
 
 #include "RamTypes.h"
 #include "SymbolTable.h"
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstNode.h"
-#include "ast/AstQualifiedName.h"
+#include "ast/Argument.h"
+#include "ast/Constant.h"
+#include "ast/NilConstant.h"
+#include "ast/Node.h"
+#include "ast/NumericConstant.h"
+#include "ast/QualifiedName.h"
+#include "ast/StringConstant.h"
+#include "ast/Variable.h"
 #include "json11.h"
-#include "ram/RamRelation.h"
-#include "ram/RamStatement.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
@@ -42,22 +46,22 @@
 
 namespace souffle {
 
-using json11::Json;
-
 // forward declarations
 class AstAtom;
 class AstClause;
+class AstLiteral;
 class AstProgram;
 class AstRelation;
 class AstTranslationUnit;
 class AuxiliaryArity;
 class RamCondition;
-class RamTupleElement;
+class RamExpression;
 class RamOperation;
 class RamTranslationUnit;
-class RamExpression;
+class RamTupleElement;
 class RecursiveClausesAnalysis;
 class TypeEnvironment;
+class AstRecordInit;
 
 /**
  * Main class for AST Translator
@@ -385,7 +389,7 @@ private:
      * Get ram records types.
      * If they don't exists - create them.
      */
-    const Json getRecordsTypes();
+    const json11::Json getRecordsTypes();
 
     /** Return a symbol table **/
     SymbolTable& getSymbolTable() {

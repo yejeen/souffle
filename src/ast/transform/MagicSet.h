@@ -16,15 +16,20 @@
 
 #pragma once
 
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstVisitor.h"
-#include "ast/transform/AstTransformer.h"
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/QualifiedName.h"
+#include "ast/Variable.h"
+#include "ast/Visitor.h"
+#include "ast/analysis/Analysis.h"
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/RemoveRedundantRelations.h"
+#include "ast/transform/Transformer.h"
+#include "utility/MiscUtil.h"
+#include "utility/StreamUtil.h"
+#include <cstddef>
 #include <map>
 #include <set>
 #include <string>
@@ -242,7 +247,6 @@ private:
      * Provide a unique name for a positively labelled relation copy.
      */
     static AstQualifiedName getPositiveLabel(const AstQualifiedName& name, size_t count);
-
 };
 
 /**

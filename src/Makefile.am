@@ -104,46 +104,71 @@ souffle_sources = \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
         WriteStreamJSON.h                                  \
-        ast/AstAbstract.h                                  \
-        ast/AstArgument.h                                  \
-        ast/AstAttribute.h                                 \
-        ast/AstClause.h                                    \
-        ast/AstComponent.h                                 \
-        ast/AstFunctorDeclaration.h                        \
-        ast/AstIO.h                                        \
-        ast/AstLiteral.h                                   \
-        ast/AstNode.h                                      \
-        ast/AstParserUtils.cpp                             \
-        ast/AstParserUtils.h                               \
-        ast/AstPragma.h                                    \
-        ast/AstProgram.h                                   \
-        ast/AstQualifiedName.h                             \
-        ast/AstRelation.h                                  \
-        ast/AstTranslationUnit.h                           \
-        ast/AstType.h                                      \
-        ast/AstUtils.cpp                                   \
-        ast/AstUtils.h                                     \
-        ast/AstVisitor.h                                   \
+        ast/Aggregator.h                                   \
+        ast/Argument.h                                     \
+        ast/Atom.h                                         \
+        ast/Attribute.h                                    \
+        ast/BinaryConstraint.h                             \
+        ast/BooleanConstraint.h                            \
+        ast/Clause.h                                       \
+        ast/Component.h                                    \
+        ast/ComponentInit.h                                \
+        ast/ComponentType.h                                \
+        ast/Constant.h                                     \
+        ast/Constraint.h                                   \
+        ast/Counter.h                                      \
+        ast/ExecutionOrder.h                               \
+        ast/ExecutionPlan.h                                \
+        ast/Functor.h                                      \
+        ast/FunctorDeclaration.h                           \
+        ast/IO.h                                           \
+        ast/IntrinsicFunctor.h                             \
+        ast/LambdaNodeMapper.h                             \
+        ast/Literal.h                                      \
+        ast/Negation.h                                     \
+        ast/NilConstant.h                                  \
+        ast/Node.h                                         \
+        ast/NodeMapper.h                                   \
+        ast/NumericConstant.h                              \
+        ast/ParserUtils.cpp                                \
+        ast/ParserUtils.h                                  \
+        ast/Pragma.h                                       \
+        ast/Program.h                                      \
+        ast/ProvenanceNegation.h                           \
+        ast/QualifiedName.h                                \
+        ast/RecordInit.h                                   \
+        ast/RecordType.h                                   \
+        ast/Relation.h                                     \
+        ast/StringConstant.h                               \
+        ast/SubroutineArgument.h                           \
+        ast/SubsetType.h                                   \
+        ast/Term.h                                         \
+        ast/TranslationUnit.h                              \
+        ast/Type.h                                         \
+        ast/TypeCast.h                                     \
         ast/TypeSystem.cpp                                 \
         ast/TypeSystem.h                                   \
-        ast/analysis/AstAnalysis.h                         \
-        ast/analysis/AstConstraint.h                       \
-        ast/analysis/AstGround.cpp                         \
-        ast/analysis/AstGround.h                           \
-        ast/analysis/AstIOType.cpp                         \
-        ast/analysis/AstIOType.h                           \
-        ast/analysis/AstProfileUse.cpp                     \
-        ast/analysis/AstProfileUse.h                       \
-        ast/analysis/AstType.cpp                           \
-        ast/analysis/AstType.h                             \
-        ast/analysis/AstTypeEnvironment.cpp                \
-        ast/analysis/AstTypeEnvironment.h                  \
+        ast/UnionType.h                                    \
+        ast/UnnamedVariable.h                              \
+        ast/UserDefinedFunctor.h                           \
+        ast/Utils.cpp                                      \
+        ast/Utils.h                                        \
+        ast/Variable.h                                     \
+        ast/Visitor.h                                      \
+        ast/analysis/Analysis.h                            \
         ast/analysis/AuxArity.cpp                          \
         ast/analysis/AuxArity.h                            \
         ast/analysis/ComponentLookup.cpp                   \
         ast/analysis/ComponentLookup.h                     \
+        ast/analysis/Constraint.h                          \
+        ast/analysis/Ground.cpp                            \
+        ast/analysis/Ground.h                              \
+        ast/analysis/IOType.cpp                            \
+        ast/analysis/IOType.h                              \
         ast/analysis/PrecedenceGraph.cpp                   \
         ast/analysis/PrecedenceGraph.h                     \
+        ast/analysis/ProfileUse.cpp                        \
+        ast/analysis/ProfileUse.h                          \
         ast/analysis/RecursiveClauses.cpp                  \
         ast/analysis/RecursiveClauses.h                    \
         ast/analysis/RedundantRelations.cpp                \
@@ -156,24 +181,24 @@ souffle_sources = \
         ast/analysis/SCCGraph.h                            \
         ast/analysis/TopologicallySortedSCCGraph.cpp       \
         ast/analysis/TopologicallySortedSCCGraph.h         \
-        ast/transform/AstComponentChecker.cpp              \
-        ast/transform/AstComponentChecker.h                \
-        ast/transform/AstPragmaChecker.cpp                 \
-        ast/transform/AstPragmaChecker.h                   \
-        ast/transform/AstSemanticChecker.cpp               \
-        ast/transform/AstSemanticChecker.h                 \
-        ast/transform/AstTransformer.cpp                   \
-        ast/transform/AstTransformer.h                     \
-        ast/transform/AstUserDefinedFunctors.cpp           \
-        ast/transform/AstUserDefinedFunctors.h             \
+        ast/analysis/Type.cpp                              \
+        ast/analysis/Type.h                                \
+        ast/analysis/TypeEnvironment.cpp                   \
+        ast/analysis/TypeEnvironment.h                     \
+        ast/transform/ComponentChecker.cpp                 \
+        ast/transform/ComponentChecker.h                   \
         ast/transform/ComponentInstantiation.cpp           \
         ast/transform/ComponentInstantiation.h             \
         ast/transform/Conditional.h                        \
         ast/transform/DebugReporter.cpp                    \
         ast/transform/DebugReporter.h                      \
+        ast/transform/ExecutionPlanChecker.cpp             \
+        ast/transform/ExecutionPlanChecker.h               \
         ast/transform/Fixpoint.h                           \
         ast/transform/FoldAnonymousRecords.cpp             \
         ast/transform/FoldAnonymousRecords.h               \
+        ast/transform/GroundedTermsChecker.cpp             \
+        ast/transform/GroundedTermsChecker.h               \
         ast/transform/IOAttributes.h                       \
         ast/transform/IODefaults.h                         \
         ast/transform/InlineRelations.cpp                  \
@@ -184,17 +209,22 @@ souffle_sources = \
         ast/transform/MaterializeAggregationQueries.h      \
         ast/transform/MaterializeSingletonAggregation.cpp  \
         ast/transform/MaterializeSingletonAggregation.h    \
+        ast/transform/Meta.cpp                             \
+        ast/transform/Meta.h                               \
         ast/transform/MinimiseProgram.cpp                  \
         ast/transform/MinimiseProgram.h                    \
         ast/transform/NameUnnamedVariables.cpp             \
         ast/transform/NameUnnamedVariables.h               \
         ast/transform/NormaliseConstraints.cpp             \
         ast/transform/NormaliseConstraints.h               \
+        ast/transform/Null.h                               \
         ast/transform/PartitionBodyLiterals.cpp            \
         ast/transform/PartitionBodyLiterals.h              \
         ast/transform/Pipeline.h                           \
         ast/transform/PolymorphicObjects.cpp               \
         ast/transform/PolymorphicObjects.h                 \
+        ast/transform/PragmaChecker.cpp                    \
+        ast/transform/PragmaChecker.h                      \
         ast/transform/Provenance.cpp                       \
         ast/transform/Provenance.h                         \
         ast/transform/ReduceExistentials.cpp               \
@@ -219,8 +249,14 @@ souffle_sources = \
         ast/transform/ResolveAliases.h                     \
         ast/transform/ResolveAnonymousRecordsAliases.cpp   \
         ast/transform/ResolveAnonymousRecordsAliases.h     \
+        ast/transform/SemanticChecker.cpp                  \
+        ast/transform/SemanticChecker.h                    \
+        ast/transform/Transformer.cpp                      \
+        ast/transform/Transformer.h                        \
         ast/transform/UniqueAggregationVariables.cpp       \
         ast/transform/UniqueAggregationVariables.h         \
+        ast/transform/UserDefinedFunctors.cpp              \
+        ast/transform/UserDefinedFunctors.h                \
         ast/transform/While.h                              \
         interpreter/InterpreterContext.h                   \
         interpreter/InterpreterEngine.cpp                  \
@@ -235,23 +271,23 @@ souffle_sources = \
         interpreter/InterpreterRelation.h                  \
         parser.cc                                          \
         parser.hh                                          \
-        ram/RamCondition.h                                 \
-        ram/RamExpression.h                                \
-        ram/RamNode.h                                      \
-        ram/RamOperation.h                                 \
-        ram/RamProgram.h                                   \
-        ram/RamRelation.h                                  \
-        ram/RamStatement.h                                 \
-        ram/RamTranslationUnit.h                           \
-        ram/RamUtils.h                                     \
-        ram/RamVisitor.h                                   \
-        ram/analysis/RamAnalysis.h                         \
-        ram/analysis/RamComplexityAnalysis.cpp             \
-        ram/analysis/RamComplexityAnalysis.h               \
-        ram/analysis/RamIndexAnalysis.cpp                  \
-        ram/analysis/RamIndexAnalysis.h                    \
-        ram/analysis/RamLevelAnalysis.cpp                  \
-        ram/analysis/RamLevelAnalysis.h                    \
+        ram/Condition.h                                    \
+        ram/Expression.h                                   \
+        ram/Node.h                                         \
+        ram/Operation.h                                    \
+        ram/Program.h                                      \
+        ram/Relation.h                                     \
+        ram/Statement.h                                    \
+        ram/TranslationUnit.h                              \
+        ram/Utils.h                                        \
+        ram/Visitor.h                                      \
+        ram/analysis/Analysis.h                            \
+        ram/analysis/ComplexityAnalysis.cpp                \
+        ram/analysis/ComplexityAnalysis.h                  \
+        ram/analysis/IndexAnalysis.cpp                     \
+        ram/analysis/IndexAnalysis.h                       \
+        ram/analysis/LevelAnalysis.cpp                     \
+        ram/analysis/LevelAnalysis.h                       \
         ram/transform/ChoiceConversion.cpp                 \
         ram/transform/ChoiceConversion.h                   \
         ram/transform/CollapseFilters.cpp                  \
@@ -272,8 +308,8 @@ souffle_sources = \
         ram/transform/MakeIndex.h                          \
         ram/transform/Parallel.cpp                         \
         ram/transform/Parallel.h                           \
-        ram/transform/RamTransformer.cpp                   \
-        ram/transform/RamTransformer.h                     \
+        ram/transform/Transformer.cpp                      \
+        ram/transform/Transformer.h                        \
         ram/transform/ReorderConditions.cpp                \
         ram/transform/ReorderConditions.h                  \
         ram/transform/ReorderFilterBreak.cpp               \
