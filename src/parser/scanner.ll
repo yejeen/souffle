@@ -39,9 +39,9 @@
     #include "SrcLocation.h"
     #define YYLTYPE SrcLocation
 
-    #include "ParserDriver.h"
+    #include "parser/ParserDriver.h"
     #include "RamTypes.h"
-    #include "parser.hh"
+    #include "parser/parser.hh"
 
     #include "utility/StringUtil.h"
     #include "utility/FileUtil.h"

@@ -19,7 +19,7 @@
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "ParserDriver.h"
+#include "parser/ParserDriver.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"

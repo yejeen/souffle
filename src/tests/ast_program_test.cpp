@@ -19,7 +19,7 @@
 #include "AggregateOp.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "ParserDriver.h"
+#include "parser/ParserDriver.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"

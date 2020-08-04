@@ -18,7 +18,7 @@
 
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "ParserDriver.h"
+#include "parser/ParserDriver.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
