@@ -17,8 +17,8 @@
 #pragma once
 
 #include "Node.h"
-#include "parser/SrcLocation.h"
 #include "TypeAttribute.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

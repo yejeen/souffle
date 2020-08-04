@@ -18,8 +18,8 @@
 
 #include "Node.h"
 #include "QualifiedName.h"
-#include "parser/SrcLocation.h"
 #include "Type.h"
+#include "parser/SrcLocation.h"
 #include <iostream>
 #include <string>
 #include <utility>
