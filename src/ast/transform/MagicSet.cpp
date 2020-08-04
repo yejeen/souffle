@@ -58,23 +58,23 @@ typedef MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransfor
 typedef MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer
         PositiveLabellingTransformer;
 
-std::set<AstQualifiedName> MagicSetTransformer::getIgnoredRelations(const AstTranslationUnit& translationUnit) {
-    const auto& program = *translationUnit.getProgram();
-    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
+std::set<AstQualifiedName> MagicSetTransformer::getIgnoredRelations(const AstTranslationUnit& tu) {
+    const auto& program = *tu.getProgram();
+    const auto& ioTypes = *tu.getAnalysis<IOType>();
 
     std::set<AstQualifiedName> relationsToIgnore;
 
     // - Any relations not specified to magic-set
     std::vector<AstQualifiedName> specifiedRelations;
 
-    // From config
+    // Pick up specified relations from config
     std::vector<std::string> configRels = splitString(Global::config().get("magic-transform"), ',');
     for (const auto& relStr : configRels) {
         std::vector<std::string> qualifiers = splitString(relStr, '.');
         specifiedRelations.push_back(AstQualifiedName(qualifiers));
     }
 
-    // From relation tags
+    // Pick up specified relations from relation tags
     for (const auto* rel : program.getRelations()) {
         if (rel->hasQualifier(RelationQualifier::MAGIC)) {
             specifiedRelations.push_back(rel->getQualifiedName());
@@ -166,13 +166,8 @@ std::set<AstQualifiedName> MagicSetTransformer::getIgnoredRelations(const AstTra
     return relationsToIgnore;
 }
 
-bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
-    if (!shouldRun(translationUnit)) return false;
-    return PipelineTransformer::transform(translationUnit);
-}
-
-bool MagicSetTransformer::shouldRun(const AstTranslationUnit& translationUnit) {
-    const auto& program = *translationUnit.getProgram();
+bool MagicSetTransformer::shouldRun(const AstTranslationUnit& tu) {
+    const auto& program = *tu.getProgram();
     if (Global::config().has("magic-transform")) return true;
     for (const auto* rel : program.getRelations()) {
         if (rel->hasQualifier(RelationQualifier::MAGIC)) return true;
@@ -203,13 +198,13 @@ bool NormaliseDatabaseTransformer::transform(AstTranslationUnit& translationUnit
 }
 
 bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUnit) {
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
 
     // Get all relations that are both input and output
     std::set<AstQualifiedName> relationsToSplit;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isInput(rel) && (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel))) {
+        if (ioTypes.isInput(rel) && (ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel))) {
             relationsToSplit.insert(rel->getQualifiedName());
         }
     }
@@ -271,8 +266,8 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
 }
 
 bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUnit) {
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
     auto& program = *translationUnit.getProgram();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
 
     // Helper method to check if an input relation has no associated rules
     auto isStrictlyEDB = [&](const AstRelation* rel) {
@@ -286,8 +281,8 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
     // Get all input relations that also have IDB rules attached
     std::set<AstQualifiedName> inputRelationNames;
     for (auto* rel : program.getRelations()) {
-        if (ioTypes->isInput(rel) && !isStrictlyEDB(rel)) {
-            assert(!ioTypes->isOutput(rel) && !ioTypes->isPrintSize(rel) &&
+        if (ioTypes.isInput(rel) && !isStrictlyEDB(rel)) {
+            assert(!ioTypes.isOutput(rel) && !ioTypes.isPrintSize(rel) &&
                     "input relations should not be output at this stage");
             inputRelationNames.insert(rel->getQualifiedName());
         }
@@ -359,11 +354,11 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
     };
 
     // Get all output relations that need to be normalised
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
     std::set<AstQualifiedName> outputRelationNames;
     for (auto* rel : program.getRelations()) {
-        if ((ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) && !isStrictlyOutput(rel)) {
-            assert(!ioTypes->isInput(rel) && "output relations should not be input at this stage");
+        if ((ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel)) && !isStrictlyOutput(rel)) {
+            assert(!ioTypes.isInput(rel) && "output relations should not be input at this stage");
             outputRelationNames.insert(rel->getQualifiedName());
         }
     }
@@ -599,13 +594,13 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
 
 bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
 
     relationsToIgnore = getIgnoredRelations(translationUnit);
 
     // Output relations trigger the adornment process
     for (const auto* rel : program.getRelations()) {
-        if (ioTypes->isOutput(rel) || ioTypes->isPrintSize(rel)) {
+        if (ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel)) {
             queueAdornment(rel->getQualifiedName(), "");
         }
     }

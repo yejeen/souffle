@@ -30,6 +30,7 @@
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
 #include "utility/StringUtil.h"
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>

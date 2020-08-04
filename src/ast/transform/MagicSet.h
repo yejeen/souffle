@@ -31,6 +31,7 @@
 #include "utility/StreamUtil.h"
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -72,16 +73,18 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(AstTranslationUnit& tu) override {
+        return shouldRun(tu) ? PipelineTransformer::transform(tu) : false;
+    }
 
     /** Determines whether any part of the MST should be run. */
-    static bool shouldRun(const AstTranslationUnit& translationUnit);
+    static bool shouldRun(const AstTranslationUnit& tu);
 
     /**
      * Gets set of relations to ignore during the MST process.
      * Ignored relations are relations that should not be copied or altered beyond normalisation.
      */
-    static std::set<AstQualifiedName> getIgnoredRelations(const AstTranslationUnit& translationUnit);
+    static std::set<AstQualifiedName> getIgnoredRelations(const AstTranslationUnit& tu);
 };
 
 /**
@@ -156,9 +159,7 @@ public:
     }
 
 private:
-    /**
-     * Check if a relation is negatively labelled.
-     */
+    /** Check if a relation is negatively labelled. */
     static bool isNegativelyLabelled(const AstQualifiedName& name);
 };
 
@@ -180,9 +181,7 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    /**
-     * Provide a unique name for negatively-labelled relations.
-     */
+    /** Provide a unique name for negatively-labelled relations. */
     static AstQualifiedName getNegativeLabel(const AstQualifiedName& name);
 };
 
@@ -205,9 +204,7 @@ public:
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    /**
-     * Provide a unique name for a positively labelled relation copy.
-     */
+    /** Provide a unique name for a positively labelled relation copy. */
     static AstQualifiedName getPositiveLabel(const AstQualifiedName& name, size_t count);
 };
 
@@ -241,15 +238,11 @@ private:
 
     bool transform(AstTranslationUnit& translationUnit) override;
 
-    /**
-     * Get the unique identifier corresponding to an adorned predicate.
-     */
+    /** Get the unique identifier corresponding to an adorned predicate. */
     static AstQualifiedName getAdornmentID(
             const AstQualifiedName& relName, const std::string& adornmentMarker);
 
-    /**
-     * Add an adornment to the ToDo queue if it hasn't been processed before.
-     */
+    /** Add an adornment to the ToDo queue if it hasn't been processed before. */
     void queueAdornment(const AstQualifiedName& relName, const std::string& adornmentMarker) {
         auto adornmentID = getAdornmentID(relName, adornmentMarker);
         if (!contains(headAdornmentsSeen, adornmentID)) {
@@ -258,16 +251,12 @@ private:
         }
     }
 
-    /**
-     * Check if any more relations need to be adorned.
-     */
+    /** Check if any more relations need to be adorned. */
     bool hasAdornmentToProcess() const {
         return !headAdornmentsToDo.empty();
     }
 
-    /**
-     * Pop off the next predicate adornment to process.
-     */
+    /** Pop off the next predicate adornment to process. **/
     adorned_predicate nextAdornmentToProcess() {
         assert(hasAdornmentToProcess() && "no adornment to pop");
         auto headAdornment = *(headAdornmentsToDo.begin());
@@ -275,9 +264,7 @@ private:
         return headAdornment;
     }
 
-    /**
-     * Returns the adorned version of a clause.
-     */
+    /** Returns the adorned version of a clause. */
     std::unique_ptr<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
 };
 
@@ -341,10 +328,6 @@ public:
         return contains(boundVariables, varName) || contains(boundHeadVariables, varName);
     }
 
-    const std::set<std::string>& getBoundVariables() const {
-        return boundVariables;
-    }
-
 private:
     // Helper types to represent a disjunction of several dependency sets
     using ConjBindingSet = std::set<std::string>;
@@ -365,29 +348,19 @@ private:
         variableDependencies[variable].insert(dependency);
     }
 
-    /**
-     * Add binding dependencies formed on lhs by a <lhs> = <rhs> equality constraint.
-     */
+    /** Add binding dependencies formed on lhs by a <lhs> = <rhs> equality constraint. */
     void processEqualityBindings(const AstArgument* lhs, const AstArgument* rhs);
 
-    /**
-     * Generate all binding dependencies implied by the constraints within a given clause.
-     */
+    /** Generate all binding dependencies implied by the constraints within a given clause. */
     void generateBindingDependencies(const AstClause* clause);
 
-    /**
-     * Reduce a conjunctive set of dependencies based on the current bound variable set.
-     */
+    /** Reduce a conjunctive set of dependencies based on the current bound variable set. */
     ConjBindingSet reduceDependency(const ConjBindingSet& origDependency);
 
-    /**
-     * Reduce a disjunctive set of variable dependencies based on the current bound variable set.
-     */
+    /** Reduce a disjunctive set of variable dependencies based on the current bound variable set. */
     DisjBindingSet reduceDependency(const DisjBindingSet& origDependency);
 
-    /**
-     * Reduce the full set of dependencies for all tracked variables, binding whatever needs to be bound.
-     */
+    /** Reduce the full set of dependencies for all tracked variables, binding whatever needs to be bound. */
     bool reduceDependencies();
 };
 
