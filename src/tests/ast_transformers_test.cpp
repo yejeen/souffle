@@ -427,19 +427,19 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     // Test helpers
     auto mappifyRelations = [&](const AstProgram& program) {
-        std::map<std::string, std::vector<std::string>> result;
+        std::map<std::string, std::multiset<std::string>> result;
         for (const auto* rel : program.getRelations()) {
-            std::vector<std::string> clauseStrings;
+            std::multiset<std::string> clauseStrings;
             auto relName = rel->getQualifiedName();
             for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
-                clauseStrings.push_back(toString(*clause));
+                clauseStrings.insert(toString(*clause));
             }
             result[toString(relName)] = clauseStrings;
         }
         return result;
     };
-    auto checkRelMapEq = [&](const std::map<std::string, std::vector<std::string>> left,
-                                 const std::map<std::string, std::vector<std::string>> right) {
+    auto checkRelMapEq = [&](const std::map<std::string, std::multiset<std::string>> left,
+                                 const std::map<std::string, std::multiset<std::string>> right) {
         EXPECT_EQ(left.size(), right.size());
         for (const auto& [name, clauses] : left) {
             EXPECT_TRUE(contains(right, name));
@@ -454,7 +454,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(8, program.getRelations().size());
     EXPECT_EQ(7, program.getClauses().size());
 
-    auto expectedNormalisation = std::map<std::string, std::vector<std::string>>({
+    auto expectedNormalisation = std::map<std::string, std::multiset<std::string>>({
             {"BaseOne", {}},
             {"BaseTwo", {}},
             {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
@@ -473,7 +473,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(14, program.getRelations().size());
     EXPECT_EQ(14, program.getClauses().size());
 
-    auto expectedNegLabelling = std::map<std::string, std::vector<std::string>>({
+    auto expectedNegLabelling = std::map<std::string, std::multiset<std::string>>({
             // Original strata - neglabels should appear on all negated appearances of relations
             {"BaseOne", {}},
             {"BaseTwo", {}},
@@ -504,7 +504,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(33, program.getRelations().size());
     EXPECT_EQ(27, program.getClauses().size());
 
-    auto expectedPosLabelling = std::map<std::string, std::vector<std::string>>({
+    auto expectedPosLabelling = std::map<std::string, std::multiset<std::string>>({
             // Original strata should remain the same
             {"BaseOne", {}},
             {"BaseTwo", {}},
@@ -568,7 +568,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(12, program.getRelations().size());
     EXPECT_EQ(13, program.getClauses().size());
 
-    auto expectedFullLabelling = std::map<std::string, std::vector<std::string>>({
+    auto expectedFullLabelling = std::map<std::string, std::multiset<std::string>>({
             // Original strata
             {"BaseOne", {}},
             {"BaseTwo", {}},
@@ -601,7 +601,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(19, program.getRelations().size());
     EXPECT_EQ(23, program.getClauses().size());
 
-    auto expectedAdornment = std::map<std::string, std::vector<std::string>>({
+    auto expectedAdornment = std::map<std::string, std::multiset<std::string>>({
             {"BaseOne", {}},
             {"BaseTwo", {}},
             {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
@@ -639,7 +639,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(12, program.getRelations().size());
     EXPECT_EQ(13, program.getClauses().size());
 
-    auto expectedFinalAdornment = std::map<std::string, std::vector<std::string>>({
+    auto expectedFinalAdornment = std::map<std::string, std::multiset<std::string>>({
             {"BaseOne", {}},
             {"BaseTwo", {}},
             {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X),\n   "
@@ -666,7 +666,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     EXPECT_EQ(19, program.getRelations().size());
     EXPECT_EQ(26, program.getClauses().size());
 
-    auto finalProgram = std::map<std::string, std::vector<std::string>>({
+    auto finalProgram = std::map<std::string, std::multiset<std::string>>({
             {"BaseOne", {}},
             {"BaseTwo", {}},
 
