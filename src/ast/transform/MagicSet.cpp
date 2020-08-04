@@ -58,13 +58,9 @@ typedef MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransfor
 typedef MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer
         PositiveLabellingTransformer;
 
-/**
- * Get set of relations to ignore during the MST process.
- * Ignored relations are relations that should not be copied or altered beyond normalisation.
- */
-static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& translationUnit) {
-    auto& program = *translationUnit.getProgram();
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+std::set<AstQualifiedName> MagicSetTransformer::getIgnoredRelations(const AstTranslationUnit& translationUnit) {
+    const auto& program = *translationUnit.getProgram();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
 
     std::set<AstQualifiedName> relationsToIgnore;
 
@@ -72,7 +68,6 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
     std::vector<AstQualifiedName> specifiedRelations;
 
     // From config
-    // TODO: check that this is done correctly
     std::vector<std::string> configRels = splitString(Global::config().get("magic-transform"), ',');
     for (const auto& relStr : configRels) {
         std::vector<std::string> qualifiers = splitString(relStr, '.');
@@ -98,7 +93,7 @@ static std::set<AstQualifiedName> getIgnoredRelations(AstTranslationUnit& transl
     // - Any relations known in constant time (IDB relations)
     for (auto* rel : program.getRelations()) {
         // Input relations
-        if (ioTypes->isInput(rel)) {
+        if (ioTypes.isInput(rel)) {
             relationsToIgnore.insert(rel->getQualifiedName());
             continue;
         }
