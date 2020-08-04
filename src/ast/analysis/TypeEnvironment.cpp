@@ -215,7 +215,7 @@ const Type* TypeEnvironmentAnalysis::createType(
             if (branchType == nullptr) {
                 return nullptr;
             }
-            elements.push_back({branch.name, *branchType});
+            elements.push_back({branch.name, branchType});
         }
         sumType.setBranches(std::move(elements));
 

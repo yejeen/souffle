@@ -207,23 +207,33 @@ protected:
 
 /**
  * Sum type
+ *
+ * Invariant: vector "branches" is sorted.
  */
 class SumType : public Type {
 public:
     struct Branch {
         std::string name;  // < the name of the branch
-        const Type& type;  // < the refined type of the branch
+        const Type* type;  // < the refined type of the branch
     };
 
     void setBranches(std::vector<Branch> bs) {
         branchToType.clear();
         for (auto& branch : bs) {
-            branchToType[branch.name] = &branch.type;
+            branchToType[branch.name] = branch.type;
         }
+        branches = std::move(bs);
+        std::sort(branches.begin(), branches.end(),
+                [](const Branch& left, const Branch& right) { return left.name < right.name; });
     }
 
     const Type& getBranchType(const std::string& branch) const {
         return *branchToType.at(branch);
+    }
+
+    /** Return the branches as a sorted vector */
+    const std::vector<Branch>& getBranches() const {
+        return branches;
     }
 
 private:
@@ -231,6 +241,7 @@ private:
 
     friend class TypeEnvironment;
 
+    std::vector<Branch> branches;
     std::map<std::string, const Type*> branchToType;
 };
 

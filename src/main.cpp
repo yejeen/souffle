@@ -27,6 +27,7 @@
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/SCCGraph.h"
 #include "ast/analysis/Type.h"
+#include "ast/transform/ADTtoRecords.h"
 #include "ast/transform/ComponentChecker.h"
 #include "ast/transform/ComponentInstantiation.h"
 #include "ast/transform/Conditional.h"
@@ -471,7 +472,7 @@ int main(int argc, char** argv) {
                     std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordsAliases>(),
                             std::make_unique<FoldAnonymousRecords>())),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<AstSemanticChecker>(),
-            std::make_unique<MaterializeSingletonAggregationTransformer>(),
+            std::make_unique<ADTtoRecords>(), std::make_unique<MaterializeSingletonAggregationTransformer>(),
             std::make_unique<RemoveTypecastsTransformer>(),
             std::make_unique<RemoveBooleanConstraintsTransformer>(),
             std::make_unique<ResolveAliasesTransformer>(), std::make_unique<MinimiseProgramTransformer>(),

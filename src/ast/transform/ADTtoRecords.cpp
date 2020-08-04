@@ -16,10 +16,13 @@
 #include "ast/ADTinit.h"
 #include "ast/Argument.h"
 #include "ast/Node.h"
+#include "ast/NumericConstant.h"
+#include "ast/RecordInit.h"
 #include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/TypeSystem.h"
 #include "ast/analysis/TypeEnvironment.h"
+#include "utility/ContainerUtil.h"
 #include <cassert>
 #include <memory>
 
@@ -27,29 +30,46 @@ namespace souffle {
 
 bool ADTtoRecords::transform(AstTranslationUnit& tu) {
     struct ADTsFuneral : public AstNodeMapper {
-        bool changed{false};
-        const TypeEnvironment& env;
+        mutable bool changed{false};
+        AstTranslationUnit& tu;
+        const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
 
-        ADTsFuneral(const TypeEnvironment& env) : env(env){};
+        ADTsFuneral(AstTranslationUnit& tu) : tu(tu){};
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
+            // Rewrite sub-expressions first
+            node->apply(*this);
+
             if (!isA<AstADTinit>(node)) {
                 return node;
             }
-            // changed = true;
 
-            // auto& adt = *as<AstADTinit>(node);
+            changed = true;
 
-            // // Rewrite sub-expressions first
-            // node->apply(*this);
+            auto& adt = *as<AstADTinit>(node);
 
-            // assert(isA<SumType>(env.getType(r.type)));
-            // auto& type = *as<SumType>(env.getType(r.type));
-            return node;
+            auto& type = sumTypesBranches.unsafeGetType(adt.getBranch());
+            assert(isA<SumType>(type));
+
+            auto& branches = as<SumType>(type)->getBranches();
+
+            // Find branch ID.
+            SumType::Branch searchDummy = {adt.getBranch(), nullptr};
+            auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
+                    [](const SumType::Branch& left, const SumType::Branch& right) {
+                        return left.name < right.name;
+                    });
+            auto branchID = std::distance(std::begin(branches), iterToBranch);
+
+            VecOwn<AstArgument> recordArgs;
+            recordArgs.push_back(mk<AstArgument, AstNumericConstant>(branchID));
+            recordArgs.emplace_back(adt.getArgument()->clone());
+
+            return mk<AstRecordInit>(std::move(recordArgs), adt.getSrcLoc());
         }
     };
 
-    ADTsFuneral mapper(tu.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment());
+    ADTsFuneral mapper(tu);
     tu.getProgram()->apply(mapper);
     return mapper.changed;
 }

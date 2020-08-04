@@ -16,12 +16,11 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/TypeSystem.h"
 #include "ast/analysis/Analysis.h"
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 class SumTypeBranchesAnalysis : public AstAnalysis {
 public:
@@ -40,6 +39,10 @@ public:
         } else {
             return nullptr;
         }
+    }
+
+    const Type& unsafeGetType(const std::string& branch) const {
+        return *branchToType.at(branch);
     }
 
 private:
