@@ -19,7 +19,6 @@
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "parser/ParserDriver.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
@@ -33,6 +32,7 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
+#include "parser/ParserDriver.h"
 #include "utility/StringUtil.h"
 #include <algorithm>
 #include <map>

@@ -18,7 +18,7 @@
 
 #include "Node.h"
 #include "QualifiedName.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "Type.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

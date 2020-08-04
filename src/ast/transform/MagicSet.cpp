@@ -35,7 +35,7 @@
 #include "BinaryConstraintOps.h"
 #include "Global.h"
 #include "RamTypes.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"

@@ -87,10 +87,6 @@ souffle_sources = \
         GraphUtils.h                                       \
         IOSystem.h                                         \
         LogStatement.h                                     \
-        parser/ParserDriver.cpp                            \
-        parser/ParserDriver.h                              \
-        parser/ParserUtils.cpp                             \
-        parser/ParserUtils.h                               \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
         ReadStream.h                                       \
@@ -100,8 +96,6 @@ souffle_sources = \
         RelationTag.h                                      \
         SerialisationStream.h                              \
         SignalHandler.h                                    \
-        SrcLocation.cpp                                    \
-        SrcLocation.h                                      \
         TypeAttribute.h                                    \
         Util.cpp                                           \
         WriteStream.h                                      \
@@ -272,6 +266,12 @@ souffle_sources = \
         interpreter/InterpreterRelation.h                  \
         parser/parser.cc                                   \
         parser/parser.hh                                   \
+        parser/ParserDriver.cpp                            \
+        parser/ParserDriver.h                              \
+        parser/ParserUtils.cpp                             \
+        parser/ParserUtils.h                               \
+        parser/SrcLocation.cpp                             \
+        parser/SrcLocation.h                               \
         ram/Condition.h                                    \
         ram/Expression.h                                   \
         ram/Node.h                                         \

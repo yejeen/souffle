@@ -19,7 +19,6 @@
 #include "AggregateOp.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "parser/ParserDriver.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
@@ -31,6 +30,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
+#include "parser/ParserDriver.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
