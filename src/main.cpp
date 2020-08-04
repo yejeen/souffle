@@ -484,8 +484,9 @@ int main(int argc, char** argv) {
                     std::make_unique<PipelineTransformer>(std::make_unique<ReduceExistentialsTransformer>(),
                             std::make_unique<RemoveRedundantRelationsTransformer>())),
             std::make_unique<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
-            std::make_unique<PipelineTransformer>(std::make_unique<ResolveAliasesTransformer>(),
-                    std::make_unique<MaterializeAggregationQueriesTransformer>()),
+            std::make_unique<FixPointTransformer>(
+                std::make_unique<PipelineTransformer>(std::make_unique<ResolveAliasesTransformer>(),
+                        std::make_unique<MaterializeAggregationQueriesTransformer>())),
             std::move(equivalencePipeline), std::make_unique<RemoveRelationCopiesTransformer>(),
             std::move(magicPipeline), std::make_unique<ReorderLiteralsTransformer>(),
             std::make_unique<RemoveRedundantSumsTransformer>(),

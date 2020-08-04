@@ -374,19 +374,6 @@ bool AstSemanticCheckerImpl::isDependent(const AstClause& agg1, const AstClause&
 void AstSemanticCheckerImpl::checkAggregator(const AstAggregator& aggregator) {
     auto& report = tu.getErrorReport();
     auto& program = *tu.getProgram();
-    const AstAggregator* inner = nullptr;
-
-    // check for disallowed nested aggregates
-    visitDepthFirst(aggregator, [&](const AstAggregator& innerAgg) {
-        if (aggregator != innerAgg) {
-            inner = &innerAgg;
-        }
-    });
-
-    if (inner != nullptr) {
-        report.addError("Unsupported nested aggregate", inner->getSrcLoc());
-    }
-
     AstClause dummyClauseAggregator;
 
     visitDepthFirst(program, [&](const AstLiteral& parentLiteral) {
