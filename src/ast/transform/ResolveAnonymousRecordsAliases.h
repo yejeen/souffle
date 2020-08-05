@@ -36,7 +36,7 @@ class AstTranslationUnit;
 class ResolveAnonymousRecordsAliases : public AstTransformer {
 public:
     std::string getName() const override {
-        return "FoldAnonymousRecords";
+        return "ResolveAnonymousRecordsAliases";
     }
 
     ResolveAnonymousRecordsAliases* clone() const override {
