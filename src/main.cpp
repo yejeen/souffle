@@ -58,7 +58,7 @@
 #include "ast/transform/ReorderLiterals.h"
 #include "ast/transform/ReplaceSingletonVariables.h"
 #include "ast/transform/ResolveAliases.h"
-#include "ast/transform/ResolveAnonymousRecordsAliases.h"
+#include "ast/transform/ResolveAnonymousRecordAliases.h"
 #include "ast/transform/SemanticChecker.h"
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast/transform/UserDefinedFunctors.h"
@@ -467,7 +467,7 @@ int main(int argc, char** argv) {
             std::make_unique<UniqueAggregationVariablesTransformer>(),
             std::make_unique<AstUserDefinedFunctorsTransformer>(),
             std::make_unique<FixpointTransformer>(
-                    std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordsAliases>(),
+                    std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordAliases>(),
                             std::make_unique<FoldAnonymousRecords>())),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<AstSemanticChecker>(),
             std::make_unique<MaterializeSingletonAggregationTransformer>(),
