@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ResolveAnonymousRecordsAliases.h
+ * @file ResolveAnonymousRecordAliases.h
  *
  ***********************************************************************/
 
@@ -33,14 +33,14 @@ class AstTranslationUnit;
  *
  * The transformer is to be called in conjunction with FoldAnonymousRecords.
  **/
-class ResolveAnonymousRecordsAliases : public AstTransformer {
+class ResolveAnonymousRecordAliases : public AstTransformer {
 public:
     std::string getName() const override {
-        return "ResolveAnonymousRecordsAliases";
+        return "ResolveAnonymousRecordAliases";
     }
 
-    ResolveAnonymousRecordsAliases* clone() const override {
-        return new ResolveAnonymousRecordsAliases();
+    ResolveAnonymousRecordAliases* clone() const override {
+        return new ResolveAnonymousRecordAliases();
     }
 
 private:
