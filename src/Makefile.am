@@ -248,8 +248,8 @@ souffle_sources = \
         ast/transform/ReplaceSingletonVariables.h          \
         ast/transform/ResolveAliases.cpp                   \
         ast/transform/ResolveAliases.h                     \
-        ast/transform/ResolveAnonymousRecordsAliases.cpp   \
-        ast/transform/ResolveAnonymousRecordsAliases.h     \
+        ast/transform/ResolveAnonymousRecordAliases.cpp    \
+        ast/transform/ResolveAnonymousRecordAliases.h      \
         ast/transform/SemanticChecker.cpp                  \
         ast/transform/SemanticChecker.h                    \
         ast/transform/Transformer.cpp                      \
