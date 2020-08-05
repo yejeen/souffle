@@ -5,13 +5,5 @@
  * - https://opensource.org/licenses/UPL
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
-// Test that multi-valued aggregates can become grounded from the outside scope.
+// Test that nested aggregates can be computed correctly
 
-.decl W(x:number, y:number)
-.decl X(n:number)
-
-X(1). X(2). X(10). X(11).
-
-W(c, n) :- X(n), c = count : { X(m), m < n }.
-
-.output W()
