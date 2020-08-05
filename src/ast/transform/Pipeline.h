@@ -91,7 +91,7 @@ public:
         return new PipelineTransformer(std::move(transformers));
     }
 
-private:
+protected:
     std::vector<std::unique_ptr<AstTransformer>> pipeline;
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;

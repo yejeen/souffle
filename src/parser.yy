@@ -219,6 +219,7 @@
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
+%token MAGIC_QUALIFIER           "relation qualifier magic"
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of strings"
@@ -485,6 +486,7 @@ relation_tags
     { $$ = driver.addDeprecatedTag(RelationTag::PRINTSIZE, @2, $1); }
   | relation_tags OVERRIDABLE_QUALIFIER { $$ = driver.addTag(RelationTag::OVERRIDABLE , @2, $1); }
   | relation_tags      INLINE_QUALIFIER { $$ = driver.addTag(RelationTag::INLINE      , @2, $1); }
+  | relation_tags       MAGIC_QUALIFIER { $$ = driver.addTag(RelationTag::MAGIC       , @2, $1); }
   | relation_tags        BRIE_QUALIFIER { $$ = driver.addReprTag(RelationTag::BRIE    , @2, $1); }
   | relation_tags       BTREE_QUALIFIER { $$ = driver.addReprTag(RelationTag::BTREE   , @2, $1); }
   | relation_tags       EQREL_QUALIFIER { $$ = driver.addReprTag(RelationTag::EQREL   , @2, $1); }

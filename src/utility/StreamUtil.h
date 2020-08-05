@@ -230,6 +230,15 @@ ostream& operator<<(ostream& out, const set<K, C, A>& s) {
 }
 
 /**
+ * Enables the generic printing of multisets assuming their element types
+ * are printable.
+ */
+template <typename K, typename C, typename A>
+ostream& operator<<(ostream& out, const multiset<K, C, A>& s) {
+    return out << "{" << souffle::join(s) << "}";
+}
+
+/**
  * Enables the generic printing of maps assuming their element types
  * are printable.
  */
