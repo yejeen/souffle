@@ -21,7 +21,7 @@
 #include "NodeMapper.h"
 #include "QualifiedName.h"
 #include "RelationTag.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

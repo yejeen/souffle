@@ -26,7 +26,7 @@
 #include "../analysis/ComponentLookup.h"
 #include "ErrorReport.h"
 #include "RelationTag.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/StringUtil.h"
 #include <functional>
 #include <map>

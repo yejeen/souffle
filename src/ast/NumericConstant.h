@@ -19,7 +19,7 @@
 #include "Constant.h"
 #include "Node.h"
 #include "RamTypes.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include <optional>
 #include <string>
 #include <utility>

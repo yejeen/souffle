@@ -17,7 +17,7 @@
 #pragma once
 
 #include "Constant.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include <string>
 #include <utility>
 
