@@ -13,6 +13,21 @@
  ***********************************************************************/
 
 #include "ResolveAnonymousRecordAliases.h"
+#include "../Argument.h"
+#include "../BinaryConstraint.h"
+#include "../BooleanConstraint.h"
+#include "../Clause.h"
+#include "../Literal.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../Program.h"
+#include "../RecordInit.h"
+#include "../TranslationUnit.h"
+#include "../UnnamedVariable.h"
+#include "../Variable.h"
+#include "../analysis/Ground.h"
+#include "../analysis/Type.h"
+#include "../analysis/TypeSystem.h"
 #include "BinaryConstraintOps.h"
 #include "utility/MiscUtil.h"
 #include <map>
