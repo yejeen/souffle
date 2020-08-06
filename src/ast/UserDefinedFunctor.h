@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "Functor.h"
-#include "Node.h"
 #include "TypeAttribute.h"
+#include "ast/Functor.h"
+#include "ast/Node.h"
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"

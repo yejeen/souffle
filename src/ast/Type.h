@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "Node.h"
-#include "QualifiedName.h"
+#include "ast/Node.h"
+#include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
 #include <string>
 #include <utility>

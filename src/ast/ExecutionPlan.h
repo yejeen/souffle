@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "ExecutionOrder.h"
-#include "Node.h"
-#include "NodeMapper.h"
+#include "ast/ExecutionOrder.h"
+#include "ast/Node.h"
+#include "ast/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

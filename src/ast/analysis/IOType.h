@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Analysis.h"
+#include "ast/analysis/Analysis.h"
 #include <iosfwd>
 #include <set>
 #include <string>

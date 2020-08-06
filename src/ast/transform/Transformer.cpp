@@ -14,9 +14,9 @@
  *
  ***********************************************************************/
 
-#include "Transformer.h"
-#include "../TranslationUnit.h"
+#include "ast/transform/Transformer.h"
 #include "ErrorReport.h"
+#include "ast/TranslationUnit.h"
 
 namespace souffle {
 

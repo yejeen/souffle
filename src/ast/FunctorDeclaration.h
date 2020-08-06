@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "Node.h"
 #include "TypeAttribute.h"
+#include "ast/Node.h"
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"

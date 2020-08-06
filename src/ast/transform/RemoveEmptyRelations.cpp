@@ -12,18 +12,18 @@
  *
  ***********************************************************************/
 
-#include "RemoveEmptyRelations.h"
-#include "../Aggregator.h"
-#include "../Atom.h"
-#include "../Clause.h"
-#include "../Literal.h"
-#include "../Negation.h"
-#include "../Program.h"
-#include "../Relation.h"
-#include "../TranslationUnit.h"
-#include "../Utils.h"
-#include "../Visitor.h"
-#include "../analysis/IOType.h"
+#include "ast/transform/RemoveEmptyRelations.h"
+#include "ast/Aggregator.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Negation.h"
+#include "ast/Program.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/Visitor.h"
+#include "ast/analysis/IOType.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>
