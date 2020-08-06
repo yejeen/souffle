@@ -43,7 +43,7 @@ class AstTranslationUnit;
  *
  * This transformation does not resolve aliases.
  * E.g. A = [a, b], A = [c, d]
- * Thus it should be called in conjunction with ResolveAnonymousRecordsAliases.
+ * Thus it should be called in conjunction with ResolveAnonymousRecordAliases.
  */
 class FoldAnonymousRecords : public AstTransformer {
 public:

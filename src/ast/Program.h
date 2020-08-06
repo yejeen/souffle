@@ -73,6 +73,12 @@ public:
         return toPtrVector(ios);
     }
 
+    /** Add I/O directive */
+    void addIO(Own<AstIO> directive) {
+        assert(directive && "NULL IO directive");
+        ios.push_back(std::move(directive));
+    }
+
     /** Return pragma directives */
     const VecOwn<AstPragma>& getPragmaDirectives() const {
         return pragmaDirectives;
@@ -264,12 +270,6 @@ protected:
     void addType(Own<AstType> type) {
         assert(getType(*this, type->getQualifiedName()) == nullptr && "Redefinition of type!");
         types.push_back(std::move(type));
-    }
-
-    /** Add I/O directive */
-    void addIO(Own<AstIO> directive) {
-        assert(directive && "NULL IO directive");
-        ios.push_back(std::move(directive));
     }
 
     /** Add a pragma */

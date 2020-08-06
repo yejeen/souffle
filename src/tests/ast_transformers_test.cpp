@@ -23,11 +23,14 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
+#include "ast/transform/MagicSet.h"
 #include "ast/transform/MinimiseProgram.h"
+#include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
 #include "parser/ParserDriver.h"
 #include "utility/StringUtil.h"
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -376,6 +379,347 @@ TEST(AstTransformers, RemoveClauseRedundancies) {
     EXPECT_EQ(1, qClauses.size());
     EXPECT_EQ("q(X) :- \n   a(X).", toString(*qClauses[0]));
 }
+
+/**
+ * Test the magic-set transformation on an example that covers all subtransformers, namely:
+ *      (1) NormaliseDatabaseTransformer
+ *      (2) LabelDatabaseTransformer
+ *      (3) AdornDatabaseTransformer
+ *      (4) MagicSetTransformer
+ */
+TEST(AstTransformers, MagicSetComprehensive) {
+    ErrorReport e;
+    DebugReport d;
+
+    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+            R"(
+                // Stratum 0 - Base Relations
+                .decl BaseOne(X:number) magic
+                .decl BaseTwo(X:number) magic
+                .input BaseOne, BaseTwo
+
+                // Stratum 1 [depends on: 0]
+                .decl A(X:number) magic
+                .decl B(X:number) magic
+                A(X) :- BaseOne(X).
+                A(X) :- BaseOne(X), B(X).
+                B(X) :- BaseTwo(X), A(X).
+
+                // Stratum 2 [depends on: 0,1]
+                .decl C(X:number) magic
+                C(X) :- BaseTwo(X), A(X), B(X), X != 1.
+
+                // Stratum 3 [depends on: 0,1]
+                .decl R(X:number) magic
+                R(X) :- BaseTwo(X), A(X), B(X), X != 0.
+
+                // Stratum 4 [depends on: 0,1,2,3]
+                .decl D(X:number) magic
+                D(X) :- BaseOne(X), A(X), !C(X), !R(X).
+
+                // Stratum 4 - Query [depends on: 0,1,4]
+                .decl Query(X:number) magic
+                .output Query
+                Query(X) :- BaseOne(X), D(X), A(X).
+            )",
+            e, d);
+
+    auto& program = *tu->getProgram();
+
+    // Test helpers
+    auto mappifyRelations = [&](const AstProgram& program) {
+        std::map<std::string, std::multiset<std::string>> result;
+        for (const auto* rel : program.getRelations()) {
+            std::multiset<std::string> clauseStrings;
+            auto relName = rel->getQualifiedName();
+            for (const auto* clause : getClauses(program, rel->getQualifiedName())) {
+                clauseStrings.insert(toString(*clause));
+            }
+            result[toString(relName)] = clauseStrings;
+        }
+        return result;
+    };
+    auto checkRelMapEq = [&](const std::map<std::string, std::multiset<std::string>> left,
+                                 const std::map<std::string, std::multiset<std::string>> right) {
+        EXPECT_EQ(left.size(), right.size());
+        for (const auto& [name, clauses] : left) {
+            EXPECT_TRUE(contains(right, name));
+            EXPECT_EQ(clauses, right.at(name));
+        }
+    };
+
+    /* Stage 1: Database normalisation */
+    // Constants should now be extracted from the inequality constraints
+    std::make_unique<MagicSetTransformer::NormaliseDatabaseTransformer>()->apply(*tu);
+    const auto relations1 = program.getRelations();
+    EXPECT_EQ(8, program.getRelations().size());
+    EXPECT_EQ(7, program.getClauses().size());
+
+    auto expectedNormalisation = std::map<std::string, std::multiset<std::string>>({
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"C", {"C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"R", {"R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !C(X),\n   !R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+    });
+    checkRelMapEq(expectedNormalisation, mappifyRelations(program));
+
+    /* Stage 2: Database negative and positive labelling, keeping only the relevant ones */
+    /* Stage 2.1: Negative labelling */
+    std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(
+            *tu);
+    EXPECT_EQ(14, program.getRelations().size());
+    EXPECT_EQ(14, program.getClauses().size());
+
+    auto expectedNegLabelling = std::map<std::string, std::multiset<std::string>>({
+            // Original strata - neglabels should appear on all negated appearances of relations
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"C", {"C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"R", {"R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+
+            // Neglaelled strata - relations should be copied and neglabelled one stratum at a time
+            {"@neglabel.A", {"@neglabel.A(X) :- \n   BaseOne(X).",
+                                    "@neglabel.A(X) :- \n   BaseOne(X),\n   @neglabel.B(X)."}},
+            {"@neglabel.B", {"@neglabel.B(X) :- \n   BaseTwo(X),\n   @neglabel.A(X)."}},
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   "
+                             "@abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   "
+                             "@abdul0 = 0."}},
+            {"@neglabel.D", {"@neglabel.D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   "
+                             "!@neglabel.R(X)."}},
+            {"@neglabel.Query", {"@neglabel.Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+    });
+    checkRelMapEq(expectedNegLabelling, mappifyRelations(program));
+
+    /* Stage 2.2: Positive labelling */
+    std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(
+            *tu);
+    EXPECT_EQ(33, program.getRelations().size());
+    EXPECT_EQ(27, program.getClauses().size());
+
+    auto expectedPosLabelling = std::map<std::string, std::multiset<std::string>>({
+            // Original strata should remain the same
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"C", {"C(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"R", {"R(X) :- \n   BaseTwo(X),\n   A(X),\n   B(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+
+            // Poslabelled + neglabelled strata - poslabel all positive derived literals
+            {"@neglabel.A", {"@neglabel.A(X) :- \n   BaseOne(X).",
+                                    "@neglabel.A(X) :- \n   BaseOne(X),\n   @neglabel.B(X)."}},
+            {"@neglabel.B", {"@neglabel.B(X) :- \n   BaseTwo(X),\n   @neglabel.A(X)."}},
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A(X),\n   @poscopy_1.B(X),\n "
+                             "  X != @abdul0,\n   "
+                             "@abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   @poscopy_2.A(X),\n   @poscopy_2.B(X),\n "
+                             "  X != @abdul0,\n   "
+                             "@abdul0 = 0."}},
+            {"@neglabel.D",
+                    {"@neglabel.D(X) :- \n   BaseOne(X),\n   @poscopy_3.A(X),\n   !@neglabel.C(X),\n   "
+                     "!@neglabel.R(X)."}},
+            {"@neglabel.Query",
+                    {"@neglabel.Query(X) :- \n   BaseOne(X),\n   @poscopy_1.D(X),\n   @poscopy_4.A(X)."}},
+
+            // Copies of input stratum
+            {"@poscopy_1.BaseOne", {}},
+            {"@poscopy_1.BaseTwo", {}},
+            {"@poscopy_2.BaseOne", {}},
+            {"@poscopy_2.BaseTwo", {}},
+            {"@poscopy_3.BaseOne", {}},
+            {"@poscopy_3.BaseTwo", {}},
+            {"@poscopy_4.BaseOne", {}},
+            {"@poscopy_4.BaseTwo", {}},
+            {"@poscopy_5.BaseOne", {}},
+            {"@poscopy_5.BaseTwo", {}},
+
+            // Copies of {A,B} stratum
+            {"@poscopy_1.A", {"@poscopy_1.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_1.A(X) :- \n   BaseOne(X),\n   @poscopy_1.B(X)."}},
+            {"@poscopy_1.B", {"@poscopy_1.B(X) :- \n   BaseTwo(X),\n   @poscopy_1.A(X)."}},
+            {"@poscopy_2.A", {"@poscopy_2.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_2.A(X) :- \n   BaseOne(X),\n   @poscopy_2.B(X)."}},
+            {"@poscopy_2.B", {"@poscopy_2.B(X) :- \n   BaseTwo(X),\n   @poscopy_2.A(X)."}},
+            {"@poscopy_3.A", {"@poscopy_3.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_3.A(X) :- \n   BaseOne(X),\n   @poscopy_3.B(X)."}},
+            {"@poscopy_3.B", {"@poscopy_3.B(X) :- \n   BaseTwo(X),\n   @poscopy_3.A(X)."}},
+            {"@poscopy_4.A", {"@poscopy_4.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_4.A(X) :- \n   BaseOne(X),\n   @poscopy_4.B(X)."}},
+            {"@poscopy_4.B", {"@poscopy_4.B(X) :- \n   BaseTwo(X),\n   @poscopy_4.A(X)."}},
+
+            // Copies of {D} stratum
+            {"@poscopy_1.D", {"@poscopy_1.D(X) :- \n   BaseOne(X),\n   @poscopy_4.A(X),\n   "
+                              "!@neglabel.C(X),\n   !@neglabel.R(X)."}},
+    });
+    checkRelMapEq(expectedPosLabelling, mappifyRelations(program));
+
+    /* Stage 2.3: Remove unnecessary labelled relations */
+    std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
+    EXPECT_EQ(12, program.getRelations().size());
+    EXPECT_EQ(13, program.getClauses().size());
+
+    auto expectedFullLabelling = std::map<std::string, std::multiset<std::string>>({
+            // Original strata
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D(X),\n   A(X)."}},
+
+            // Neglabelled strata
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A(X),\n   @poscopy_1.B(X),\n "
+                             "  X != @abdul0,\n   "
+                             "@abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   @poscopy_2.A(X),\n   @poscopy_2.B(X),\n "
+                             "  X != @abdul0,\n   "
+                             "@abdul0 = 0."}},
+
+            // Poslabelled strata
+            {"@poscopy_1.A", {"@poscopy_1.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_1.A(X) :- \n   BaseOne(X),\n   @poscopy_1.B(X)."}},
+            {"@poscopy_1.B", {"@poscopy_1.B(X) :- \n   BaseTwo(X),\n   @poscopy_1.A(X)."}},
+            {"@poscopy_2.A", {"@poscopy_2.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_2.A(X) :- \n   BaseOne(X),\n   @poscopy_2.B(X)."}},
+            {"@poscopy_2.B", {"@poscopy_2.B(X) :- \n   BaseTwo(X),\n   @poscopy_2.A(X)."}},
+    });
+    checkRelMapEq(expectedFullLabelling, mappifyRelations(program));
+
+    /* Stage 3: Database adornment */
+    /* Stage 3.1: Adornment algorithm */
+    std::make_unique<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
+    EXPECT_EQ(19, program.getRelations().size());
+    EXPECT_EQ(23, program.getClauses().size());
+
+    auto expectedAdornment = std::map<std::string, std::multiset<std::string>>({
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"A", {"A(X) :- \n   BaseOne(X).", "A(X) :- \n   BaseOne(X),\n   B(X)."}},
+            {"B", {"B(X) :- \n   BaseTwo(X),\n   A(X)."}},
+            {"D", {"D(X) :- \n   BaseOne(X),\n   A(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X),\n   "
+                             "@poscopy_1.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X),\n   "
+                             "@poscopy_2.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"@poscopy_1.A", {"@poscopy_1.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_1.A(X) :- \n   BaseOne(X),\n   @poscopy_1.B(X)."}},
+            {"@poscopy_1.B", {"@poscopy_1.B(X) :- \n   BaseTwo(X),\n   @poscopy_1.A(X)."}},
+            {"@poscopy_2.A", {"@poscopy_2.A(X) :- \n   BaseOne(X).",
+                                     "@poscopy_2.A(X) :- \n   BaseOne(X),\n   @poscopy_2.B(X)."}},
+            {"@poscopy_2.B", {"@poscopy_2.B(X) :- \n   BaseTwo(X),\n   @poscopy_2.A(X)."}},
+
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D.{b}(X),\n   A.{b}(X)."}},
+            {"A.{b}", {"A.{b}(X) :- \n   BaseOne(X).", "A.{b}(X) :- \n   BaseOne(X),\n   B.{b}(X)."}},
+            {"B.{b}", {"B.{b}(X) :- \n   BaseTwo(X),\n   A.{b}(X)."}},
+            {"D.{b}",
+                    {"D.{b}(X) :- \n   BaseOne(X),\n   A.{b}(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"@poscopy_1.A.{b}", {"@poscopy_1.A.{b}(X) :- \n   BaseOne(X).",
+                                         "@poscopy_1.A.{b}(X) :- \n   BaseOne(X),\n   @poscopy_1.B.{b}(X)."}},
+            {"@poscopy_1.B.{b}", {"@poscopy_1.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X)."}},
+            {"@poscopy_2.A.{b}", {"@poscopy_2.A.{b}(X) :- \n   BaseOne(X).",
+                                         "@poscopy_2.A.{b}(X) :- \n   BaseOne(X),\n   @poscopy_2.B.{b}(X)."}},
+            {"@poscopy_2.B.{b}", {"@poscopy_2.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X)."}},
+
+    });
+    checkRelMapEq(expectedAdornment, mappifyRelations(program));
+
+    /* Stage 2.3: Remove no longer necessary relations */
+    std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
+    EXPECT_EQ(12, program.getRelations().size());
+    EXPECT_EQ(13, program.getClauses().size());
+
+    auto expectedFinalAdornment = std::map<std::string, std::multiset<std::string>>({
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X),\n   "
+                             "@poscopy_1.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X),\n   "
+                             "@poscopy_2.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D.{b}(X),\n   A.{b}(X)."}},
+            {"A.{b}", {"A.{b}(X) :- \n   BaseOne(X).", "A.{b}(X) :- \n   BaseOne(X),\n   B.{b}(X)."}},
+            {"B.{b}", {"B.{b}(X) :- \n   BaseTwo(X),\n   A.{b}(X)."}},
+            {"D.{b}",
+                    {"D.{b}(X) :- \n   BaseOne(X),\n   A.{b}(X),\n   !@neglabel.C(X),\n   !@neglabel.R(X)."}},
+            {"@poscopy_1.A.{b}", {"@poscopy_1.A.{b}(X) :- \n   BaseOne(X).",
+                                         "@poscopy_1.A.{b}(X) :- \n   BaseOne(X),\n   @poscopy_1.B.{b}(X)."}},
+            {"@poscopy_1.B.{b}", {"@poscopy_1.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X)."}},
+            {"@poscopy_2.A.{b}", {"@poscopy_2.A.{b}(X) :- \n   BaseOne(X).",
+                                         "@poscopy_2.A.{b}(X) :- \n   BaseOne(X),\n   @poscopy_2.B.{b}(X)."}},
+            {"@poscopy_2.B.{b}", {"@poscopy_2.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X)."}},
+
+    });
+    checkRelMapEq(expectedFinalAdornment, mappifyRelations(program));
+
+    /* Stage 4: MST core transformation */
+    std::make_unique<MagicSetTransformer::MagicSetCoreTransformer>()->apply(*tu);
+    EXPECT_EQ(19, program.getRelations().size());
+    EXPECT_EQ(26, program.getClauses().size());
+
+    auto finalProgram = std::map<std::string, std::multiset<std::string>>({
+            {"BaseOne", {}},
+            {"BaseTwo", {}},
+
+            {"@neglabel.C", {"@neglabel.C(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X),\n   "
+                             "@poscopy_1.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 1."}},
+            {"@neglabel.R", {"@neglabel.R(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X),\n   "
+                             "@poscopy_2.B.{b}(X),\n   X != @abdul0,\n   @abdul0 = 0."}},
+
+            {"A.{b}", {"A.{b}(X) :- \n   @magic.A.{b}(X),\n   BaseOne(X),\n   B.{b}(X).",
+                              "A.{b}(X) :- \n   @magic.A.{b}(X),\n   BaseOne(X)."}},
+            {"B.{b}", {"B.{b}(X) :- \n   @magic.B.{b}(X),\n   BaseTwo(X),\n   A.{b}(X)."}},
+            {"D.{b}", {"D.{b}(X) :- \n   @magic.D.{b}(X),\n   BaseOne(X),\n   A.{b}(X),\n   "
+                       "!@neglabel.C(X),\n   !@neglabel.R(X)."}},
+
+            {"@poscopy_1.A.{b}", {"@poscopy_1.A.{b}(X) :- \n   @magic.@poscopy_1.A.{b}(X),\n   BaseOne(X).",
+                                         "@poscopy_1.A.{b}(X) :- \n   @magic.@poscopy_1.A.{b}(X),\n   "
+                                         "BaseOne(X),\n   @poscopy_1.B.{b}(X)."}},
+            {"@poscopy_1.B.{b}", {"@poscopy_1.B.{b}(X) :- \n   @magic.@poscopy_1.B.{b}(X),\n   BaseTwo(X),\n "
+                                  "  @poscopy_1.A.{b}(X)."}},
+            {"@poscopy_2.A.{b}", {"@poscopy_2.A.{b}(X) :- \n   @magic.@poscopy_2.A.{b}(X),\n   BaseOne(X).",
+                                         "@poscopy_2.A.{b}(X) :- \n   @magic.@poscopy_2.A.{b}(X),\n   "
+                                         "BaseOne(X),\n   @poscopy_2.B.{b}(X)."}},
+            {"@poscopy_2.B.{b}", {"@poscopy_2.B.{b}(X) :- \n   @magic.@poscopy_2.B.{b}(X),\n   BaseTwo(X),\n "
+                                  "  @poscopy_2.A.{b}(X)."}},
+
+            {"Query", {"Query(X) :- \n   BaseOne(X),\n   D.{b}(X),\n   A.{b}(X)."}},
+
+            // Magic rules
+            {"@magic.A.{b}", {"@magic.A.{b}(X) :- \n   @magic.B.{b}(X),\n   BaseTwo(X).",
+                                     "@magic.A.{b}(X) :- \n   BaseOne(X),\n   D.{b}(X).",
+                                     "@magic.A.{b}(X) :- \n   @magic.D.{b}(X),\n   BaseOne(X)."}},
+            {"@magic.B.{b}", {"@magic.B.{b}(X) :- \n   @magic.A.{b}(X),\n   BaseOne(X)."}},
+            {"@magic.D.{b}", {"@magic.D.{b}(X) :- \n   BaseOne(X)."}},
+            {"@magic.@poscopy_1.A.{b}", {"@magic.@poscopy_1.A.{b}(X) :- \n   BaseTwo(X),\n   @abdul0 = 1.",
+                                                "@magic.@poscopy_1.A.{b}(X) :- \n   "
+                                                "@magic.@poscopy_1.B.{b}(X),\n   BaseTwo(X)."}},
+            {"@magic.@poscopy_2.A.{b}", {"@magic.@poscopy_2.A.{b}(X) :- \n   BaseTwo(X),\n   @abdul0 = 0.",
+                                                "@magic.@poscopy_2.A.{b}(X) :- \n   "
+                                                "@magic.@poscopy_2.B.{b}(X),\n   BaseTwo(X)."}},
+            {"@magic.@poscopy_1.B.{b}",
+                    {"@magic.@poscopy_1.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_1.A.{b}(X),\n   @abdul0 = "
+                     "1.",
+                            "@magic.@poscopy_1.B.{b}(X) :- \n   @magic.@poscopy_1.A.{b}(X),\n   "
+                            "BaseOne(X)."}},
+            {"@magic.@poscopy_2.B.{b}",
+                    {"@magic.@poscopy_2.B.{b}(X) :- \n   BaseTwo(X),\n   @poscopy_2.A.{b}(X),\n   @abdul0 = "
+                     "0.",
+                            "@magic.@poscopy_2.B.{b}(X) :- \n   @magic.@poscopy_2.A.{b}(X),\n   "
+                            "BaseOne(X)."}},
+    });
+    checkRelMapEq(finalProgram, mappifyRelations(program));
+}  // namespace test
 
 }  // namespace test
 }  // namespace souffle
