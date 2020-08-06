@@ -214,7 +214,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 std::string infimum;
 
                 switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
+                    /*
+            case 'i':
                         supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
                         infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
                         break;
@@ -226,6 +227,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
                         infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
                         break;
+            */
                     default:
                         supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
                         infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";

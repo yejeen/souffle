@@ -253,11 +253,13 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
             }
         } else if (isIneqSigned(binRelOp->getOperator())) {
             return getSignedExpressionPair(binRelOp, element, identifier);
-        } else if (isIneqUnsigned(binRelOp->getOperator())) {
-            return getUnsignedExpressionPair(binRelOp, element, identifier);
-        } else if (isIneqFloat(binRelOp->getOperator())) {
-            return getFloatExpressionPair(binRelOp, element, identifier);
         }
+        /* TODO: Fix Comparators in BTree to handle types
+        else if (isIneqUnsigned(binRelOp->getOperator())) {
+                return getUnsignedExpressionPair(binRelOp, element, identifier);
+            } else if (isIneqFloat(binRelOp->getOperator())) {
+                return getFloatExpressionPair(binRelOp, element, identifier);
+            } */
     }
     return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
 }
