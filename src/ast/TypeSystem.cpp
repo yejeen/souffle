@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "TypeSystem.h"
+#include "ast/Type.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -72,6 +73,10 @@ bool TypeEnvironment::isType(const Type& type) const {
 
 const Type& TypeEnvironment::getType(const AstQualifiedName& ident) const {
     return *types.at(ident);
+}
+
+const Type& TypeEnvironment::getType(const AstType& astTypeDeclaration) const {
+    return getType(astTypeDeclaration.getQualifiedName());
 }
 
 /**

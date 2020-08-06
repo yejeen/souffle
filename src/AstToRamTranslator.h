@@ -385,12 +385,6 @@ private:
         ProvenanceClauseTranslator(AstToRamTranslator& translator) : ClauseTranslator(translator) {}
     };
 
-    /**
-     * Get ram records types.
-     * If they don't exists - create them.
-     */
-    const json11::Json getRecordsTypes();
-
     /** Return a symbol table **/
     SymbolTable& getSymbolTable() {
         return symbolTable;

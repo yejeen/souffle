@@ -18,6 +18,7 @@
 
 #include "RamTypes.h"
 #include "ast/QualifiedName.h"
+#include "ast/Type.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
@@ -424,6 +425,7 @@ public:
     bool isType(const Type& type) const;
 
     const Type& getType(const AstQualifiedName&) const;
+    const Type& getType(const AstType&) const;
 
     const Type& getConstantType(TypeAttribute type) const {
         switch (type) {
