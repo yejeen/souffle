@@ -109,10 +109,42 @@ protected:
                 case 'u': destination << ramBitCast<RamUnsigned>(recordValue); break;
                 case 's': destination << symbolTable.unsafeResolve(recordValue); break;
                 case 'r': outputRecord(destination, recordValue, recordType); break;
+                case '+': outputADT(destination, recordValue, recordType); break;
                 default: fatal("Unsupported type attribute: `%c`", recordType[0]);
             }
         }
         destination << "]";
+    }
+
+    void outputADT(std::ostream& destination, const RamDomain value, const std::string& name) {
+        auto&& adtInfo = types["ADTs"][name];
+
+        assert(!adtInfo.is_null() && "Missing adt type information");
+
+        const size_t numBranches = adtInfo["arity"].long_value();
+        assert(numBranches >= 1);
+
+        // adt is encoded as (branchID, branchValue)
+        const RamDomain* tuplePtr = recordTable.unpack(value, 2);
+
+        const RamDomain branchId = tuplePtr[0];
+        const RamDomain branchValue = tuplePtr[1];
+
+        auto branchInfo = adtInfo["branches"][branchId];
+        auto branchType = branchInfo["type"].string_value();
+
+        destination << tfm::format("$%s(", branchInfo["name"].string_value());
+
+        switch (branchType[0]) {
+            case 'i': destination << branchValue; break;
+            case 'f': destination << ramBitCast<RamFloat>(branchValue); break;
+            case 'u': destination << ramBitCast<RamUnsigned>(branchValue); break;
+            case 's': destination << symbolTable.unsafeResolve(branchValue); break;
+            case 'r': outputRecord(destination, branchValue, branchType); break;
+            case '+': outputADT(destination, branchValue, branchType); break;
+            default: fatal("Unsupported type attribute: `%c`", branchType[0]);
+        }
+        destination << ")";
     }
 };
 

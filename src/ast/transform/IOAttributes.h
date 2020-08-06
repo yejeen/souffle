@@ -181,12 +181,15 @@ private:
 
             for (size_t branchID = 0; branchID < branches.size(); ++branchID) {
                 auto&& branchType = getTypeQualifier(*branches[branchID].type);
-                branchsTypes.push_back(
-                        json11::Json::object{{std::to_string(branchID), std::move(branchType)}});
+                auto branchInfo = json11::Json::object{
+                        {{"type", std::move(branchType)}, {"name", branches[branchID].name}}};
+                branchsTypes.push_back(std::move(branchInfo));
             }
 
             auto typeQualifier = getTypeQualifier(sumType);
-            sumTypes.emplace(std::move(typeQualifier), std::move(branchsTypes));
+            auto&& sumInfo = json11::Json::object{{{"branches", std::move(branchsTypes)},
+                    {"arity", static_cast<long long>(branches.size())}}};
+            sumTypes.emplace(std::move(typeQualifier), std::move(sumInfo));
         });
 
         sumTypesInfo = json11::Json(sumTypes);
