@@ -10,14 +10,16 @@
  *
  * @file NumericConstant.h
  *
+ * Defines the numeric constant class
+ *
  ***********************************************************************/
 
 #pragma once
 
+#include "Constant.h"
+#include "Node.h"
 #include "RamTypes.h"
 #include "SrcLocation.h"
-#include "ast/Constant.h"
-#include "ast/Node.h"
 #include <optional>
 #include <string>
 #include <utility>

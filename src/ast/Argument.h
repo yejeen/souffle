@@ -10,18 +10,19 @@
  *
  * @file Argument.h
  *
- * Abstract class definitions for AST nodes
+ * Defines the abstract class for arguments
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "ast/Node.h"
+#include "Node.h"
 
 namespace souffle {
 
 /**
- * Argument
+ * @class AstArgument
+ * @brief An abstract class for arguments
  */
 class AstArgument : public AstNode {
 public:

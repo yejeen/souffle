@@ -7,6 +7,7 @@
  */
 
 #include "RamTypes.h"
+#include "TypeAttribute.h"
 #include "utility/MiscUtil.h"
 #include <ostream>
 

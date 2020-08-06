@@ -10,27 +10,35 @@
  *
  * @file Functor.h
  *
+ * Defines the abstract class for functors
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "RamTypes.h"
-#include "ast/Term.h"
+#include "Term.h"
+#include "TypeAttribute.h"
 #include <cstddef>
 
 namespace souffle {
 
 /**
- * Functor class
+ * @class AstFunctor
+ * @brief Abstract functor class
  */
 
 class AstFunctor : public AstTerm {
 public:
+    /** Return return type of functor */
     virtual TypeAttribute getReturnType() const = 0;
+
+    /** Return argument type of functor */
     virtual TypeAttribute getArgType(const size_t arg) const = 0;
+
     AstFunctor* clone() const override = 0;
 
 protected:
+    /* TODO(b-scholz): check whehter still in use */
     using AstTerm::AstTerm;
 };
 

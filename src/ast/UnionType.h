@@ -10,16 +10,16 @@
  *
  * @file UnionType.h
  *
- * Defines a type, i.e., disjoint supersets of the universe
+ * Defines the union type class
  *
  ***********************************************************************/
 
 #pragma once
 
+#include "Node.h"
+#include "QualifiedName.h"
 #include "SrcLocation.h"
-#include "ast/Node.h"
-#include "ast/QualifiedName.h"
-#include "ast/Type.h"
+#include "Type.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
 #include <cstddef>
@@ -31,6 +31,12 @@
 namespace souffle {
 
 /**
+ * @class AstUnionType
+ * @brief The union type class
+ *
+ * Example:
+ *  .type A = B1 | B2 | ... | Bk
+ *
  * A union type combines multiple types into a new super type.
  * Each of the enumerated types become a sub-type of the new
  * union type.
@@ -40,18 +46,18 @@ public:
     AstUnionType(AstQualifiedName name, std::vector<AstQualifiedName> types, SrcLocation loc = {})
             : AstType(std::move(name), std::move(loc)), types(std::move(types)) {}
 
-    /** Obtains a reference to the list element types */
+    /** Return list of unioned types */
     const std::vector<AstQualifiedName>& getTypes() const {
         return types;
     }
 
-    /** Adds another element type */
+    /** Add another unioned type */
     void add(AstQualifiedName type) {
         types.push_back(std::move(type));
     }
 
-    /** Set variant type */
-    void setVariantType(size_t idx, AstQualifiedName type) {
+    /** Set type */
+    void setType(size_t idx, AstQualifiedName type) {
         types.at(idx) = std::move(type);
     }
 
@@ -70,7 +76,7 @@ protected:
     }
 
 private:
-    /** The list of types aggregated by this union type */
+    /** List of unioned types */
     std::vector<AstQualifiedName> types;
 };
 

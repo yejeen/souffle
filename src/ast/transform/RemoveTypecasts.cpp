@@ -12,13 +12,13 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/RemoveTypecasts.h"
-#include "ast/Argument.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/Program.h"
-#include "ast/TranslationUnit.h"
-#include "ast/TypeCast.h"
+#include "RemoveTypecasts.h"
+#include "../Argument.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../Program.h"
+#include "../TranslationUnit.h"
+#include "../TypeCast.h"
 #include "utility/MiscUtil.h"
 #include <memory>
 

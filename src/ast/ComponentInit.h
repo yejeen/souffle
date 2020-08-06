@@ -10,16 +10,16 @@
  *
  * @file ComponentInit.h
  *
- * Defines the class utilized to model a component within the input program.
+ * Defines the component-initialization class
  *
  ***********************************************************************/
 
 #pragma once
 
+#include "ComponentType.h"
+#include "Node.h"
+#include "NodeMapper.h"
 #include "SrcLocation.h"
-#include "ast/ComponentType.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
 #include "utility/MiscUtil.h"
 #include <memory>
 #include <ostream>
@@ -30,29 +30,35 @@
 namespace souffle {
 
 /**
- * Component intialization
+ * @class AstComponentInit
+ * @brief Component initialization class
+ *
+ * Example:
+ *  .init X=B<T1,T2>
+ *
+ * Intialization of a component with type parameters
  */
 class AstComponentInit : public AstNode {
 public:
     AstComponentInit(std::string name, Own<AstComponentType> type, SrcLocation loc = {})
             : AstNode(std::move(loc)), instanceName(std::move(name)), componentType(std::move(type)) {}
 
-    /** get instance name */
+    /** Return instance name */
     const std::string& getInstanceName() const {
         return instanceName;
     }
 
-    /** set instance name */
+    /** Set instance name */
     void setInstanceName(std::string name) {
         instanceName = std::move(name);
     }
 
-    /** get component type */
+    /** Return component type */
     const AstComponentType* getComponentType() const {
         return componentType.get();
     }
 
-    /** set component type */
+    /** Set component type */
     void setComponentType(Own<AstComponentType> type) {
         componentType = std::move(type);
     }
@@ -79,10 +85,10 @@ protected:
         return instanceName == other.instanceName && *componentType == *other.componentType;
     }
 
-    /** instance name */
+    /** Instance name */
     std::string instanceName;
 
-    /** actual component arguments for instantiation */
+    /** Actual component arguments for instantiation */
     Own<AstComponentType> componentType;
 };
 

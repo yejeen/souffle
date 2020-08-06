@@ -10,14 +10,14 @@
  *
  * @file Pragma.h
  *
- * Define the class AstPragma to update global options based on parameter.
+ * Defines the pragma class
  *
  ***********************************************************************/
 
 #pragma once
 
+#include "Node.h"
 #include "SrcLocation.h"
-#include "ast/Node.h"
 #include <ostream>
 #include <string>
 #include <utility>

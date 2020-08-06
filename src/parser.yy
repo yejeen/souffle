@@ -67,7 +67,7 @@
     #include "ast/UnionType.h"
     #include "ast/UnnamedVariable.h"
     #include "ast/UserDefinedFunctor.h"
-    #include "ast/ParserUtils.h"
+    #include "ParserUtils.h"
     #include "ast/Variable.h"
     #include "BinaryConstraintOps.h"
     #include "FunctorOps.h"

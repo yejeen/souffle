@@ -12,20 +12,20 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/RemoveBooleanConstraints.h"
+#include "RemoveBooleanConstraints.h"
+#include "../Aggregator.h"
+#include "../BinaryConstraint.h"
+#include "../BooleanConstraint.h"
+#include "../Clause.h"
+#include "../Literal.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../NumericConstant.h"
+#include "../Program.h"
+#include "../TranslationUnit.h"
+#include "../Utils.h"
+#include "../Visitor.h"
 #include "BinaryConstraintOps.h"
-#include "ast/Aggregator.h"
-#include "ast/BinaryConstraint.h"
-#include "ast/BooleanConstraint.h"
-#include "ast/Clause.h"
-#include "ast/Literal.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/NumericConstant.h"
-#include "ast/Program.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Utils.h"
-#include "ast/Visitor.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>

@@ -16,11 +16,11 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/TopologicallySortedSCCGraph.h"
-#include "ast/QualifiedName.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/analysis/SCCGraph.h"
+#include "TopologicallySortedSCCGraph.h"
+#include "../QualifiedName.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
+#include "SCCGraph.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
 #include <set>

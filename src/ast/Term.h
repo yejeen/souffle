@@ -10,14 +10,16 @@
  *
  * @file Term.h
  *
+ * Defines the abstract term class
+ *
  ***********************************************************************/
 
 #pragma once
 
+#include "Argument.h"
+#include "Node.h"
+#include "NodeMapper.h"
 #include "SrcLocation.h"
-#include "ast/Argument.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include <algorithm>
 #include <memory>
@@ -28,7 +30,8 @@
 namespace souffle {
 
 /**
- * Abstract Term
+ * @class AstTerm
+ * @brief Defines an abstract term class used for functors and other constructors
  */
 class AstTerm : public AstArgument {
 protected:
@@ -43,12 +46,12 @@ protected:
             : AstArgument(std::move(loc)), args(std::move(operands)) {}
 
 public:
-    /** get arguments */
+    /** Get arguments */
     std::vector<AstArgument*> getArguments() const {
         return toPtrVector(args);
     }
 
-    /** add argument to argument list */
+    /** Add argument to argument list */
     void addArgument(Own<AstArgument> arg) {
         args.push_back(std::move(arg));
     }

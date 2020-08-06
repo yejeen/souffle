@@ -10,7 +10,7 @@
  *
  * @file ParserUtils.h
  *
- * Defines class RuleBody to represents rule bodies.
+ * Defines a rewrite class for multi-heads and disjunction
  *
  ***********************************************************************/
 

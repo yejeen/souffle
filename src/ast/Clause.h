@@ -10,18 +10,18 @@
  *
  * @file Clause.h
  *
- * Defines AST Clauses
+ * Defines the clause class
  *
  ***********************************************************************/
 
 #pragma once
 
+#include "Atom.h"
+#include "ExecutionPlan.h"
+#include "Literal.h"
+#include "Node.h"
+#include "NodeMapper.h"
 #include "SrcLocation.h"
-#include "ast/Atom.h"
-#include "ast/ExecutionPlan.h"
-#include "ast/Literal.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
@@ -35,13 +35,12 @@
 namespace souffle {
 
 /**
- * Intermediate representation of a datalog clause.
+ * @class AstClause
+ * @brief Intermediate representation of a horn clause
  *
  *  A clause can either be:
  *      - a fact  - a clause with no body (e.g., X(a,b))
  *      - a rule  - a clause with a head and a body (e.g., Y(a,b) -: X(a,b))
- *
- * TODO (azreika): make clause abstract and split into two subclasses: Rule and Fact
  */
 class AstClause : public AstNode {
 public:
@@ -50,7 +49,7 @@ public:
             : AstNode(std::move(loc)), head(std::move(head)), bodyLiterals(std::move(bodyLiterals)),
               plan(std::move(plan)) {}
 
-    /** Add a Literal to the body of the clause */
+    /** Add a literal to the body of the clause */
     void addToBody(Own<AstLiteral> literal) {
         bodyLiterals.push_back(std::move(literal));
     }
@@ -130,13 +129,13 @@ protected:
                equal_ptr(plan, other.plan);
     }
 
-    /** head of the clause */
+    /** Head of the clause */
     Own<AstAtom> head;
 
-    /** body literals of clause */
+    /** Body literals of clause */
     VecOwn<AstLiteral> bodyLiterals;
 
-    /** user defined execution plan (if not defined, plan is null) */
+    /** User defined execution plan (if not defined, plan is null) */
     Own<AstExecutionPlan> plan;
 };
 

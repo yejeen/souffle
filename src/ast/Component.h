@@ -10,20 +10,20 @@
  *
  * @file Component.h
  *
- * Defines the class utilized to model a component within the input program.
+ * Defines the component class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "ast/Clause.h"
-#include "ast/ComponentInit.h"
-#include "ast/ComponentType.h"
-#include "ast/IO.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/Relation.h"
-#include "ast/Type.h"
+#include "Clause.h"
+#include "ComponentInit.h"
+#include "ComponentType.h"
+#include "IO.h"
+#include "Node.h"
+#include "NodeMapper.h"
+#include "Relation.h"
+#include "Type.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
@@ -38,101 +38,110 @@
 namespace souffle {
 
 /**
- * A AST node describing a component within the input program.
+ * @class AstComponent
+ * @brief Component class
+ *
+ * Example:
+ *   .comp X = {
+ *      .decl A(y:number)
+ *      A(1).
+ *   }
+ *
+ * Component consists of type declaration, relations, rules, etc.
  */
 class AstComponent : public AstNode {
 public:
-    /** get component type */
+    /** Get component type */
     const AstComponentType* getComponentType() const {
         return componentType.get();
     }
 
-    /** set component type */
+    /** Set component type */
     void setComponentType(Own<AstComponentType> other) {
         componentType = std::move(other);
     }
 
-    /** get base components */
+    /** Get base components */
     const std::vector<AstComponentType*> getBaseComponents() const {
         return toPtrVector(baseComponents);
     }
 
-    /** add base components */
+    /** Add base components */
     void addBaseComponent(Own<AstComponentType> component) {
         baseComponents.push_back(std::move(component));
     }
 
-    /** add type */
+    /** Add type */
     void addType(Own<AstType> t) {
         types.push_back(std::move(t));
     }
 
-    /** get types */
+    /** Get types */
     std::vector<AstType*> getTypes() const {
         return toPtrVector(types);
     }
 
-    /** copy base components */
+    /** Copy base components */
     void copyBaseComponents(const AstComponent& other) {
         baseComponents = souffle::clone(other.baseComponents);
     }
 
-    /** add relation */
+    /** Add relation */
     void addRelation(Own<AstRelation> r) {
         relations.push_back(std::move(r));
     }
 
-    /** get relations */
+    /** Get relations */
     std::vector<AstRelation*> getRelations() const {
         return toPtrVector(relations);
     }
 
-    /** add clause */
+    /** Add clause */
     void addClause(Own<AstClause> c) {
         clauses.push_back(std::move(c));
     }
 
-    /** get clauses */
+    /** Get clauses */
     std::vector<AstClause*> getClauses() const {
         return toPtrVector(clauses);
     }
 
-    /** add IO */
+    /** Add IO */
     void addIO(Own<AstIO> directive) {
         ios.push_back(std::move(directive));
     }
 
-    /** get IO statements */
+    /** Get IO statements */
     std::vector<AstIO*> getIOs() const {
         return toPtrVector(ios);
     }
 
-    /** add components */
+    /** Add components */
     void addComponent(Own<AstComponent> c) {
         components.push_back(std::move(c));
     }
 
-    /** get components */
+    /** Get components */
     std::vector<AstComponent*> getComponents() const {
         return toPtrVector(components);
     }
 
-    /** add instantiation */
+    /** Add instantiation */
     void addInstantiation(Own<AstComponentInit> i) {
         instantiations.push_back(std::move(i));
     }
 
-    /** get instantiation */
+    /** Get instantiation */
     std::vector<AstComponentInit*> getInstantiations() const {
         return toPtrVector(instantiations);
     }
 
-    /** add override */
+    /** Add override */
     void addOverride(const std::string& name) {
         overrideRules.insert(name);
     }
 
-    /** get override */
+    /** Get override */
     const std::set<std::string>& getOverridden() const {
         return overrideRules;
     }
@@ -257,31 +266,31 @@ protected:
         return true;
     }
 
-    /** name of component and its formal component arguments. */
+    /** Name of component and its formal component arguments. */
     Own<AstComponentType> componentType;
 
-    /** base components of component */
+    /** Base components of component */
     VecOwn<AstComponentType> baseComponents;
 
-    /** types declarations */
+    /** Types declarations */
     VecOwn<AstType> types;
 
-    /** relations */
+    /** Relations */
     VecOwn<AstRelation> relations;
 
-    /** clauses */
+    /** Clauses */
     VecOwn<AstClause> clauses;
 
     /** I/O directives */
     VecOwn<AstIO> ios;
 
-    /** nested components */
+    /** Nested components */
     VecOwn<AstComponent> components;
 
-    /** nested component instantiations. */
+    /** Nested component instantiations. */
     VecOwn<AstComponentInit> instantiations;
 
-    /** clauses of relations that are overwritten by this component */
+    /** Clauses of relations that are overwritten by this component */
     std::set<std::string> overrideRules;
 };
 

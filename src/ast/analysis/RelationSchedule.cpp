@@ -16,14 +16,14 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/RelationSchedule.h"
+#include "RelationSchedule.h"
+#include "../QualifiedName.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
 #include "GraphUtils.h"
-#include "ast/QualifiedName.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/analysis/PrecedenceGraph.h"
-#include "ast/analysis/SCCGraph.h"
-#include "ast/analysis/TopologicallySortedSCCGraph.h"
+#include "PrecedenceGraph.h"
+#include "SCCGraph.h"
+#include "TopologicallySortedSCCGraph.h"
 #include <algorithm>
 #include <cstddef>
 #include <iterator>

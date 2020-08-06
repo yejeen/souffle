@@ -12,15 +12,15 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/NameUnnamedVariables.h"
-#include "ast/Clause.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/Program.h"
-#include "ast/TranslationUnit.h"
-#include "ast/UnnamedVariable.h"
-#include "ast/Utils.h"
-#include "ast/Variable.h"
+#include "NameUnnamedVariables.h"
+#include "../Clause.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../Program.h"
+#include "../TranslationUnit.h"
+#include "../UnnamedVariable.h"
+#include "../Utils.h"
+#include "../Variable.h"
 #include <cstddef>
 #include <memory>
 #include <ostream>

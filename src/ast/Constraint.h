@@ -10,18 +10,19 @@
  *
  * @file Constraint.h
  *
- * Abstract class definitions for AST nodes
+ * Defines an abstract class for constraints
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "ast/Literal.h"
+#include "Literal.h"
 
 namespace souffle {
 
 /**
- * Logical constraint
+ * @class AstConstraint
+ * @brief Abstract class for AST constraints
  */
 class AstConstraint : public AstLiteral {
 public:
