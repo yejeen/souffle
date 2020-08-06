@@ -10,15 +10,18 @@
  *
  * @file IntrinsicFunctor.h
  *
+ * Defines the intrinsic functor class
+ *
  ***********************************************************************/
 
 #pragma once
 
+#include "Argument.h"
+#include "Functor.h"
 #include "FunctorOps.h"
-#include "RamTypes.h"
+#include "Node.h"
 #include "SrcLocation.h"
-#include "ast/Functor.h"
-#include "ast/Node.h"
+#include "TypeAttribute.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <cassert>
@@ -29,10 +32,10 @@
 #include <vector>
 
 namespace souffle {
-class AstArgument;
 
 /**
- * Intrinsic Functor
+ * @class AstIntrinsicFunctor
+ * @brief Intrinsic Functor class for functors are in-built.
  */
 class AstIntrinsicFunctor : public AstFunctor {
 public:
@@ -47,31 +50,33 @@ public:
     AstIntrinsicFunctor(std::string op, VecOwn<AstArgument> args, SrcLocation loc = {})
             : AstFunctor(std::move(args), std::move(loc)), function(std::move(op)) {}
 
-    /** get function */
+    /** Get function */
     const std::string& getFunction() const {
         return function;
     }
 
-    /** set function */
+    /** Set function */
     void setFunction(std::string functor) {
         function = std::move(functor);
     }
 
+    /** Get function information */
     const IntrinsicFunctor* getFunctionInfo() const {
         return info;
     }
 
+    /** Set function information */
     void setFunctionInfo(const IntrinsicFunctor& info) {
         this->info = &info;
     }
 
-    /** get the return type of the functor. */
+    /** Get the return type of the functor. */
     TypeAttribute getReturnType() const override {
         assert(info && "functor info not yet available");
         return info->result;
     }
 
-    /** get type of the functor argument*/
+    /** Get type of the functor argument*/
     TypeAttribute getArgType(const size_t arg) const override {
         assert(info && "functor info not yet available");
         return info->params.at(info->variadic ? 0 : arg);
@@ -104,6 +109,8 @@ protected:
 
     /** Function */
     std::string function;
+
+    /** Functor information */
     const IntrinsicFunctor* info = nullptr;
 };
 

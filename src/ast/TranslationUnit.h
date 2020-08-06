@@ -10,9 +10,7 @@
  *
  * @file TranslationUnit.h
  *
- * Define AST translation unit class consisting of
- * an symbol table, AST program, error reports, and
- * cached analysis results.
+ * Defines the translation unit class
  *
  ***********************************************************************/
 
@@ -20,10 +18,10 @@
 
 #include "DebugReport.h"
 #include "Global.h"
-#include "ast/Program.h"
-#include "ast/analysis/Analysis.h"
-#include "ast/analysis/PrecedenceGraph.h"
-#include "ast/analysis/SCCGraph.h"
+#include "Program.h"
+#include "analysis/Analysis.h"
+#include "analysis/PrecedenceGraph.h"
+#include "analysis/SCCGraph.h"
 #include <map>
 #include <memory>
 #include <sstream>
@@ -34,7 +32,12 @@ namespace souffle {
 class ErrorReport;
 
 /**
- * AstTranslationUnit class
+ * @class AstTranslationUnit
+ * @brief Translation unit class for the translation pipeline
+ *
+ * The translation unit class consisting of
+ * an symbol table, AST program, error reports, and
+ * cached analysis results.
  */
 
 class AstTranslationUnit {
@@ -69,43 +72,43 @@ public:
         return dynamic_cast<Analysis*>(analyses[name].get());
     }
 
-    /** get the AST program */
+    /** Return the program */
     AstProgram* getProgram() {
         return program.get();
     }
 
-    /** get the AST program */
+    /** Return the program */
     const AstProgram* getProgram() const {
         return program.get();
     }
 
-    /** get error report */
+    /** Return error report */
     ErrorReport& getErrorReport() {
         return errorReport;
     }
 
-    /** get error report */
+    /** Return error report */
     const ErrorReport& getErrorReport() const {
         return errorReport;
     }
 
-    /** destroy all cached analyses of translation unit */
+    /** Destroy all cached analyses of translation unit */
     void invalidateAnalyses() {
         analyses.clear();
     }
 
-    /** get debug report */
+    /** Return debug report */
     DebugReport& getDebugReport() {
         return debugReport;
     }
 
-    /** get debug report */
+    /** Return debug report */
     const DebugReport& getDebugReport() const {
         return debugReport;
     }
 
 private:
-    /** cached analyses */
+    /** Cached analyses */
     mutable std::map<std::string, std::unique_ptr<AstAnalysis>> analyses;
 
     /** AST program */

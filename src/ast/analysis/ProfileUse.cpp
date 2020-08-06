@@ -15,9 +15,9 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/ProfileUse.h"
+#include "ProfileUse.h"
+#include "../QualifiedName.h"
 #include "Global.h"
-#include "ast/QualifiedName.h"
 #include "profile/ProgramRun.h"
 #include "profile/Reader.h"
 #include "profile/Relation.h"

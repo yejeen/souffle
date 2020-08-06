@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/AuxArity.h"
+#include "AuxArity.h"
 #include "Global.h"
 #include <string>
 

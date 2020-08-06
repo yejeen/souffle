@@ -16,14 +16,14 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/RedundantRelations.h"
+#include "RedundantRelations.h"
+#include "../Node.h"
+#include "../Program.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
 #include "GraphUtils.h"
-#include "ast/Node.h"
-#include "ast/Program.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/analysis/IOType.h"
-#include "ast/analysis/PrecedenceGraph.h"
+#include "IOType.h"
+#include "PrecedenceGraph.h"
 #include "utility/StreamUtil.h"
 #include <set>
 #include <vector>

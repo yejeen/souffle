@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "ast/analysis/Analysis.h"
+#include "Analysis.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

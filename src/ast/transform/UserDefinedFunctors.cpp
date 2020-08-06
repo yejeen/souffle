@@ -12,16 +12,16 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/UserDefinedFunctors.h"
+#include "UserDefinedFunctors.h"
+#include "../FunctorDeclaration.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../Program.h"
+#include "../TranslationUnit.h"
+#include "../UserDefinedFunctor.h"
+#include "../Utils.h"
 #include "ErrorReport.h"
 #include "RamTypes.h"
-#include "ast/FunctorDeclaration.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/Program.h"
-#include "ast/TranslationUnit.h"
-#include "ast/UserDefinedFunctor.h"
-#include "ast/Utils.h"
 #include <memory>
 #include <vector>
 

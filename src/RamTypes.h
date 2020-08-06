@@ -24,23 +24,6 @@
 
 namespace souffle {
 
-enum class TypeAttribute {
-    Symbol,
-    Signed,    // Signed number
-    Unsigned,  // Unsigned number
-    Float,     // Floating point number.
-    Record,
-};
-
-// Printing of the TypeAttribute Enum.
-// To be utilised in synthesizer.
-std::ostream& operator<<(std::ostream& os, TypeAttribute T);
-
-/**
- * Check if type is numeric.
- */
-bool isNumericType(TypeAttribute ramType);
-
 /**
  * Types of elements in a tuple.
  *

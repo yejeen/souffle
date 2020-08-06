@@ -10,17 +10,20 @@
  *
  * @file UnnamedVariable.h
  *
+ * Defines the unnamed variable class
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "ast/Argument.h"
+#include "Argument.h"
 #include <ostream>
 
 namespace souffle {
 
 /**
- * Unnamed Variable
+ * @class AstUnnamedVariable
+ * @brief Unnamed variable class
  */
 class AstUnnamedVariable : public AstArgument {
 public:

@@ -12,19 +12,19 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/RemoveRelationCopies.h"
-#include "ast/Argument.h"
-#include "ast/Atom.h"
-#include "ast/Clause.h"
-#include "ast/Program.h"
-#include "ast/QualifiedName.h"
-#include "ast/RecordInit.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Utils.h"
-#include "ast/Variable.h"
-#include "ast/Visitor.h"
-#include "ast/analysis/IOType.h"
+#include "RemoveRelationCopies.h"
+#include "../Argument.h"
+#include "../Atom.h"
+#include "../Clause.h"
+#include "../Program.h"
+#include "../QualifiedName.h"
+#include "../RecordInit.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
+#include "../Utils.h"
+#include "../Variable.h"
+#include "../Visitor.h"
+#include "../analysis/IOType.h"
 #include "utility/ContainerUtil.h"
 #include <algorithm>
 #include <cassert>

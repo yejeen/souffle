@@ -14,16 +14,16 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/GroundedTermsChecker.h"
+#include "GroundedTermsChecker.h"
+#include "../Clause.h"
+#include "../Program.h"
+#include "../RecordInit.h"
+#include "../TranslationUnit.h"
+#include "../Utils.h"
+#include "../Variable.h"
+#include "../Visitor.h"
+#include "../analysis/Ground.h"
 #include "ErrorReport.h"
-#include "ast/Clause.h"
-#include "ast/Program.h"
-#include "ast/RecordInit.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Utils.h"
-#include "ast/Variable.h"
-#include "ast/Visitor.h"
-#include "ast/analysis/Ground.h"
 #include <map>
 #include <set>
 #include <utility>

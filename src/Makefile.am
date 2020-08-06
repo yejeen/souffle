@@ -89,6 +89,8 @@ souffle_sources = \
         LogStatement.h                                     \
         ParserDriver.cpp                                   \
         ParserDriver.h                                     \
+        ParserUtils.cpp                                    \
+        ParserUtils.h                                      \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
         ReadStream.h                                       \
@@ -100,6 +102,7 @@ souffle_sources = \
         SignalHandler.h                                    \
         SrcLocation.cpp                                    \
         SrcLocation.h                                      \
+        TypeAttribute.h                                    \
         Util.cpp                                           \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
@@ -130,8 +133,6 @@ souffle_sources = \
         ast/Node.h                                         \
         ast/NodeMapper.h                                   \
         ast/NumericConstant.h                              \
-        ast/ParserUtils.cpp                                \
-        ast/ParserUtils.h                                  \
         ast/Pragma.h                                       \
         ast/Program.h                                      \
         ast/ProvenanceNegation.h                           \
@@ -146,8 +147,6 @@ souffle_sources = \
         ast/TranslationUnit.h                              \
         ast/Type.h                                         \
         ast/TypeCast.h                                     \
-        ast/TypeSystem.cpp                                 \
-        ast/TypeSystem.h                                   \
         ast/UnionType.h                                    \
         ast/UnnamedVariable.h                              \
         ast/UserDefinedFunctor.h                           \
@@ -183,6 +182,8 @@ souffle_sources = \
         ast/analysis/TopologicallySortedSCCGraph.h         \
         ast/analysis/Type.cpp                              \
         ast/analysis/Type.h                                \
+        ast/analysis/TypeSystem.cpp                        \
+        ast/analysis/TypeSystem.h                          \
         ast/analysis/TypeEnvironment.cpp                   \
         ast/analysis/TypeEnvironment.h                     \
         ast/transform/ComponentChecker.cpp                 \
@@ -247,8 +248,8 @@ souffle_sources = \
         ast/transform/ReplaceSingletonVariables.h          \
         ast/transform/ResolveAliases.cpp                   \
         ast/transform/ResolveAliases.h                     \
-        ast/transform/ResolveAnonymousRecordsAliases.cpp   \
-        ast/transform/ResolveAnonymousRecordsAliases.h     \
+        ast/transform/ResolveAnonymousRecordAliases.cpp    \
+        ast/transform/ResolveAnonymousRecordAliases.h      \
         ast/transform/SemanticChecker.cpp                  \
         ast/transform/SemanticChecker.h                    \
         ast/transform/Transformer.cpp                      \

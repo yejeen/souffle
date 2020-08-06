@@ -17,7 +17,7 @@
 #pragma once
 
 #include "DebugReporter.h"
-#include "ast/transform/Meta.h"
+#include "Meta.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include <memory>
@@ -91,7 +91,7 @@ public:
         return new PipelineTransformer(std::move(transformers));
     }
 
-private:
+protected:
     std::vector<std::unique_ptr<AstTransformer>> pipeline;
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;

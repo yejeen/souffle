@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "ast/QualifiedName.h"
-#include "ast/TypeSystem.h"
-#include "ast/analysis/Analysis.h"
+#include "../QualifiedName.h"
+#include "Analysis.h"
+#include "TypeSystem.h"
 #include "utility/ContainerUtil.h"
 #include <set>
 #include <string>

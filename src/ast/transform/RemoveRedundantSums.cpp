@@ -12,17 +12,17 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/RemoveRedundantSums.h"
+#include "RemoveRedundantSums.h"
+#include "../Aggregator.h"
+#include "../Argument.h"
+#include "../IntrinsicFunctor.h"
+#include "../Literal.h"
+#include "../Node.h"
+#include "../NodeMapper.h"
+#include "../NumericConstant.h"
+#include "../Program.h"
+#include "../TranslationUnit.h"
 #include "AggregateOp.h"
-#include "ast/Aggregator.h"
-#include "ast/Argument.h"
-#include "ast/IntrinsicFunctor.h"
-#include "ast/Literal.h"
-#include "ast/Node.h"
-#include "ast/NodeMapper.h"
-#include "ast/NumericConstant.h"
-#include "ast/Program.h"
-#include "ast/TranslationUnit.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>

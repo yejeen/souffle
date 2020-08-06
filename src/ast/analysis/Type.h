@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "ast/Clause.h"
-#include "ast/TypeSystem.h"
-#include "ast/analysis/Analysis.h"
+#include "../Clause.h"
+#include "Analysis.h"
+#include "TypeSystem.h"
 #include <map>
 #include <memory>
 #include <sstream>

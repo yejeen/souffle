@@ -17,14 +17,14 @@
 
 #pragma once
 
+#include "../IO.h"
+#include "../Program.h"
+#include "../RecordType.h"
+#include "../TranslationUnit.h"
+#include "../analysis/AuxArity.h"
+#include "../analysis/TypeEnvironment.h"
 #include "Global.h"
-#include "ast/IO.h"
-#include "ast/Program.h"
-#include "ast/RecordType.h"
-#include "ast/TranslationUnit.h"
-#include "ast/analysis/AuxArity.h"
-#include "ast/analysis/TypeEnvironment.h"
-#include "ast/transform/Transformer.h"
+#include "Transformer.h"
 #include "json11.h"
 #include "utility/StringUtil.h"
 #include <string>

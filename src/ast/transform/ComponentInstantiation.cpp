@@ -14,25 +14,25 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/ComponentInstantiation.h"
+#include "ComponentInstantiation.h"
+#include "../Atom.h"
+#include "../Attribute.h"
+#include "../Clause.h"
+#include "../Component.h"
+#include "../ComponentInit.h"
+#include "../ComponentType.h"
+#include "../IO.h"
+#include "../Program.h"
+#include "../QualifiedName.h"
+#include "../RecordType.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
+#include "../Type.h"
+#include "../TypeCast.h"
+#include "../UnionType.h"
+#include "../Visitor.h"
+#include "../analysis/ComponentLookup.h"
 #include "ErrorReport.h"
-#include "ast/Atom.h"
-#include "ast/Attribute.h"
-#include "ast/Clause.h"
-#include "ast/Component.h"
-#include "ast/ComponentInit.h"
-#include "ast/ComponentType.h"
-#include "ast/IO.h"
-#include "ast/Program.h"
-#include "ast/QualifiedName.h"
-#include "ast/RecordType.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Type.h"
-#include "ast/TypeCast.h"
-#include "ast/UnionType.h"
-#include "ast/Visitor.h"
-#include "ast/analysis/ComponentLookup.h"
 #include "utility/StringUtil.h"
 #include <algorithm>
 #include <cstddef>
@@ -384,7 +384,7 @@ ComponentContent getInstantiatedContent(AstProgram& program, const AstComponentI
             for (size_t i = 0; i < variants.size(); i++) {
                 auto pos = typeNameMapping.find(variants[i]);
                 if (pos != typeNameMapping.end()) {
-                    const_cast<AstUnionType&>(unionType).setVariantType(i, pos->second);
+                    const_cast<AstUnionType&>(unionType).setType(i, pos->second);
                 }
             }
         });

@@ -14,14 +14,14 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/IOType.h"
-#include "ast/IO.h"
-#include "ast/Program.h"
-#include "ast/QualifiedName.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/Utils.h"
-#include "ast/Visitor.h"
+#include "IOType.h"
+#include "../IO.h"
+#include "../Program.h"
+#include "../QualifiedName.h"
+#include "../Relation.h"
+#include "../TranslationUnit.h"
+#include "../Utils.h"
+#include "../Visitor.h"
 #include "utility/StreamUtil.h"
 #include <ostream>
 #include <vector>

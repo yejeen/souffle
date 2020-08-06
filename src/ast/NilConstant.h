@@ -10,19 +10,22 @@
  *
  * @file NilConstant.h
  *
+ * Defines Nil constant class
+ *
  ***********************************************************************/
 
 #pragma once
 
+#include "Constant.h"
 #include "SrcLocation.h"
-#include "ast/Constant.h"
 #include <string>
 #include <utility>
 
 namespace souffle {
 
 /**
- * Nil Constant
+ * @class AstNilConstant
+ * @brief Defines the nil constant
  */
 class AstNilConstant : public AstConstant {
 public:

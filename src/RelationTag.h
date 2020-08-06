@@ -28,6 +28,7 @@ enum class RelationTag {
     PRINTSIZE,    // number of tuples written to stdout
     OVERRIDABLE,  // rules defined in component can be overwritten by sub-component
     INLINE,       // inlined
+    MAGIC,        // enable magic-set on this relation
     SUPPRESSED,   // warnings suppressed
     BRIE,         // use brie data-structure
     BTREE,        // use btree data-structure
@@ -41,6 +42,7 @@ enum class RelationQualifier {
     PRINTSIZE,    // number of tuples written to stdout
     OVERRIDABLE,  // rules defined in component can be overwritten by sub-component
     INLINE,       // inlined
+    MAGIC,        // enable magic-set on this relation
     SUPPRESSED,   // warnings suppressed
 };
 
@@ -75,6 +77,7 @@ inline bool isRelationQualifierTag(const RelationTag& tag) {
         case RelationTag::PRINTSIZE:
         case RelationTag::OVERRIDABLE:
         case RelationTag::INLINE:
+        case RelationTag::MAGIC:
         case RelationTag::SUPPRESSED: return true;
         default: return false;
     }
@@ -90,6 +93,7 @@ inline RelationQualifier getRelationQualifierFromTag(const RelationTag& tag) {
         case RelationTag::PRINTSIZE: return RelationQualifier::PRINTSIZE;
         case RelationTag::OVERRIDABLE: return RelationQualifier::OVERRIDABLE;
         case RelationTag::INLINE: return RelationQualifier::INLINE;
+        case RelationTag::MAGIC: return RelationQualifier::MAGIC;
         case RelationTag::SUPPRESSED: return RelationQualifier::SUPPRESSED;
         default: fatal("invalid relation tag");
     }
@@ -116,6 +120,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationTag qualifier) {
         case RelationTag::PRINTSIZE: return os << "printsize";
         case RelationTag::OVERRIDABLE: return os << "overridable";
         case RelationTag::INLINE: return os << "inline";
+        case RelationTag::MAGIC: return os << "magic";
         case RelationTag::SUPPRESSED: return os << "suppressed";
         case RelationTag::BRIE: return os << "brie";
         case RelationTag::BTREE: return os << "btree";
@@ -132,6 +137,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationQualifier qualifier) {
         case RelationQualifier::PRINTSIZE: return os << "printsize";
         case RelationQualifier::OVERRIDABLE: return os << "overridable";
         case RelationQualifier::INLINE: return os << "inline";
+        case RelationQualifier::MAGIC: return os << "magic";
         case RelationQualifier::SUPPRESSED: return os << "suppressed";
     }
 
