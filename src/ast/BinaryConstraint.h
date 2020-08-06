@@ -21,7 +21,7 @@
 #include "Constraint.h"
 #include "Node.h"
 #include "NodeMapper.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>

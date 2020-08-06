@@ -67,7 +67,7 @@
 #include "GroundedTermsChecker.h"
 #include "RamTypes.h"
 #include "RelationTag.h"
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/../RamTypes.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"

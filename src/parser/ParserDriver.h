@@ -18,10 +18,10 @@
 
 #include "RamTypes.h"
 #include "RelationTag.h"
-#include "SrcLocation.h"
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
-#include "parser.hh"
+#include "parser/SrcLocation.h"
+#include "parser/parser.hh"
 #include <cstdio>
 #include <memory>
 #include <set>
