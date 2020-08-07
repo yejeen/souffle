@@ -24,7 +24,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/IOType.h"
 #include "ast/analysis/PrecedenceGraph.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <set>
 #include <vector>
 

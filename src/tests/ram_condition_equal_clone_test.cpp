@@ -16,7 +16,6 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
 #include "RelationTag.h"
 #include "ram/Conjunction.h"
 #include "ram/Constraint.h"
@@ -30,6 +29,7 @@
 #include "ram/SignedConstant.h"
 #include "ram/True.h"
 #include "ram/TupleElement.h"
+#include "souffle/BinaryConstraintOps.h"
 #include <memory>
 #include <string>
 #include <utility>

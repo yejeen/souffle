@@ -13,90 +13,69 @@ bin_PROGRAMS = souffle souffle-profile
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_sources = \
-        ProfileDatabase.h                                  \
-        json11.h                                           \
-        profile/Cell.h                                     \
-        profile/CellInterface.h                            \
-        profile/Cli.h                                      \
-        profile/DataComparator.h                           \
-        profile/HtmlGenerator.h                            \
-        profile/Iteration.h                                \
-        profile/OutputProcessor.h                          \
-        profile/ProgramRun.h                               \
-        profile/Reader.h                                   \
-        profile/Relation.h                                 \
-        profile/Row.h                                      \
-        profile/Rule.h                                     \
-        profile/StringUtils.h                              \
-        profile/Table.h                                    \
-        profile/Tui.h                                      \
-        profile/UserInputReader.h                          \
-        profile/htmlCssChartist.h                          \
-        profile/htmlCssStyle.h                             \
-        profile/htmlJsChartistMin.h                        \
-        profile/htmlJsChartistPlugin.h                     \
-        profile/htmlJsMain.h                               \
-        profile/htmlJsTableSort.h                          \
-        profile/htmlJsUtil.h                               \
-        profile/htmlMain.h
+        include/souffle/ProfileDatabase.h                  \
+        include/souffle/json11.h                           \
+        include/souffle/profile/Cell.h                     \
+        include/souffle/profile/CellInterface.h            \
+        include/souffle/profile/Cli.h                      \
+        include/souffle/profile/DataComparator.h           \
+        include/souffle/profile/HtmlGenerator.h            \
+        include/souffle/profile/Iteration.h                \
+        include/souffle/profile/OutputProcessor.h          \
+        include/souffle/profile/ProgramRun.h               \
+        include/souffle/profile/Reader.h                   \
+        include/souffle/profile/Relation.h                 \
+        include/souffle/profile/Row.h                      \
+        include/souffle/profile/Rule.h                     \
+        include/souffle/profile/StringUtils.h              \
+        include/souffle/profile/Table.h                    \
+        include/souffle/profile/Tui.h                      \
+        include/souffle/profile/UserInputReader.h          \
+        include/souffle/profile/htmlCssChartist.h          \
+        include/souffle/profile/htmlCssStyle.h             \
+        include/souffle/profile/htmlJsChartistMin.h        \
+        include/souffle/profile/htmlJsChartistPlugin.h     \
+        include/souffle/profile/htmlJsMain.h               \
+        include/souffle/profile/htmlJsTableSort.h          \
+        include/souffle/profile/htmlJsUtil.h               \
+        include/souffle/profile/htmlMain.h
 
 souffle_swig_sources = \
-        swig/SwigInterface.h                               \
-        swig/SwigInterface.i
+        include/souffle/swig/SwigInterface.h               \
+        include/souffle/swig/SwigInterface.i
 
 souffle_utility_sources = \
-        utility/CacheUtil.h                                \
-        utility/ContainerUtil.h                            \
-        utility/FileUtil.h                                 \
-        utility/EvaluatorUtil.h                            \
-        utility/FunctionalUtil.h                           \
-        utility/MiscUtil.h                                 \
-        utility/ParallelUtil.h                             \
-        utility/StreamUtil.h                               \
-        utility/StringUtil.h                               \
-        utility/tinyformat.h
+        include/souffle/utility/CacheUtil.h                \
+        include/souffle/utility/ContainerUtil.h            \
+        include/souffle/utility/FileUtil.h                 \
+        include/souffle/utility/EvaluatorUtil.h            \
+        include/souffle/utility/FunctionalUtil.h           \
+        include/souffle/utility/MiscUtil.h                 \
+        include/souffle/utility/ParallelUtil.h             \
+        include/souffle/utility/StreamUtil.h               \
+        include/souffle/utility/StringUtil.h               \
+        include/souffle/utility/tinyformat.h
 
 DIR := ${CURDIR}
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
 
-if LIBZ
-libz_sources = gzfstream.h
-endif
-
-if SQLITE
-sqlite_sources = ReadStreamSQLite.h WriteStreamSQLite.h
-endif
-
-
 souffle_sources = \
         AggregateOp.h                                      \
         AstToRamTranslator.cpp                             \
         AstToRamTranslator.h                               \
-        BinaryConstraintOps.h                              \
         Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
         ErrorReport.h                                      \
-        EventProcessor.h                                   \
         FunctorOps.cpp                                     \
         FunctorOps.h                                       \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
-        IOSystem.h                                         \
         LogStatement.h                                     \
-        ProfileEvent.h                                     \
-        RamTypes.h                                         \
-        ReadStream.h                                       \
-        ReadStreamCSV.h                                    \
-        ReadStreamJSON.h                                   \
-        RecordTable.h                                      \
         RelationTag.h                                      \
-        SerialisationStream.h                              \
-        SignalHandler.h                                    \
-        TypeAttribute.h                                    \
         Util.cpp                                           \
         ast/Aggregator.h                                   \
         ast/AlgebraicDataType.h                            \
@@ -402,8 +381,6 @@ souffle_sources = \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \
         synthesiser/SynthesiserRelation.h                  \
-        $(sqlite_sources)                                  \
-        $(libz_sources)                                    \
         $(souffle_utility_sources)                         \
         $(souffle_profile_sources)
 
@@ -415,8 +392,10 @@ libsouffle_la_LDFLAGS = --static --dlopen --pic -ldl -lffi
 
 souffle_SOURCES = main.cpp
 souffle_LDADD = libsouffle.la
+souffle_CPPFLAGS = -I$(srcdir)/include
 
 souffle_profile_SOURCES = souffle_prof.cpp
+souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -425,39 +404,43 @@ EXTRA_DIST = parser/parser.yy parser/scanner.ll
 soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = \
-        BTree.h                                            \
-        BinaryConstraintOps.h                              \
-        Brie.h                                             \
-        CompiledOptions.h                                  \
-        CompiledSouffle.h                                  \
-        CompiledTuple.h                                    \
-        EquivalenceRelation.h                              \
-        EventProcessor.h                                   \
-        Explain.h                                          \
-        ExplainProvenance.h                                \
-        ExplainProvenanceImpl.h                            \
-        ExplainTree.h                                      \
-        IOSystem.h                                         \
-        LambdaBTree.h                                      \
-        Logger.h                                           \
-        PiggyList.h                                        \
-        ProfileDatabase.h                                  \
-        ProfileEvent.h                                     \
-        RamTypes.h                                         \
-        ReadStream.h                                       \
-        ReadStreamCSV.h                                    \
-        ReadStreamJSON.h                                   \
-        RecordTable.h                                      \
-        SerialisationStream.h                              \
-        SignalHandler.h                                    \
-        SouffleInterface.h                                 \
-        SymbolTable.h                                      \
-        Table.h                                            \
-        UnionFind.h                                        \
-        WriteStream.h                                      \
-        WriteStreamCSV.h                                   \
-        WriteStreamJSON.h                                  \
-        json11.h                                           \
+        include/souffle/BTree.h                            \
+        include/souffle/BinaryConstraintOps.h              \
+        include/souffle/Brie.h                             \
+        include/souffle/CompiledOptions.h                  \
+        include/souffle/CompiledSouffle.h                  \
+        include/souffle/CompiledTuple.h                    \
+        include/souffle/EquivalenceRelation.h              \
+        include/souffle/EventProcessor.h                   \
+        include/souffle/Explain.h                          \
+        include/souffle/ExplainProvenance.h                \
+        include/souffle/ExplainProvenanceImpl.h            \
+        include/souffle/ExplainTree.h                      \
+        include/souffle/IOSystem.h                         \
+        include/souffle/LambdaBTree.h                      \
+        include/souffle/Logger.h                           \
+        include/souffle/PiggyList.h                        \
+        include/souffle/ProfileDatabase.h                  \
+        include/souffle/ProfileEvent.h                     \
+        include/souffle/RamTypes.h                         \
+        include/souffle/ReadStream.h                       \
+        include/souffle/ReadStreamCSV.h                    \
+        include/souffle/ReadStreamJSON.h                   \
+        include/souffle/ReadStreamSQLite.h                 \
+        include/souffle/RecordTable.h                      \
+        include/souffle/SerialisationStream.h              \
+        include/souffle/SignalHandler.h                    \
+        include/souffle/SouffleInterface.h                 \
+        include/souffle/SymbolTable.h                      \
+        include/souffle/Table.h                            \
+        include/souffle/TypeAttribute.h                    \
+        include/souffle/UnionFind.h                        \
+        include/souffle/WriteStream.h                      \
+        include/souffle/WriteStreamCSV.h                   \
+        include/souffle/WriteStreamJSON.h                  \
+		include/souffle/WriteStreamSQLite.h                \
+        include/souffle/gzfstream.h                        \
+        include/souffle/json11.h                           \
         $(souffle_utility_sources)                         \
         $(libz_sources)                                    \
         $(sqlite_sources)

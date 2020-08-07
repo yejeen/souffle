@@ -16,7 +16,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ResolveAliases.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
@@ -31,10 +30,11 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

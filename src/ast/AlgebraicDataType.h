@@ -19,7 +19,7 @@
 #include "ast/BranchDeclaration.h"
 #include "ast/Type.h"
 #include "parser/SrcLocation.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/tinyformat.h"
 
 namespace souffle {
 

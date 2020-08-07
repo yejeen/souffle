@@ -30,8 +30,8 @@
 #include "ast/Relation.h"
 #include "ast/Type.h"
 #include "ast/Utils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <iosfwd>

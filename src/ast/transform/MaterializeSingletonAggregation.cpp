@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/MaterializeSingletonAggregation.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -30,8 +29,9 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <cassert>
 #include <map>
 #include <memory>

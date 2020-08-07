@@ -24,9 +24,9 @@
 #include "ast/NodeMapper.h"
 #include "ast/Relation.h"
 #include "ast/Type.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <memory>
 #include <ostream>

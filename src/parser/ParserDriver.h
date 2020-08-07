@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"

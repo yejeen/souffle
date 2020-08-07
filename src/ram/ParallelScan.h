@@ -25,9 +25,9 @@
 #include "ram/Relation.h"
 #include "ram/Scan.h"
 #include "ram/Utils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>

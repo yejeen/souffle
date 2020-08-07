@@ -16,11 +16,11 @@
 
 #include "tests/test.h"
 
-#include "SouffleInterface.h"
-#include "SymbolTable.h"
 #include "interpreter/InterpreterProgInterface.h"
 #include "interpreter/InterpreterRelation.h"
 #include "ram/analysis/IndexAnalysis.h"
+#include "souffle/SouffleInterface.h"
+#include "souffle/SymbolTable.h"
 #include <iosfwd>
 #include <string>
 #include <utility>

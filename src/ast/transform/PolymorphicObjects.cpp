@@ -14,8 +14,6 @@
 
 #include "ast/transform/PolymorphicObjects.h"
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
-#include "RamTypes.h"
 #include "ast/Aggregator.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/IntrinsicFunctor.h"
@@ -27,8 +25,10 @@
 #include "ast/Utils.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
 #include <memory>
 #include <optional>
 #include <stdexcept>

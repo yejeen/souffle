@@ -20,7 +20,7 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Visitor.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 
 namespace souffle {
 

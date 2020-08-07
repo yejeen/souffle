@@ -25,7 +25,7 @@
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/RelationDetailCache.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <set>
 #include <utility>

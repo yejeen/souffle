@@ -20,8 +20,8 @@
 #include "ram/AbstractOperator.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
-#include "utility/StreamUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <memory>
 #include <sstream>
 #include <utility>

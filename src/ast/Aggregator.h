@@ -22,9 +22,9 @@
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <memory>
 #include <ostream>
 #include <string>

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "ram/Constant.h"
+#include "souffle/RamTypes.h"
 #include <ostream>
 
 namespace souffle {

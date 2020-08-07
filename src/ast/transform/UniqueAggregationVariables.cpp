@@ -19,7 +19,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <set>
 #include <vector>
 

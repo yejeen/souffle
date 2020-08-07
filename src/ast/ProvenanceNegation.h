@@ -19,7 +19,7 @@
 #include "ast/Atom.h"
 #include "ast/Negation.h"
 #include "ast/Node.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <iostream>
 #include <memory>
 

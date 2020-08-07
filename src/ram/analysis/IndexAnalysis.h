@@ -19,7 +19,7 @@
 #include "Global.h"
 #include "ram/Relation.h"
 #include "ram/analysis/Analysis.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>

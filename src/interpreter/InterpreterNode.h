@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "RamTypes.h"
+#include "souffle/RamTypes.h"
 #include <cassert>
 #include <cstddef>
 #include <memory>

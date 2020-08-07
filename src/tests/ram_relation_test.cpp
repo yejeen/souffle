@@ -19,11 +19,8 @@
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
-#include "SymbolTable.h"
 #include "interpreter/InterpreterEngine.h"
-#include "json11.h"
 #include "ram/Expression.h"
 #include "ram/IO.h"
 #include "ram/Program.h"
@@ -34,6 +31,9 @@
 #include "ram/SignedConstant.h"
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/json11.h"
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>

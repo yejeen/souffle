@@ -20,7 +20,7 @@
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "parser/SrcLocation.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <ostream>
 #include <string>

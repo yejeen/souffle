@@ -33,7 +33,7 @@
 #include "ast/UnionType.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/ComponentLookup.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <map>

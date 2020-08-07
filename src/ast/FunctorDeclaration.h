@@ -16,13 +16,14 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <cassert>
 #include <cstdlib>
 #include <ostream>

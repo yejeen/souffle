@@ -21,8 +21,8 @@
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
 #include "ram/Utils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <iosfwd>
 #include <memory>

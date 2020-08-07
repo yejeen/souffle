@@ -18,7 +18,7 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <iosfwd>
 #include <memory>

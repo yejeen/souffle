@@ -23,7 +23,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <utility>
 #include <vector>
