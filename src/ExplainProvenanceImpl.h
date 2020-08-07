@@ -780,10 +780,10 @@ private:
                 return std::make_tuple(ruleNum, levelNum);
             }
         }
+        
         // if no tuple exists
         return std::make_tuple(-1, -1);
     }
-
     
     /*
      * Find solution for parameterised query satisfying constant constraints and equivalence constraints
