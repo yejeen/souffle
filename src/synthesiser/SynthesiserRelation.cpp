@@ -22,6 +22,22 @@
 
 namespace souffle {
 
+std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::string>& attributeTypes,
+        const std::unordered_set<uint32_t>& attributesUsed) const {
+    std::stringstream type;
+    for (size_t i = 0; i < attributeTypes.size(); ++i) {
+        // consider only attributes used in a lex-order
+        if (attributesUsed.find(i) != attributesUsed.end()) {
+            switch (attributeTypes[i][0]) {
+                case 'f': type << 'f'; break;
+                case 'u': type << 'u'; break;
+                default: type << 'i';  // consider all non-float/unsigned types (i.e. records) as RamSigned
+            }
+        }
+    }
+    return type.str();
+}
+
 std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
         const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance) {
     SynthesiserRelation* rel;
@@ -142,8 +158,16 @@ void SynthesiserDirectRelation::computeIndices() {
 
 /** Generate type name of a direct indexed relation */
 std::string SynthesiserDirectRelation::getTypeName() {
+    // collect all attributes used in the lex-order
+    std::unordered_set<uint32_t> attributesUsed;
+    for (auto& ind : getIndices()) {
+        for (auto& attr : ind) {
+            attributesUsed.insert(attr);
+        }
+    }
+
     std::stringstream res;
-    res << "t_btree_" << getArity();
+    res << "t_btree_" << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
         res << "__" << join(ind, "_");
@@ -192,14 +216,28 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             indexToNumMap[getMinIndexSelection().getAllOrders()[i]] = i;
         }
 
+        std::vector<std::string> typecasts;
+        typecasts.reserve(types.size());
+
+        for (auto type : types) {
+            switch (type[0]) {
+                case 'f': typecasts.push_back("ramBitCast<RamFloat>"); break;
+                case 'u': typecasts.push_back("ramBitCast<RamUnsigned>"); break;
+                default: typecasts.push_back("ramBitCast<RamSigned>");
+            }
+        }
+
         auto genstruct = [&](std::string name, size_t bound) {
             out << "struct " << name << "{\n";
             out << " int operator()(const t_tuple& a, const t_tuple& b) const {\n";
             out << "  return ";
             std::function<void(size_t)> gencmp = [&](size_t i) {
                 size_t attrib = ind[i];
-                out << "(a[" << attrib << "] < b[" << attrib << "]) ? -1 : (a[" << attrib << "] > b["
-                    << attrib << "]) ? 1 :(";
+                const auto& typecast = typecasts[i];
+
+                out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib
+                    << "])) ? -1 : (" << typecast << "(a[" << attrib << "]) > " << typecast << "(b[" << attrib
+                    << "])) ? 1 :(";
                 if (i + 1 < bound) {
                     gencmp(i + 1);
                 } else {
@@ -213,10 +251,12 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> genless = [&](size_t i) {
                 size_t attrib = ind[i];
+                const auto& typecast = typecasts[i];
 
-                out << "a[" << attrib << "] < b[" << attrib << "]";
+                out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
-                    out << "|| a[" << attrib << "] == b[" << attrib << "] && (";
+                    out << "|| (" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
+                        << "])) && (";
                     genless(i + 1);
                     out << ")";
                 }
@@ -227,7 +267,9 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "return ";
             std::function<void(size_t)> geneq = [&](size_t i) {
                 size_t attrib = ind[i];
-                out << "a[" << attrib << "] == b[" << attrib << "]";
+                const auto& typecast = typecasts[i];
+
+                out << "(" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
                     out << "&&";
                     geneq(i + 1);
@@ -486,8 +528,16 @@ void SynthesiserIndirectRelation::computeIndices() {
 
 /** Generate type name of a indirect indexed relation */
 std::string SynthesiserIndirectRelation::getTypeName() {
+    // collect all attributes used in the lex-order
+    std::unordered_set<uint32_t> attributesUsed;
+    for (auto& ind : getIndices()) {
+        for (auto& attr : ind) {
+            attributesUsed.insert(attr);
+        }
+    }
+
     std::stringstream res;
-    res << "t_btree_" << getArity();
+    res << "t_btree_" << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
         res << "__" << join(ind, "_");
@@ -588,10 +638,8 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     // Create a struct storing the context hints for each index
     out << "struct context {\n";
     for (size_t i = 0; i < numIndexes; i++) {
-        out << "t_ind_" << i << "::operation_hints hints_" << i << "_lower"
-            << ";\n";
-        out << "t_ind_" << i << "::operation_hints hints_" << i << "_upper"
-            << ";\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_lower;\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_upper;\n";
     }
     out << "};\n";
     out << "context createContext() { return context(); }\n";
@@ -608,8 +656,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     out << "auto lease = insert_lock.acquire();\n";
     out << "if (contains(t, h)) return false;\n";
     out << "masterCopy = &dataTable.insert(t);\n";
-    out << "ind_" << masterIndex << ".insert(masterCopy, h.hints_" << masterIndex << "_lower"
-        << ");\n";
+    out << "ind_" << masterIndex << ".insert(masterCopy, h.hints_" << masterIndex << "_lower);\n";
     out << "}\n";
     for (size_t i = 0; i < numIndexes; i++) {
         if (i != masterIndex) {
@@ -808,8 +855,16 @@ void SynthesiserBrieRelation::computeIndices() {
 
 /** Generate type name of a brie relation */
 std::string SynthesiserBrieRelation::getTypeName() {
+    // collect all attributes used in the lex-order
+    std::unordered_set<uint32_t> attributesUsed;
+    for (auto& ind : getIndices()) {
+        for (auto& attr : ind) {
+            attributesUsed.insert(attr);
+        }
+    }
+
     std::stringstream res;
-    res << "t_brie_" << getArity();
+    res << "t_brie_" << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
         res << "__" << join(ind, "_");

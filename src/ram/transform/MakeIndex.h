@@ -81,8 +81,7 @@ public:
     ExpressionPair getLowerUpperExpression(RamCondition* c, size_t& element, int level);
 
     /**
-     * @brief Construct query patterns for an indexable operation
-     * @param Attribute types to indicate type of each attribute in the relation
+     * @param AttributeTypes to indicate type of each attribute in the relation
      * @param Query pattern that is to be constructed
      * @param Flag to indicate whether operation is indexable
      * @param A list of conditions that will be transformed to query patterns

@@ -112,10 +112,10 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                                 std::make_unique<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(), souffle::clone(&ichoice->getCondition()),
                                 std::move(updatedPattern), std::move(filter), ichoice->getProfileText());
+                    } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
                         // in the case of an aggregate we must strengthen the condition of the aggregate
                         // it doesn't make sense to nest a filter operation because the aggregate needs the
-                        // condition
-                    } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
+                        // condition in its scope
                         auto strengthenedCondition = addCondition(
                                 std::unique_ptr<RamCondition>(souffle::clone(&iagg->getCondition())),
                                 std::move(condition));

@@ -273,8 +273,10 @@ public:
         return chainToOrder;
     }
 
-    /** @Brief check whether number of constraints in k is not equal to number of columns in lexicographical
-     * order */
+    /**
+     * Check whether number of constraints in k is not equal to number of columns in lexicographical
+     * order
+     * */
     bool isSubset(SearchSignature cols) const {
         int idx = map(cols);
         return card(cols) < orders[idx].size();
@@ -361,7 +363,9 @@ protected:
     /** @Brief get all chains from the matching */
     const ChainOrderMap getChainsFromMatching(const MaxMatching::Matchings& match, const SearchSet& nodes);
 
-    /** @Brief discharge extra inequalities for a particular existing search given the new search */
+    /** @param OldSearch to be updated
+     *  @param NewSearch to replace the OldSearch
+     */
     void updateSearch(SearchSignature oldSearch, SearchSignature newSearch);
 
     /** @Brief remove arbitrary extra inequalities */

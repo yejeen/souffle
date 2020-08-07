@@ -203,7 +203,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             std::stringstream low;
             std::stringstream high;
 
-            size_t realArity = rel.getArity();  // making this distinction for provenance
+            // making this distinction for provenance
+            size_t realArity = rel.getArity();
             size_t arity = rangePatternLower.size();
 
             low << "Tuple<RamDomain," << realArity << ">{{";
@@ -214,23 +215,17 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 std::string infimum;
 
                 switch (rel.getAttributeTypes()[column][0]) {
-                    /*
-            case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                    case 'f':
+                        supremum = "ramBitCast<RamFloat>(MIN_RAM_FLOAT)";
+                        infimum = "ramBitCast<RamFloat>(MAX_RAM_FLOAT)";
                         break;
                     case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
+                        supremum = "ramBitCast<RamUnsigned>(MIN_RAM_UNSIGNED)";
+                        infimum = "ramBitCast<RamUnsigned>(MAX_RAM_UNSIGNED)";
                         break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-            */
                     default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                        supremum = "ramBitCast<RamSigned>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamSigned>(MAX_RAM_SIGNED)";
                 }
 
                 // if we have an inequality where either side is not set

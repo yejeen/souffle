@@ -87,7 +87,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
                 std::vector<std::unique_ptr<RamExpression>> expressions;
-                expressions.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
+                expressions.push_back(std::unique_ptr<RamExpression>(clone(rhs)));
                 expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
 
                 return {std::make_unique<RamUndefValue>(),
@@ -120,7 +120,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
                 std::vector<std::unique_ptr<RamExpression>> expressions;
-                expressions.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
+                expressions.push_back(std::unique_ptr<RamExpression>(clone(rhs)));
                 expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
 
                 return {std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
@@ -135,7 +135,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
                 std::vector<std::unique_ptr<RamExpression>> expressions;
-                expressions.push_back(std::unique_ptr<RamExpression>(lhs->clone()));
+                expressions.push_back(std::unique_ptr<RamExpression>(clone(lhs)));
                 expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
 
                 return {std::make_unique<RamUndefValue>(),
@@ -234,8 +234,6 @@ ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
 ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
         RamCondition* c, size_t& element, int identifier) {
     if (auto* binRelOp = dynamic_cast<RamConstraint*>(c)) {
-        // TODO: FIXME: how does this interact w/ `FEQ`?
-
         if (isEqConstraint(binRelOp->getOperator())) {
             if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
                 const RamExpression* rhs = &binRelOp->getRHS();
@@ -253,13 +251,11 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
             }
         } else if (isIneqSigned(binRelOp->getOperator())) {
             return getSignedExpressionPair(binRelOp, element, identifier);
+        } else if (isIneqUnsigned(binRelOp->getOperator())) {
+            return getUnsignedExpressionPair(binRelOp, element, identifier);
+        } else if (isIneqFloat(binRelOp->getOperator())) {
+            return getFloatExpressionPair(binRelOp, element, identifier);
         }
-        /* TODO: Fix Comparators in BTree to handle types
-        else if (isIneqUnsigned(binRelOp->getOperator())) {
-                return getUnsignedExpressionPair(binRelOp, element, identifier);
-            } else if (isIneqFloat(binRelOp->getOperator())) {
-                return getFloatExpressionPair(binRelOp, element, identifier);
-            } */
     }
     return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
 }
