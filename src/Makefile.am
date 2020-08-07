@@ -365,9 +365,9 @@ soufflepublic_HEADERS = \
         ProfileDatabase.h                                  \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
-        io/ReadStream.h                                       \
-        io/ReadStreamCSV.h                                    \
-        io/ReadStreamJSON.h                                   \
+        io/ReadStream.h                                    \
+        io/ReadStreamCSV.h                                 \
+        io/ReadStreamJSON.h                                \
         RecordTable.h                                      \
         SignalHandler.h                                    \
         SouffleInterface.h                                 \
