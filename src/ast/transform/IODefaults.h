@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "../IO.h"
-#include "../Program.h"
-#include "../TranslationUnit.h"
-#include "../transform/Transformer.h"
 #include "Global.h"
+#include "ast/IO.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/transform/Transformer.h"
 #include "utility/StringUtil.h"
 #include <string>
 

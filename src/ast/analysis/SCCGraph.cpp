@@ -16,14 +16,14 @@
  *
  ***********************************************************************/
 
-#include "SCCGraph.h"
-#include "../Program.h"
-#include "../QualifiedName.h"
-#include "../Relation.h"
-#include "../TranslationUnit.h"
+#include "ast/analysis/SCCGraph.h"
 #include "Global.h"
 #include "GraphUtils.h"
-#include "IOType.h"
+#include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/IOType.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>

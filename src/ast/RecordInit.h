@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "Node.h"
-#include "Term.h"
+#include "ast/Node.h"
+#include "ast/Term.h"
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"

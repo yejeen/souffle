@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "Argument.h"
 #include "BinaryConstraintOps.h"
-#include "Constraint.h"
-#include "Node.h"
-#include "NodeMapper.h"
+#include "ast/Argument.h"
+#include "ast/Constraint.h"
+#include "ast/Node.h"
+#include "ast/NodeMapper.h"
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"

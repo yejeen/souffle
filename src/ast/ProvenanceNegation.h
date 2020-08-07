@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "Atom.h"
-#include "Negation.h"
-#include "Node.h"
+#include "ast/Atom.h"
+#include "ast/Negation.h"
+#include "ast/Node.h"
 #include "utility/MiscUtil.h"
 #include <iostream>
 #include <memory>

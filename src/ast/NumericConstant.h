@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "Constant.h"
-#include "Node.h"
 #include "RamTypes.h"
+#include "ast/Constant.h"
+#include "ast/Node.h"
 #include "parser/SrcLocation.h"
 #include <optional>
 #include <string>

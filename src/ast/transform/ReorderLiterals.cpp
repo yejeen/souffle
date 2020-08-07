@@ -15,17 +15,17 @@
  *
  ***********************************************************************/
 
-#include "ReorderLiterals.h"
-#include "../Argument.h"
-#include "../Atom.h"
-#include "../Clause.h"
-#include "../Program.h"
-#include "../TranslationUnit.h"
-#include "../Utils.h"
-#include "../Variable.h"
-#include "../Visitor.h"
-#include "../analysis/ProfileUse.h"
+#include "ast/transform/ReorderLiterals.h"
 #include "Global.h"
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/Variable.h"
+#include "ast/Visitor.h"
+#include "ast/analysis/ProfileUse.h"
 #include <algorithm>
 #include <cmath>
 #include <functional>
