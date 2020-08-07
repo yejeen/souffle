@@ -44,6 +44,19 @@ souffle_swig_sources = \
         include/souffle/swig/SwigInterface.h               \
         include/souffle/swig/SwigInterface.i
 
+souffle_io_sources = \
+        include/souffle/io/IOSystem.h                      \
+        include/souffle/io/gzfstream.h                     \
+        include/souffle/io/ReadStream.h                    \
+        include/souffle/io/ReadStreamCSV.h                 \
+        include/souffle/io/ReadStreamJSON.h                \
+        include/souffle/io/ReadStreamSQLite.h              \
+        include/souffle/io/SerialisationStream.h           \
+        include/souffle/io/WriteStreamSQLite.h             \
+        include/souffle/io/WriteStream.h                   \
+        include/souffle/io/WriteStreamCSV.h                \
+        include/souffle/io/WriteStreamJSON.h
+
 souffle_utility_sources = \
         include/souffle/utility/CacheUtil.h                \
         include/souffle/utility/ContainerUtil.h            \
@@ -416,32 +429,22 @@ soufflepublic_HEADERS = \
         include/souffle/ExplainProvenance.h                \
         include/souffle/ExplainProvenanceImpl.h            \
         include/souffle/ExplainTree.h                      \
-        include/souffle/IOSystem.h                         \
         include/souffle/LambdaBTree.h                      \
         include/souffle/Logger.h                           \
         include/souffle/PiggyList.h                        \
         include/souffle/ProfileDatabase.h                  \
         include/souffle/ProfileEvent.h                     \
         include/souffle/RamTypes.h                         \
-        include/souffle/ReadStream.h                       \
-        include/souffle/ReadStreamCSV.h                    \
-        include/souffle/ReadStreamJSON.h                   \
-        include/souffle/ReadStreamSQLite.h                 \
         include/souffle/RecordTable.h                      \
-        include/souffle/SerialisationStream.h              \
         include/souffle/SignalHandler.h                    \
         include/souffle/SouffleInterface.h                 \
         include/souffle/SymbolTable.h                      \
         include/souffle/Table.h                            \
         include/souffle/TypeAttribute.h                    \
         include/souffle/UnionFind.h                        \
-        include/souffle/WriteStream.h                      \
-        include/souffle/WriteStreamCSV.h                   \
-        include/souffle/WriteStreamJSON.h                  \
-		include/souffle/WriteStreamSQLite.h                \
-        include/souffle/gzfstream.h                        \
         include/souffle/json11.h                           \
         $(souffle_utility_sources)                         \
+        $(souffle_io_sources)                              \
         $(libz_sources)                                    \
         $(sqlite_sources)
 
@@ -456,6 +459,10 @@ souffleswig_HEADERS = $(souffle_swig_sources)
 souffleutilitydir = $(soufflepublicdir)/utility
 
 souffleutility_HEADERS = $(souffle_utility_sources)
+
+souffleiodir = $(soufflepublicdir)/io
+
+souffleio_HEADERS = $(souffle_io_sources)
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
