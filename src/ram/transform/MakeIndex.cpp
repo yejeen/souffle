@@ -120,7 +120,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
                 std::vector<std::unique_ptr<RamExpression>> expressions;
-                expressions.push_back(std::unique_ptr<RamExpression>(clone(rhs)));
+                expressions.push_back(clone(rhs));
                 expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
 
                 return {std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
@@ -135,7 +135,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
                 std::vector<std::unique_ptr<RamExpression>> expressions;
-                expressions.push_back(std::unique_ptr<RamExpression>(clone(lhs)));
+                expressions.push_back(clone(lhs));
                 expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
 
                 return {std::make_unique<RamUndefValue>(),
