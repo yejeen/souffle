@@ -56,6 +56,16 @@ souffle_utility_sources = \
         utility/StringUtil.h                               \
         utility/tinyformat.h
 
+souffle_io_sources = \
+        io/IOSystem.h                                      \
+        io/ReadStream.h                                    \
+        io/ReadStreamCSV.h                                 \
+        io/ReadStreamJSON.h                                \
+        io/SerialisationStream.h                           \
+        io/WriteStream.h                                   \
+        io/WriteStreamCSV.h                                \
+        io/WriteStreamJSON.h
+
 DIR := ${CURDIR}
 
 # ... which should no go to distribution
@@ -256,14 +266,6 @@ souffle_sources = \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
-        io/IOSystem.h                                      \
-        io/ReadStream.h                                    \
-        io/ReadStreamCSV.h                                 \
-        io/ReadStreamJSON.h                                \
-        io/SerialisationStream.h                           \
-        io/WriteStream.h                                   \
-        io/WriteStreamCSV.h                                \
-        io/WriteStreamJSON.h                               \
         parser/parser.cc                                   \
         parser/parser.hh                                   \
         parser/ParserDriver.cpp                            \
@@ -324,10 +326,11 @@ souffle_sources = \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \
         synthesiser/SynthesiserRelation.h                  \
-        $(sqlite_sources)                                  \
         $(libz_sources)                                    \
+        $(souffle_io_sources)                              \
+        $(souffle_profile_sources)                         \
         $(souffle_utility_sources)                         \
-        $(souffle_profile_sources)
+        $(sqlite_sources)                                  
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
@@ -365,20 +368,15 @@ soufflepublic_HEADERS = \
         ProfileDatabase.h                                  \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
-        io/ReadStream.h                                    \
-        io/ReadStreamCSV.h                                 \
-        io/ReadStreamJSON.h                                \
         RecordTable.h                                      \
         SignalHandler.h                                    \
         SouffleInterface.h                                 \
         SymbolTable.h                                      \
         Table.h                                            \
         UnionFind.h                                        \
-        io/WriteStream.h                                   \
-        io/WriteStreamCSV.h                                \
-        io/WriteStreamJSON.h                               \
         json11.h                                           \
         $(souffle_utility_sources)                         \
+        $(souffle_io_sources)                              \
         $(libz_sources)                                    \
         $(sqlite_sources)
 
@@ -393,6 +391,10 @@ souffleswig_HEADERS = $(souffle_swig_sources)
 souffleutilitydir = $(soufflepublicdir)/utility
 
 souffleutility_HEADERS = $(souffle_utility_sources)
+
+souffleiodir = $(soufflepublicdir)/io
+
+souffleio_HEADERS = $(souffle_io_sources)
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
