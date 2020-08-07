@@ -66,7 +66,7 @@ libz_sources = gzfstream.h
 endif
 
 if SQLITE
-sqlite_sources = ReadStreamSQLite.h WriteStreamSQLite.h
+sqlite_sources = io/ReadStreamSQLite.h io/WriteStreamSQLite.h
 endif
 
 
@@ -85,22 +85,14 @@ souffle_sources = \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
-        IOSystem.h                                         \
         LogStatement.h                                     \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
-        ReadStream.h                                       \
-        ReadStreamCSV.h                                    \
-        ReadStreamJSON.h                                   \
         RecordTable.h                                      \
         RelationTag.h                                      \
-        SerialisationStream.h                              \
         SignalHandler.h                                    \
         TypeAttribute.h                                    \
         Util.cpp                                           \
-        WriteStream.h                                      \
-        WriteStreamCSV.h                                   \
-        WriteStreamJSON.h                                  \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
@@ -264,6 +256,14 @@ souffle_sources = \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
+        io/IOSystem.h                                      \
+        io/ReadStream.h                                    \
+        io/ReadStreamCSV.h                                 \
+        io/ReadStreamJSON.h                                \
+        io/SerialisationStream.h                           \
+        io/WriteStream.h                                   \
+        io/WriteStreamCSV.h                                \
+        io/WriteStreamJSON.h                               \
         parser/parser.cc                                   \
         parser/parser.hh                                   \
         parser/ParserDriver.cpp                            \
@@ -359,26 +359,24 @@ soufflepublic_HEADERS = \
         ExplainProvenance.h                                \
         ExplainProvenanceImpl.h                            \
         ExplainTree.h                                      \
-        IOSystem.h                                         \
         LambdaBTree.h                                      \
         Logger.h                                           \
         PiggyList.h                                        \
         ProfileDatabase.h                                  \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
-        ReadStream.h                                       \
-        ReadStreamCSV.h                                    \
-        ReadStreamJSON.h                                   \
+        io/ReadStream.h                                       \
+        io/ReadStreamCSV.h                                    \
+        io/ReadStreamJSON.h                                   \
         RecordTable.h                                      \
-        SerialisationStream.h                              \
         SignalHandler.h                                    \
         SouffleInterface.h                                 \
         SymbolTable.h                                      \
         Table.h                                            \
         UnionFind.h                                        \
-        WriteStream.h                                      \
-        WriteStreamCSV.h                                   \
-        WriteStreamJSON.h                                  \
+        io/WriteStream.h                                   \
+        io/WriteStreamCSV.h                                \
+        io/WriteStreamJSON.h                               \
         json11.h                                           \
         $(souffle_utility_sources)                         \
         $(libz_sources)                                    \
