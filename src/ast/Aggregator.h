@@ -17,11 +17,11 @@
 #pragma once
 
 #include "AggregateOp.h"
-#include "Argument.h"
-#include "Literal.h"
-#include "Node.h"
-#include "NodeMapper.h"
-#include "SrcLocation.h"
+#include "ast/Argument.h"
+#include "ast/Literal.h"
+#include "ast/Node.h"
+#include "ast/NodeMapper.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "Constraint.h"
-#include "Node.h"
-#include "SrcLocation.h"
+#include "ast/Constraint.h"
+#include "ast/Node.h"
+#include "parser/SrcLocation.h"
 #include <cassert>
 #include <iostream>
 #include <string>

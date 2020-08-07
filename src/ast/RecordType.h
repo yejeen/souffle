@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "Attribute.h"
-#include "Node.h"
-#include "QualifiedName.h"
-#include "SrcLocation.h"
-#include "Type.h"
+#include "ast/Attribute.h"
+#include "ast/Node.h"
+#include "ast/QualifiedName.h"
+#include "ast/Type.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

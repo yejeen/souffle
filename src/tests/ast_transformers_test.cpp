@@ -18,7 +18,6 @@
 
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "ParserDriver.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -29,6 +28,7 @@
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
+#include "parser/ParserDriver.h"
 #include "utility/StringUtil.h"
 #include <map>
 #include <memory>

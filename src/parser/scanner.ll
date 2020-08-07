@@ -36,12 +36,12 @@
 
     #include "ast/Program.h"
 
-    #include "SrcLocation.h"
+    #include "parser/ParserDriver.h"
+    #include "parser/parser.hh"
+    #include "parser/SrcLocation.h"
     #define YYLTYPE SrcLocation
 
-    #include "ParserDriver.h"
     #include "RamTypes.h"
-    #include "parser.hh"
 
     #include "utility/StringUtil.h"
     #include "utility/FileUtil.h"

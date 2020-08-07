@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "Node.h"
-#include "SrcLocation.h"
+#include "ast/Node.h"
+#include "parser/SrcLocation.h"
 #include "utility/StreamUtil.h"
 #include <ostream>
 #include <string>
