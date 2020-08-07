@@ -33,4 +33,4 @@ rel_4(x) :- rel_3(x), x >= 0.04, x <= 0.2.
 
 rel_5(0, "apple", 3.0, 0).
 rel_5(x-1, "strawberry", z+0.125, a-2) :- rel_5(x, _, z, a), x >= -5, z <= 5.0, a > -12.
-rel_5(x, "mango", z, a) :- rel_5(x, _, z, a), x >= -3, z <= 4.0, a > -10. 
+rel_5(x, "mango", z, a) :- rel_5(x, _, z, a), x >= -3, z <= 4.0, a > -10.
