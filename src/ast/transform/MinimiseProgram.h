@@ -55,6 +55,10 @@ private:
     static bool isValidPermutation(const NormalisedClauseRepr& left, const NormalisedClauseRepr& right,
             const std::vector<unsigned int>& permutation);
 
+    // Checks whether a permutation encoded in the given matrix has a valid corresponding variable mapping.
+    static bool existsValidPermutation(const NormalisedClauseRepr& left, const NormalisedClauseRepr& right,
+            const std::vector<std::vector<unsigned int>>& permutationMatrix);
+
     /** -- Sub-Transformations -- */
 
     /**

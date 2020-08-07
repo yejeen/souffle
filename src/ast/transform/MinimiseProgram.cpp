@@ -175,11 +175,8 @@ std::string MinimiseProgramTransformer::NormalisedClauseRepr::normaliseArgument(
     }
 }
 
-/**
- * Extract valid permutations from a given permutation matrix of valid moves.
- */
-static std::vector<std::vector<unsigned int>> extractPermutations(
-        const std::vector<std::vector<unsigned int>>& permutationMatrix) {
+bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClauseRepr& left,
+        const NormalisedClauseRepr& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
     size_t clauseSize = permutationMatrix.size();
     // keep track of the possible end-positions of each atom in the first clause
     std::vector<std::vector<unsigned int>> validMoves;
@@ -194,7 +191,6 @@ static std::vector<std::vector<unsigned int>> extractPermutations(
     }
 
     // extract the possible permutations, DFS style
-    std::vector<std::vector<unsigned int>> permutations;
     std::vector<unsigned int> seen(clauseSize);
     std::vector<unsigned int> currentPermutation;
     std::stack<std::vector<unsigned int>> todoStack;
@@ -204,9 +200,14 @@ static std::vector<std::vector<unsigned int>> extractPermutations(
     size_t currentIdx = 0;
     while (!todoStack.empty()) {
         if (currentIdx == clauseSize) {
-            // permutation is complete
-            permutations.push_back(currentPermutation);
+            // permutation is complete, check if it's valid
+            if (isValidPermutation(left, right, currentPermutation)) {
+                // valid permutation with valid mapping
+                // therefore, the two clauses are equivalent!
+                return true;
+            }
 
+            // Not valid yet, keep checking for more permutations
             if (currentIdx == 0) {
                 // already at starting position, so no more permutations possible
                 break;
@@ -264,8 +265,8 @@ static std::vector<std::vector<unsigned int>> extractPermutations(
         }
     }
 
-    // found all permutations
-    return permutations;
+    // checked all permutations, none were valid
+    return false;
 }
 
 bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClauseRepr& left,
@@ -362,15 +363,7 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
     }
 
     // check if any of these permutations have valid variable mappings
-    std::vector<std::vector<unsigned int>> permutations = extractPermutations(permutationMatrix);
-    for (auto permutation : permutations) {
-        if (isValidPermutation(left, right, permutation)) {
-            // valid permutation with valid mapping
-            // therefore, the two clauses are equivalent!
-            return true;
-        }
-    }
-    return false;
+    return existsValidPermutation(left, right, permutationMatrix);
 }
 
 bool MinimiseProgramTransformer::areBijectivelyEquivalent(
