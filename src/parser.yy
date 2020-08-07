@@ -433,7 +433,7 @@ sum_branch_list
   ;
 
 sum_branch
-  : IDENT[name] COLON identifier[type] { $$ = AstSumType::Branch($name, $type, @$); }
+  : IDENT[name] LBRACE identifier[type] RBRACE { $$ = AstSumType::Branch($name, $type, @$); }
   ;
 
 /**

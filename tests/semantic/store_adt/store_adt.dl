@@ -10,8 +10,8 @@
 //
 
 
-.type T = A : number
-        ; B : symbol
+.type T = A { number }
+        ; B { symbol }
 
 
 

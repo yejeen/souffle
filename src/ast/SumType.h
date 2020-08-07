@@ -31,7 +31,7 @@ public:
         }
 
         friend std::ostream& operator<<(std::ostream& os, const Branch& br) {
-            return os << tfm::format("%s %s", br.name, br.type);
+            return os << tfm::format("%s {%s}", br.name, br.type);
         }
     };
 
