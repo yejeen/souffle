@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Expression.h
+ * @file Constant.h
  *
  * Defines a class for evaluating values in the Relational Algebra Machine
  *
@@ -18,6 +18,7 @@
 
 #include "RamTypes.h"
 #include "ram/Expression.h"
+#include "ram/Node.h"
 
 namespace souffle {
 

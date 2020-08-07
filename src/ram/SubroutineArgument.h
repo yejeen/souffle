@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Expression.h
+ * @file SubroutineArgument.h
  *
  * Defines a class for evaluating values in the Relational Algebra Machine
  *
@@ -17,12 +17,12 @@
 #pragma once
 
 #include "ram/Expression.h"
+#include "ram/Node.h"
 #include <cstdlib>
 #include <ostream>
 
 namespace souffle {
 
-class Node;
 /**
  * @class RamSubroutineArgument
  * @brief Access argument of a subroutine

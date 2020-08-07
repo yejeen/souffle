@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Expression.h
+ * @file AbstractOperator.h
  *
  * Defines a class for evaluating values in the Relational Algebra Machine
  *
@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ram/Expression.h"
+#include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "utility/ContainerUtil.h"
 #include <cassert>
@@ -25,8 +26,6 @@
 #include <vector>
 
 namespace souffle {
-
-class RamNode;
 
 /**
  * @class RamAbstractOperator

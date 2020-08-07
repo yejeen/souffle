@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Expression.h
+ * @file PackRecord.h
  *
  * Defines a class for evaluating values in the Relational Algebra Machine
  *

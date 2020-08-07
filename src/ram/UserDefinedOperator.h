@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Expression.h
+ * @file UserDefinedOperator.h
  *
  * Defines a class for evaluating values in the Relational Algebra Machine
  *
@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "RamTypes.h"
+#include "TypeAttribute.h"
 #include "ram/AbstractOperator.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

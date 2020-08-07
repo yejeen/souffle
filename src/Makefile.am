@@ -275,30 +275,49 @@ souffle_sources = \
         parser/scanner.cc                                  \
         parser/stack.hh                                    \
         ram/AbstractExistenceCheck.h                       \
+        ram/AbstractLog.h                                  \
         ram/AbstractOperator.h                             \
         ram/AutoIncrement.h                                \
+        ram/BinRelationStatement.h                         \
+        ram/Call.h                                         \
+        ram/Clear.h                                        \
         ram/Condition.h                                    \
         ram/Conjunction.h                                  \
         ram/Constant.h                                     \
         ram/Constraint.h                                   \
+        ram/DebugInfo.h                                    \
         ram/EmptinessCheck.h                               \
         ram/ExistenceCheck.h                               \
+        ram/Exit.h                                         \
         ram/Expression.h                                   \
+        ram/Extend.h                                       \
         ram/False.h                                        \
         ram/FloatConstant.h                                \
+        ram/IO.h                                           \
         ram/IntrinsicOperator.h                            \
         ram/LambdaNodeMapper.h                             \
+        ram/ListStatement.h                                \
+        ram/LogRelationTimer.h                             \
+        ram/LogSize.h                                      \
+        ram/LogTimer.h                                     \
+        ram/Loop.h                                         \
         ram/Negation.h                                     \
         ram/Node.h                                         \
         ram/NodeMapper.h                                   \
         ram/Operation.h                                    \
         ram/PackRecord.h                                   \
+        ram/Parallel.h                                     \
         ram/Program.h                                      \
         ram/ProvenanceExistenceCheck.h                     \
+        ram/Query.h                                        \
         ram/Relation.h                                     \
+        ram/RelationStatement.h                            \
+        ram/Sequence.h                                     \
         ram/SignedConstant.h                               \
         ram/Statement.h                                    \
+        ram/Statement.h                                    \
         ram/SubroutineArgument.h                           \
+        ram/Swap.h                                         \
         ram/TranslationUnit.h                              \
         ram/True.h                                         \
         ram/TupleElement.h                                 \

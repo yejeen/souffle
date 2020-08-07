@@ -19,17 +19,32 @@
 #include "RamTypes.h"
 #include "SymbolTable.h"
 #include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
 #include "ast/Constant.h"
+#include "ast/Literal.h"
 #include "ast/NilConstant.h"
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
+#include "ast/Program.h"
 #include "ast/QualifiedName.h"
+#include "ast/RecordInit.h"
+#include "ast/Relation.h"
 #include "ast/StringConstant.h"
+#include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
+#include "ast/analysis/AuxArity.h"
+#include "ast/analysis/RecursiveClauses.h"
+#include "ast/analysis/TypeSystem.h"
 #include "json11.h"
-#include "ram/Relation.h"
-#include "ram/Statement.h"
-#include "utility/FunctionalUtil.h"
+#include "ram/AbstractLog.h"
+#include "ram/DebugInfo.h"
+#include "ram/Extend.h"
+#include "ram/Parallel.h"
+#include "ram/RelationStatement.h"
+#include "ram/Swap.h"
+#include "ram/TranslationUnit.h"
+#include "ram/TupleElement.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -46,11 +61,6 @@
 
 namespace souffle {
 
-// forward declarations
-class AstAtom;
-class AstClause;
-class AstLiteral;
-class AstProgram;
 class AstRelation;
 class AstTranslationUnit;
 class AuxiliaryArity;
