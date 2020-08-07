@@ -17,7 +17,7 @@
 #include "tests/test.h"
 
 #include "FunctorOps.h"
-#include "RamTypes.h"
+#include "TypeAttribute.h"
 #include "ram/AutoIncrement.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"

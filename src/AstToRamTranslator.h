@@ -37,14 +37,14 @@
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/TypeSystem.h"
 #include "json11.h"
-#include "ram/AbstractLog.h"
-#include "ram/DebugInfo.h"
-#include "ram/Extend.h"
-#include "ram/Parallel.h"
-#include "ram/RelationStatement.h"
-#include "ram/Swap.h"
+#include "ram/Condition.h"
+#include "ram/Expression.h"
+#include "ram/Operation.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
 #include "ram/TupleElement.h"
+#include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -60,18 +60,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstRelation;
-class AstTranslationUnit;
-class AuxiliaryArity;
-class RamCondition;
-class RamExpression;
-class RamOperation;
-class RamTranslationUnit;
-class RamTupleElement;
-class RecursiveClausesAnalysis;
-class TypeEnvironment;
-class AstRecordInit;
 
 /**
  * Main class for AST Translator

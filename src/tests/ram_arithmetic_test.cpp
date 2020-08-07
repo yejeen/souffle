@@ -25,11 +25,13 @@
 #include "interpreter/InterpreterEngine.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"
-#include "ram/Operation.h"
 #include "ram/Program.h"
+#include "ram/Query.h"
 #include "ram/Relation.h"
+#include "ram/Sequence.h"
 #include "ram/SignedConstant.h"
 #include "ram/Statement.h"
+#include "ram/SubroutineReturn.h"
 #include "ram/TranslationUnit.h"
 #include <algorithm>
 #include <cmath>

@@ -274,12 +274,19 @@ souffle_sources = \
         parser/parser.hh                                   \
         parser/scanner.cc                                  \
         parser/stack.hh                                    \
+        ram/AbstractAggregate.h                            \
+        ram/AbstractChoice.h                               \
+        ram/AbstractConditional.h                          \
         ram/AbstractExistenceCheck.h                       \
         ram/AbstractLog.h                                  \
         ram/AbstractOperator.h                             \
+        ram/AbstractParallel.h                             \
+        ram/Aggregate.h                                    \
         ram/AutoIncrement.h                                \
         ram/BinRelationStatement.h                         \
+        ram/Break.h                                        \
         ram/Call.h                                         \
+        ram/Choice.h                                       \
         ram/Clear.h                                        \
         ram/Condition.h                                    \
         ram/Conjunction.h                                  \
@@ -292,8 +299,13 @@ souffle_sources = \
         ram/Expression.h                                   \
         ram/Extend.h                                       \
         ram/False.h                                        \
+        ram/Filter.h                                       \
         ram/FloatConstant.h                                \
         ram/IO.h                                           \
+        ram/IndexAggregate.h                               \
+        ram/IndexChoice.h                                  \
+        ram/IndexOperation.h                               \
+        ram/IndexScan.h                                    \
         ram/IntrinsicOperator.h                            \
         ram/LambdaNodeMapper.h                             \
         ram/ListStatement.h                                \
@@ -302,26 +314,40 @@ souffle_sources = \
         ram/LogTimer.h                                     \
         ram/Loop.h                                         \
         ram/Negation.h                                     \
+        ram/NestedIntrinsicOperator.h                      \
+        ram/NestedOperation.h                              \
         ram/Node.h                                         \
         ram/NodeMapper.h                                   \
         ram/Operation.h                                    \
         ram/PackRecord.h                                   \
         ram/Parallel.h                                     \
+        ram/ParallelAggregate.h                            \
+        ram/ParallelChoice.h                               \
+        ram/ParallelIndexAggregate.h                       \
+        ram/ParallelIndexChoice.h                          \
+        ram/ParallelIndexScan.h                            \
         ram/Program.h                                      \
+        ram/Project.h                                      \
         ram/ProvenanceExistenceCheck.h                     \
         ram/Query.h                                        \
         ram/Relation.h                                     \
+        ram/RelationOperation.h                            \
         ram/RelationStatement.h                            \
+        ram/ParallelScan.h                                 \
+        ram/Scan.h                                         \
         ram/Sequence.h                                     \
         ram/SignedConstant.h                               \
         ram/Statement.h                                    \
         ram/Statement.h                                    \
         ram/SubroutineArgument.h                           \
+        ram/SubroutineReturn.h                             \
         ram/Swap.h                                         \
         ram/TranslationUnit.h                              \
         ram/True.h                                         \
         ram/TupleElement.h                                 \
+        ram/TupleOperation.h                               \
         ram/UndefValue.h                                   \
+        ram/UnpackRecord.h                                 \
         ram/UnsignedConstant.h                             \
         ram/UserDefinedOperator.h                          \
         ram/Utils.h                                        \

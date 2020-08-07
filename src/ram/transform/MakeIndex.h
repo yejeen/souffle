@@ -14,8 +14,12 @@
 
 #pragma once
 
+#include "ram/Aggregate.h"
 #include "ram/Constraint.h"
+#include "ram/IndexOperation.h"
+#include "ram/IndexScan.h"
 #include "ram/Operation.h"
+#include "ram/Scan.h"
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/LevelAnalysis.h"
 #include "ram/transform/Transformer.h"
