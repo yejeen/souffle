@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "DebugReporter.h"
+#include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"

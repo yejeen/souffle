@@ -10,11 +10,11 @@
  *
  * @file ParserUtils.cpp
  *
- * Defines class RuleBody to represents rule bodies.
+ * Implements a rewrite class for multi-heads and disjunction
  *
  ***********************************************************************/
 
-#include "ast/ParserUtils.h"
+#include "parser/ParserUtils.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"

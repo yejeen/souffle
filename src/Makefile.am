@@ -87,8 +87,6 @@ souffle_sources = \
         GraphUtils.h                                       \
         IOSystem.h                                         \
         LogStatement.h                                     \
-        ParserDriver.cpp                                   \
-        ParserDriver.h                                     \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
         ReadStream.h                                       \
@@ -98,8 +96,7 @@ souffle_sources = \
         RelationTag.h                                      \
         SerialisationStream.h                              \
         SignalHandler.h                                    \
-        SrcLocation.cpp                                    \
-        SrcLocation.h                                      \
+        TypeAttribute.h                                    \
         Util.cpp                                           \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
@@ -131,8 +128,6 @@ souffle_sources = \
         ast/Node.h                                         \
         ast/NodeMapper.h                                   \
         ast/NumericConstant.h                              \
-        ast/ParserUtils.cpp                                \
-        ast/ParserUtils.h                                  \
         ast/Pragma.h                                       \
         ast/Program.h                                      \
         ast/ProvenanceNegation.h                           \
@@ -148,8 +143,6 @@ souffle_sources = \
         ast/TranslationUnit.h                              \
         ast/Type.h                                         \
         ast/TypeCast.h                                     \
-        ast/TypeSystem.cpp                                 \
-        ast/TypeSystem.h                                   \
         ast/UnionType.h                                    \
         ast/UnnamedVariable.h                              \
         ast/UserDefinedFunctor.h                           \
@@ -187,6 +180,8 @@ souffle_sources = \
         ast/analysis/TopologicallySortedSCCGraph.h         \
         ast/analysis/Type.cpp                              \
         ast/analysis/Type.h                                \
+        ast/analysis/TypeSystem.cpp                        \
+        ast/analysis/TypeSystem.h                          \
         ast/analysis/TypeEnvironment.cpp                   \
         ast/analysis/TypeEnvironment.h                     \
         ast/transform/ADTtoRecords.cpp                     \
@@ -253,8 +248,8 @@ souffle_sources = \
         ast/transform/ReplaceSingletonVariables.h          \
         ast/transform/ResolveAliases.cpp                   \
         ast/transform/ResolveAliases.h                     \
-        ast/transform/ResolveAnonymousRecordsAliases.cpp   \
-        ast/transform/ResolveAnonymousRecordsAliases.h     \
+        ast/transform/ResolveAnonymousRecordAliases.cpp    \
+        ast/transform/ResolveAnonymousRecordAliases.h      \
         ast/transform/SemanticChecker.cpp                  \
         ast/transform/SemanticChecker.h                    \
         ast/transform/Transformer.cpp                      \
@@ -275,8 +270,14 @@ souffle_sources = \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
-        parser.cc                                          \
-        parser.hh                                          \
+        parser/parser.cc                                   \
+        parser/parser.hh                                   \
+        parser/ParserDriver.cpp                            \
+        parser/ParserDriver.h                              \
+        parser/ParserUtils.cpp                             \
+        parser/ParserUtils.h                               \
+        parser/SrcLocation.cpp                             \
+        parser/SrcLocation.h                               \
         ram/Condition.h                                    \
         ram/Expression.h                                   \
         ram/Node.h                                         \
@@ -323,8 +324,8 @@ souffle_sources = \
         ram/transform/ReportIndex.h                        \
         ram/transform/TupleId.cpp                          \
         ram/transform/TupleId.h                            \
-        scanner.cc                                         \
-        stack.hh                                           \
+        parser/scanner.cc                                  \
+        parser/stack.hh                                    \
         synthesiser/Synthesiser.cpp                        \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \
@@ -347,7 +348,7 @@ souffle_profile_SOURCES = souffle_prof.cpp
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
-EXTRA_DIST = parser.yy scanner.ll
+EXTRA_DIST = parser/parser.yy parser/scanner.ll
 
 soufflepublicdir = $(includedir)/souffle
 
@@ -402,17 +403,17 @@ souffleutilitydir = $(soufflepublicdir)/utility
 souffleutility_HEADERS = $(souffle_utility_sources)
 
 # files to clean
-CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
+CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
 
 # run Bison
-$(builddir)/parser.hh: $(srcdir)/parser.yy
-	$(BISON) -Wall -Werror -Wno-error=deprecated -Wno-error=other -v -d -o parser.cc $(srcdir)/parser.yy
+$(builddir)/parser/parser.hh: $(srcdir)/parser/parser.yy
+	$(BISON) -Wall -Werror -Wno-error=deprecated -Wno-error=other -v -d -o parser/parser.cc $(srcdir)/parser/parser.yy
 
 # and FLEX
-$(builddir)/scanner.cc: $(srcdir)/scanner.ll
-	$(FLEX) -o scanner.cc $(srcdir)/scanner.ll
+$(builddir)/parser/scanner.cc: $(srcdir)/parser/scanner.ll
+	$(FLEX) -o parser/scanner.cc $(srcdir)/parser/scanner.ll
 
 # driver depends on the generated header
-$(builddir)/parser.cc $(builddir)/stack.hh $(builddir)/scanner.cc \
-    $(builddir)/main.cpp $(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
+$(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scanner.cc \
+    $(builddir)/main.cpp $(builddir)/parser/ParserDriver.cpp: $(builddir)/parser/parser.hh
 

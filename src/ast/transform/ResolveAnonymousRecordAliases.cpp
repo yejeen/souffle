@@ -8,11 +8,11 @@
 
 /************************************************************************
  *
- * @file ResolveAnonymousRecordsAliases.cpp
+ * @file ResolveAnonymousRecordAliases.cpp
  *
  ***********************************************************************/
 
-#include "ast/transform/ResolveAnonymousRecordsAliases.h"
+#include "ast/transform/ResolveAnonymousRecordAliases.h"
 #include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/BinaryConstraint.h"
@@ -24,11 +24,11 @@
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
 #include "ast/TranslationUnit.h"
-#include "ast/TypeSystem.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
 #include "ast/analysis/Type.h"
+#include "ast/analysis/TypeSystem.h"
 #include "utility/MiscUtil.h"
 #include <map>
 #include <memory>
@@ -37,7 +37,7 @@
 
 namespace souffle {
 
-std::map<std::string, const AstRecordInit*> ResolveAnonymousRecordsAliases::findVariablesRecordMapping(
+std::map<std::string, const AstRecordInit*> ResolveAnonymousRecordAliases::findVariablesRecordMapping(
         AstTranslationUnit& tu, const AstClause& clause) {
     std::map<std::string, const AstRecordInit*> variableRecordMap;
 
@@ -92,7 +92,7 @@ std::map<std::string, const AstRecordInit*> ResolveAnonymousRecordsAliases::find
     return variableRecordMap;
 }
 
-bool ResolveAnonymousRecordsAliases::replaceNamedVariables(AstTranslationUnit& tu, AstClause& clause) {
+bool ResolveAnonymousRecordAliases::replaceNamedVariables(AstTranslationUnit& tu, AstClause& clause) {
     struct ReplaceVariables : public AstNodeMapper {
         std::map<std::string, const AstRecordInit*> varToRecordMap;
 
@@ -122,7 +122,7 @@ bool ResolveAnonymousRecordsAliases::replaceNamedVariables(AstTranslationUnit& t
     return changed;
 }
 
-bool ResolveAnonymousRecordsAliases::replaceUnnamedVariable(AstClause& clause) {
+bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(AstClause& clause) {
     struct ReplaceUnnamed : public AstNodeMapper {
         mutable bool changed{false};
         ReplaceUnnamed() = default;
@@ -158,7 +158,7 @@ bool ResolveAnonymousRecordsAliases::replaceUnnamedVariable(AstClause& clause) {
     return update.changed;
 }
 
-bool ResolveAnonymousRecordsAliases::transform(AstTranslationUnit& translationUnit) {
+bool ResolveAnonymousRecordAliases::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
     for (auto* clause : translationUnit.getProgram()->getClauses()) {
         changed |= replaceNamedVariables(translationUnit, *clause);

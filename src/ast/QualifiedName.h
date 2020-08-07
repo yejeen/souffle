@@ -10,9 +10,7 @@
  *
  * @file QualifiedName.h
  *
- * Defines qualified names so that objects in components (types,
- * relations, etc.) can be accessed via either a fully/partially
- * qualified name.
+ * Defines the qualified name class
  *
  ***********************************************************************/
 
@@ -28,7 +26,8 @@
 namespace souffle {
 
 /**
- * Qualified Name class for fully/partially qualified names
+ * @class AstQualifiedName
+ * @brief Qualified Name class defines fully/partially qualified names
  * to identify objects in components.
  */
 class AstQualifiedName {

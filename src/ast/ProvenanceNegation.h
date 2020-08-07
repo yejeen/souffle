@@ -10,7 +10,7 @@
  *
  * @file ProvenanceNegation.h
  *
- * Define class for negated atoms with provenance information.
+ * Defines the provenance negation class
  *
  ***********************************************************************/
 

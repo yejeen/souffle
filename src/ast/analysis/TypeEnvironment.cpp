@@ -23,8 +23,8 @@
 #include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
-#include "ast/TypeSystem.h"
 #include "ast/UnionType.h"
+#include "ast/analysis/TypeSystem.h"
 #include "utility/MiscUtil.h"
 #include "utility/tinyformat.h"
 #include <algorithm>

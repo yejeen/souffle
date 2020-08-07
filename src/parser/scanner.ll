@@ -36,12 +36,12 @@
 
     #include "ast/Program.h"
 
-    #include "SrcLocation.h"
+    #include "parser/ParserDriver.h"
+    #include "parser/parser.hh"
+    #include "parser/SrcLocation.h"
     #define YYLTYPE SrcLocation
 
-    #include "ParserDriver.h"
     #include "RamTypes.h"
-    #include "parser.hh"
 
     #include "utility/StringUtil.h"
     #include "utility/FileUtil.h"
@@ -111,6 +111,7 @@
 "printsize"                           { return yy::parser::make_PRINTSIZE_QUALIFIER(yylloc); }
 "eqrel"                               { return yy::parser::make_EQREL_QUALIFIER(yylloc); }
 "inline"                              { return yy::parser::make_INLINE_QUALIFIER(yylloc); }
+"magic"                               { return yy::parser::make_MAGIC_QUALIFIER(yylloc); }
 "brie"                                { return yy::parser::make_BRIE_QUALIFIER(yylloc); }
 "btree"                               { return yy::parser::make_BTREE_QUALIFIER(yylloc); }
 "min"                                 { return yy::parser::make_MIN(yylloc); }

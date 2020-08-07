@@ -10,14 +10,14 @@
  *
  * @file ExecutionOrder.h
  *
- * Defines AST Clauses
+ * Defines the execution order class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Node.h"
+#include "parser/SrcLocation.h"
 #include "utility/StreamUtil.h"
 #include <ostream>
 #include <string>
@@ -27,7 +27,9 @@
 namespace souffle {
 
 /**
- * An execution order for atoms within a clause.
+ * @class AstExecutionOrder
+ * @brief An execution order for atoms within a clause;
+ *        one or more execution orders form a plan.
  */
 class AstExecutionOrder : public AstNode {
 public:
@@ -37,7 +39,7 @@ public:
         setSrcLoc(std::move(loc));
     }
 
-    /** get order */
+    /** Get order */
     const ExecOrder& getOrder() const {
         return order;
     }
@@ -57,7 +59,7 @@ protected:
     }
 
 private:
-    /** literal order of body (starting from 1) */
+    /** Literal order of body (starting from 1) */
     ExecOrder order;
 };
 

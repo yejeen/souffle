@@ -24,9 +24,9 @@
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
-#include "ast/TypeSystem.h"
 #include "ast/Utils.h"
 #include "ast/analysis/Type.h"
+#include "ast/analysis/TypeSystem.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include <memory>

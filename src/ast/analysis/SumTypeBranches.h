@@ -17,8 +17,8 @@
 #pragma once
 
 #include "ast/TranslationUnit.h"
-#include "ast/TypeSystem.h"
 #include "ast/analysis/Analysis.h"
+#include "ast/analysis/TypeSystem.h"
 
 namespace souffle {
 

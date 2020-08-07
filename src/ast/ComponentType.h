@@ -10,15 +10,15 @@
  *
  * @file ComponentType.h
  *
- * Defines the class utilized to model a component within the input program.
+ * Defines the component-type class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Node.h"
 #include "ast/QualifiedName.h"
+#include "parser/SrcLocation.h"
 #include "utility/StreamUtil.h"
 #include <ostream>
 #include <string>
@@ -28,10 +28,11 @@
 namespace souffle {
 
 /**
- * A component type is
+ * @class AstComponentType
+ * @brief Component type of a component
  *
- *                  name < Type1, Type2, ... >
- *
+ * Example:
+ *    name < Type1, Type2, ... >
  * where name is the component name and < Type, Type, ... > is a
  * list of component type parameters (either actual or formal).
  */
@@ -40,22 +41,22 @@ public:
     AstComponentType(std::string name = "", std::vector<AstQualifiedName> params = {}, SrcLocation loc = {})
             : AstNode(std::move(loc)), name(std::move(name)), typeParams(std::move(params)) {}
 
-    /** get component name */
+    /** Return component name */
     const std::string& getName() const {
         return name;
     }
 
-    /** set component name */
+    /** Set component name */
     void setName(std::string n) {
         name = std::move(n);
     }
 
-    /** get component type parameters */
+    /** Return component type parameters */
     const std::vector<AstQualifiedName>& getTypeParameters() const {
         return typeParams;
     }
 
-    /** set component type parameters */
+    /** Set component type parameters */
     void setTypeParameters(const std::vector<AstQualifiedName>& params) {
         typeParams = params;
     }
@@ -78,10 +79,10 @@ protected:
     }
 
 private:
-    /** component name */
+    /** Component name */
     std::string name;
 
-    /** component type parameters */
+    /** Component type parameters */
     std::vector<AstQualifiedName> typeParams;
 };
 

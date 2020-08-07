@@ -10,7 +10,7 @@
  *
  * @file NodeMapper.h
  *
- * Abstract class definitions for AST nodes
+ * Defines the node mapper class
  *
  ***********************************************************************/
 

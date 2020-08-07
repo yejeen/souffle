@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include "utility/FileUtil.h"
 #include <cctype>
 #include <cstdio>

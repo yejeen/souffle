@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "TypeSystem.h"
+#include "ast/analysis/TypeSystem.h"
 #include "ast/Type.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/StreamUtil.h"

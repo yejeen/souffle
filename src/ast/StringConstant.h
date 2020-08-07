@@ -10,12 +10,14 @@
  *
  * @file StringConstant.h
  *
+ * Defines the string constant class
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Constant.h"
+#include "parser/SrcLocation.h"
 #include <ostream>
 #include <string>
 #include <utility>
@@ -23,7 +25,8 @@
 namespace souffle {
 
 /**
- * String Constant
+ * @class AstStringConstant
+ * @brief String constant class
  */
 class AstStringConstant : public AstConstant {
 public:

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "RamTypes.h"
+#include "TypeAttribute.h"
 #include "ast/QualifiedName.h"
 #include "ast/Type.h"
 #include "utility/ContainerUtil.h"

@@ -10,15 +10,17 @@
  *
  * @file TypeCast.h
  *
+ * Defines the type cast class
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Argument.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/QualifiedName.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include <memory>
@@ -30,24 +32,26 @@
 namespace souffle {
 
 /**
- * An argument capable of casting a value of one type into another.
+ * @class AstTypeCast
+ * @brief Defines a type cast class for expressions
  */
+
 class AstTypeCast : public AstArgument {
 public:
     AstTypeCast(Own<AstArgument> value, AstQualifiedName type, SrcLocation loc = {})
             : AstArgument(std::move(loc)), value(std::move(value)), type(std::move(type)) {}
 
-    /** Get value */
+    /** Return value */
     AstArgument* getValue() const {
         return value.get();
     }
 
-    /** Get type */
+    /** Return cast type */
     const AstQualifiedName& getType() const {
         return type;
     }
 
-    /** Set type */
+    /** Set cast type */
     void setType(const AstQualifiedName& type) {
         this->type = type;
     }
@@ -76,10 +80,10 @@ protected:
         return type == other.type && equal_ptr(value, other.value);
     }
 
-    /** The value to be casted */
+    /** Casted value */
     Own<AstArgument> value;
 
-    /** The target type name */
+    /** Cast type */
     AstQualifiedName type;
 };
 

@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Argument.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/tinyformat.h"

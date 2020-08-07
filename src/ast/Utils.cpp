@@ -34,9 +34,9 @@
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
 #include "ast/Type.h"
-#include "ast/TypeSystem.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Type.h"
+#include "ast/analysis/TypeSystem.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"
@@ -313,6 +313,29 @@ IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicF
                         a.params.begin(), a.params.end(), b.params.begin(), b.params.end());
             });
     return candidates;
+}
+
+bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) {
+    struct rename_atoms : public AstNodeMapper {
+        mutable bool changed{false};
+        const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
+        rename_atoms(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+                if (contains(oldToNew, atom->getQualifiedName())) {
+                    auto renamedAtom = souffle::clone(atom);
+                    renamedAtom->setQualifiedName(oldToNew.at(atom->getQualifiedName()));
+                    changed = true;
+                    return renamedAtom;
+                }
+            }
+            return node;
+        }
+    };
+    rename_atoms update(oldToNew);
+    node.apply(update);
+    return update.changed;
 }
 
 }  // end of namespace souffle
