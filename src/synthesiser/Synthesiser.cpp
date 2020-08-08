@@ -216,16 +216,16 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
                 switch (rel.getAttributeTypes()[column][0]) {
                     case 'f':
-                        supremum = "ramBitCast<RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamFloat>(MAX_RAM_FLOAT)";
+                        supremum = "ramBitCast<RamDomain>(MIN_RAM_FLOAT)";
+                        infimum = "ramBitCast<RamDomain>(MAX_RAM_FLOAT)";
                         break;
                     case 'u':
-                        supremum = "ramBitCast<RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamUnsigned>(MAX_RAM_UNSIGNED)";
+                        supremum = "ramBitCast<RamDomain>(MIN_RAM_UNSIGNED)";
+                        infimum = "ramBitCast<RamDomain>(MAX_RAM_UNSIGNED)";
                         break;
                     default:
-                        supremum = "ramBitCast<RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamSigned>(MAX_RAM_SIGNED)";
+                        supremum = "ramBitCast<RamDomain>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamDomain>(MAX_RAM_SIGNED)";
                 }
 
                 // if we have an inequality where either side is not set
