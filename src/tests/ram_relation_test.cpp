@@ -14,6 +14,8 @@
  *
  ***********************************************************************/
 
+#include "tests/test.h"
+
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Global.h"
@@ -23,16 +25,20 @@
 #include "interpreter/InterpreterEngine.h"
 #include "json11.h"
 #include "ram/Expression.h"
-#include "ram/Operation.h"
+#include "ram/IO.h"
 #include "ram/Program.h"
+#include "ram/Project.h"
+#include "ram/Query.h"
 #include "ram/Relation.h"
+#include "ram/Sequence.h"
+#include "ram/SignedConstant.h"
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
-#include "tests/test.h"
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>

@@ -18,6 +18,7 @@
 #include "RamTypes.h"
 #include "RelationTag.h"
 #include "ram/Condition.h"
+#include "ram/Constraint.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
 #include "ram/Operation.h"
@@ -31,6 +32,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
+#include <memory>
 #include <tuple>
 #include <utility>
 #include <vector>

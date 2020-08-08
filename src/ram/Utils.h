@@ -17,7 +17,11 @@
 #pragma once
 
 #include "ram/Condition.h"
+#include "ram/Conjunction.h"
 #include "ram/Expression.h"
+#include "ram/True.h"
+#include "ram/UndefValue.h"
+#include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>
 #include <queue>

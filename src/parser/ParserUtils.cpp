@@ -10,7 +10,7 @@
  *
  * @file ParserUtils.cpp
  *
- * Implements a rewrite class for multi-heads and disjunction
+ * Defines class RuleBody to represents rule bodies.
  *
  ***********************************************************************/
 
