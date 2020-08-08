@@ -56,16 +56,6 @@ souffle_utility_sources = \
         utility/StringUtil.h                               \
         utility/tinyformat.h
 
-souffle_io_sources = \
-        io/IOSystem.h                                      \
-        io/ReadStream.h                                    \
-        io/ReadStreamCSV.h                                 \
-        io/ReadStreamJSON.h                                \
-        io/SerialisationStream.h                           \
-        io/WriteStream.h                                   \
-        io/WriteStreamCSV.h                                \
-        io/WriteStreamJSON.h
-
 DIR := ${CURDIR}
 
 # ... which should no go to distribution
@@ -76,7 +66,7 @@ libz_sources = gzfstream.h
 endif
 
 if SQLITE
-sqlite_sources = io/ReadStreamSQLite.h io/WriteStreamSQLite.h
+sqlite_sources = ReadStreamSQLite.h WriteStreamSQLite.h
 endif
 
 
@@ -95,23 +85,28 @@ souffle_sources = \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
+        IOSystem.h                                         \
         LogStatement.h                                     \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
+        ReadStream.h                                       \
+        ReadStreamCSV.h                                    \
+        ReadStreamJSON.h                                   \
         RecordTable.h                                      \
         RelationTag.h                                      \
+        SerialisationStream.h                              \
         SignalHandler.h                                    \
         TypeAttribute.h                                    \
         Util.cpp                                           \
-        ast/BranchInit.h                                   \
-        ast/AlgebraicDataType.h                            \
         ast/Aggregator.h                                   \
+        ast/AlgebraicDataType.h                            \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
         ast/Attribute.h                                    \
         ast/BinaryConstraint.h                             \
         ast/BooleanConstraint.h                            \
         ast/BranchDeclaration.h                            \
+        ast/BranchInit.h                                   \
         ast/Clause.h                                       \
         ast/Component.h                                    \
         ast/ComponentInit.h                                \
@@ -407,11 +402,10 @@ souffle_sources = \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \
         synthesiser/SynthesiserRelation.h                  \
+        $(sqlite_sources)                                  \
         $(libz_sources)                                    \
-        $(souffle_io_sources)                              \
-        $(souffle_profile_sources)                         \
         $(souffle_utility_sources)                         \
-        $(sqlite_sources)                                  
+        $(souffle_profile_sources)
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
@@ -443,21 +437,28 @@ soufflepublic_HEADERS = \
         ExplainProvenance.h                                \
         ExplainProvenanceImpl.h                            \
         ExplainTree.h                                      \
+        IOSystem.h                                         \
         LambdaBTree.h                                      \
         Logger.h                                           \
         PiggyList.h                                        \
         ProfileDatabase.h                                  \
         ProfileEvent.h                                     \
         RamTypes.h                                         \
+        ReadStream.h                                       \
+        ReadStreamCSV.h                                    \
+        ReadStreamJSON.h                                   \
         RecordTable.h                                      \
+        SerialisationStream.h                              \
         SignalHandler.h                                    \
         SouffleInterface.h                                 \
         SymbolTable.h                                      \
         Table.h                                            \
         UnionFind.h                                        \
+        WriteStream.h                                      \
+        WriteStreamCSV.h                                   \
+        WriteStreamJSON.h                                  \
         json11.h                                           \
         $(souffle_utility_sources)                         \
-        $(souffle_io_sources)                              \
         $(libz_sources)                                    \
         $(sqlite_sources)
 
@@ -472,10 +473,6 @@ souffleswig_HEADERS = $(souffle_swig_sources)
 souffleutilitydir = $(soufflepublicdir)/utility
 
 souffleutility_HEADERS = $(souffle_utility_sources)
-
-souffleiodir = $(soufflepublicdir)/io
-
-souffleio_HEADERS = $(souffle_io_sources)
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
