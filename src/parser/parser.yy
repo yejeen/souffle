@@ -64,6 +64,7 @@
     #include "ast/StringConstant.h"
     #include "ast/SubsetType.h"
     #include "ast/SumType.h"
+    #include "ast/BranchDeclaration.h"
     #include "ast/Type.h"
     #include "ast/TypeCast.h"
     #include "ast/UnionType.h"
@@ -351,8 +352,8 @@
 %type <Mov<std::vector<AstQualifiedName>>>   type_params
 %type <Mov<std::vector<AstQualifiedName>>>   type_param_list
 %type <Mov<std::vector<AstQualifiedName>>>   union_type_list
-%type <Mov<std::vector<AstSumType::Branch>>> sum_branch_list
-%type <AstSumType::Branch>                   sum_branch
+%type <Mov<VecOwn<AstBranchDeclaration>>>    sum_branch_list
+%type <Mov<Own<AstBranchDeclaration>>>       sum_branch
 
 /* -- Operator precedence -- */
 %left L_OR
@@ -434,7 +435,7 @@ sum_branch_list
   ;
 
 sum_branch
-  : IDENT[name] LBRACE identifier[type] RBRACE { $$ = AstSumType::Branch($name, $type, @$); }
+  : IDENT[name] LBRACE identifier[type] RBRACE { $$ = mk<AstBranchDeclaration>($name, $type, @$); }
   ;
 
 /**

@@ -6,9 +6,20 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
+/************************************************************************
+ *
+ * @file SumType.h
+ *
+ * Defines the node corresponding to an ast declaration of Algebraic Data Type
+ *
+ ***********************************************************************/
+
 #pragma once
 
+#include "ast/BranchDeclaration.h"
 #include "ast/Type.h"
+#include "parser/SrcLocation.h"
+#include "utility/tinyformat.h"
 
 namespace souffle {
 
@@ -17,31 +28,13 @@ namespace souffle {
  */
 class AstSumType : public AstType {
 public:
-    struct Branch {
-        Branch() = default;
-        Branch(std::string n, AstQualifiedName t, SrcLocation l = {})
-                : name(std::move(n)), type(std::move(t)), loc(std::move(l)){};
-
-        std::string name;       // < the branch name
-        AstQualifiedName type;  // < the branch type
-        SrcLocation loc;
-
-        bool operator==(const Branch& other) const {
-            return name == other.name && type == other.type;
-        }
-
-        friend std::ostream& operator<<(std::ostream& os, const Branch& br) {
-            return os << tfm::format("%s {%s}", br.name, br.type);
-        }
-    };
-
-    AstSumType(AstQualifiedName name, std::vector<Branch> bs, SrcLocation loc = {})
+    AstSumType(AstQualifiedName name, VecOwn<AstBranchDeclaration> bs, SrcLocation loc = {})
             : AstType(std::move(name), std::move(loc)), branches(std::move(bs)) {
         assert(!branches.empty());
     };
 
-    const std::vector<Branch>& getBranches() const {
-        return branches;
+    std::vector<AstBranchDeclaration*> getBranches() const {
+        return toPtrVector(branches);
     }
 
     void print(std::ostream& os) const override {
@@ -49,7 +42,7 @@ public:
     }
 
     AstSumType* clone() const override {
-        return new AstSumType(getQualifiedName(), branches, getSrcLoc());
+        return new AstSumType(getQualifiedName(), souffle::clone(branches), getSrcLoc());
     }
 
 protected:
@@ -60,7 +53,7 @@ protected:
 
 private:
     /** The list of branches for this sum type. */
-    std::vector<Branch> branches;
+    VecOwn<AstBranchDeclaration> branches;
 };
 
 }  // namespace souffle

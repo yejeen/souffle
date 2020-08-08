@@ -110,6 +110,7 @@ souffle_sources = \
         ast/Attribute.h                                    \
         ast/BinaryConstraint.h                             \
         ast/BooleanConstraint.h                            \
+        ast/BranchDeclaration.h                            \
         ast/Clause.h                                       \
         ast/Component.h                                    \
         ast/ComponentInit.h                                \

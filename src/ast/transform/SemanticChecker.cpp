@@ -718,11 +718,11 @@ void AstSemanticCheckerImpl::checkRecordType(const AstRecordType& type) {
 
 void AstSemanticCheckerImpl::checkSumType(const AstSumType& type) {
     // check if all branches contain properly defined types.
-    for (auto& branch : type.getBranches()) {
-        if (!typeEnv.isType(branch.type)) {
-            report.addError(
-                    tfm::format("Undefined type %s in definition of branch %s", branch.type, branch.name),
-                    branch.loc);
+    for (auto* branch : type.getBranches()) {
+        if (!typeEnv.isType(branch->getType())) {
+            report.addError(tfm::format("Undefined type %s in definition of branch %s", branch->getType(),
+                                    branch->getName()),
+                    branch->getSrcLoc());
         }
     }
 }
@@ -776,8 +776,8 @@ void AstSemanticCheckerImpl::checkTypesDeclarations() {
     // Check if all the branch names are unique in sum types.
     std::map<std::string, std::vector<SrcLocation>> branchToLocation;
     visitDepthFirst(program.getTypes(), [&](const AstSumType& type) {
-        for (auto&& branch : type.getBranches()) {
-            branchToLocation[branch.name].push_back(branch.loc);
+        for (auto* branch : type.getBranches()) {
+            branchToLocation[branch->getName()].push_back(branch->getSrcLoc());
         }
     });
 

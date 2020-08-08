@@ -210,12 +210,12 @@ const Type* TypeEnvironmentAnalysis::createType(
         auto& sumType = env.createType<SumType>(typeName);
 
         std::vector<SumType::Branch> elements;
-        for (auto& branch : as<AstSumType>(astType)->getBranches()) {
-            auto* branchType = createType(branch.type, nameToAstType);
+        for (auto* branch : as<AstSumType>(astType)->getBranches()) {
+            auto* branchType = createType(branch->getType(), nameToAstType);
             if (branchType == nullptr) {
                 return nullptr;
             }
-            elements.push_back({branch.name, branchType});
+            elements.push_back({branch->getName(), branchType});
         }
         sumType.setBranches(std::move(elements));
 
