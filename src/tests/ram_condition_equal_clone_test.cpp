@@ -18,9 +18,18 @@
 
 #include "BinaryConstraintOps.h"
 #include "RelationTag.h"
-#include "ram/Condition.h"
+#include "ram/Conjunction.h"
+#include "ram/Constraint.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
+#include "ram/False.h"
+#include "ram/Negation.h"
+#include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
+#include "ram/SignedConstant.h"
+#include "ram/True.h"
+#include "ram/TupleElement.h"
 #include <memory>
 #include <string>
 #include <utility>
