@@ -172,7 +172,7 @@ private:
 
         std::map<std::string, json11::Json> sumTypes;
 
-        visitDepthFirst(program.getTypes(), [&](const AstSumType& astSumType) {
+        visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& astSumType) {
             auto& sumType = dynamic_cast<const SumType&>(typeEnv.getType(astSumType));
 
             auto& branches = sumType.getBranches();

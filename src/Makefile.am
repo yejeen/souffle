@@ -104,6 +104,7 @@ souffle_sources = \
         TypeAttribute.h                                    \
         Util.cpp                                           \
         ast/ADTinit.h                                      \
+        ast/AlgebraicDataType.h                            \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
@@ -141,7 +142,6 @@ souffle_sources = \
         ast/StringConstant.h                               \
         ast/SubroutineArgument.h                           \
         ast/SubsetType.h                                   \
-        ast/SumType.h                                      \
         ast/Term.h                                         \
         ast/TranslationUnit.h                              \
         ast/Type.h                                         \

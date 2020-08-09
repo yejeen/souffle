@@ -16,11 +16,11 @@
 
 #include "ast/analysis/TypeEnvironment.h"
 #include "GraphUtils.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Attribute.h"
 #include "ast/Program.h"
 #include "ast/RecordType.h"
 #include "ast/SubsetType.h"
-#include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
 #include "ast/UnionType.h"
@@ -49,7 +49,7 @@ Graph<AstQualifiedName> createTypeDependencyGraph(const std::vector<AstType*>& p
             for (const auto& subtype : type->getTypes()) {
                 typeDependencyGraph.insert(type->getQualifiedName(), subtype);
             }
-        } else if (isA<AstSumType>(astType)) {
+        } else if (isA<AstAlgebraicDataType>(astType)) {
             // do nothing
         } else {
             fatal("unsupported type construct: %s", typeid(astType).name());
@@ -206,20 +206,20 @@ const Type* TypeEnvironmentAnalysis::createType(
 
         return &recordType;
 
-    } else if (isA<AstSumType>(astType)) {
-        auto& sumType = env.createType<SumType>(typeName);
+    } else if (isA<AstAlgebraicDataType>(astType)) {
+        auto& adt = env.createType<SumType>(typeName);
 
         std::vector<SumType::Branch> elements;
-        for (auto* branch : as<AstSumType>(astType)->getBranches()) {
+        for (auto* branch : as<AstAlgebraicDataType>(astType)->getBranches()) {
             auto* branchType = createType(branch->getType(), nameToAstType);
             if (branchType == nullptr) {
                 return nullptr;
             }
             elements.push_back({branch->getName(), branchType});
         }
-        sumType.setBranches(std::move(elements));
+        adt.setBranches(std::move(elements));
 
-        return &sumType;
+        return &adt;
     } else {
         fatal("unsupported type construct: %s", typeid(*astType).name());
     }

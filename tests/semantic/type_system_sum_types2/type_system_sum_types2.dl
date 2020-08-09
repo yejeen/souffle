@@ -11,7 +11,7 @@
 //
 
 
-.type A = X {number}
+.type A = X {x : number}
 
 .decl R(x : A)
 R($X(5)).  // Ok

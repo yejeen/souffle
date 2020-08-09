@@ -18,6 +18,7 @@
 
 #include "ast/ADTinit.h"
 #include "ast/Aggregator.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
@@ -44,7 +45,6 @@
 #include "ast/StringConstant.h"
 #include "ast/SubroutineArgument.h"
 #include "ast/SubsetType.h"
-#include "ast/SumType.h"
 #include "ast/TypeCast.h"
 #include "ast/UnionType.h"
 #include "ast/UnnamedVariable.h"
@@ -101,7 +101,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(SubsetType);
         FORWARD(UnionType);
         FORWARD(RecordType);
-        FORWARD(SumType);
+        FORWARD(AlgebraicDataType);
 
         // arguments
         FORWARD(Variable)
@@ -153,7 +153,7 @@ protected:
     // -- types --
     LINK(SubsetType, Type);
     LINK(RecordType, Type);
-    LINK(SumType, Type);
+    LINK(AlgebraicDataType, Type);
     LINK(UnionType, Type);
     LINK(Type, Node);
 

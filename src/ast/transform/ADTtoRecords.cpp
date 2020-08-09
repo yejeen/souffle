@@ -14,11 +14,11 @@
 
 #include "ast/transform/ADTtoRecords.h"
 #include "ast/ADTinit.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/RecordInit.h"
-#include "ast/SumType.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"

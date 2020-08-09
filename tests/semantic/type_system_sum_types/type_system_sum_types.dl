@@ -13,19 +13,19 @@
 
 // Repeated branches
 .type A1
-  = X { number }
-  ; Y { float }
-  ; X { symbol }
-  ; Y { float }
-  ; Z { symbol }
+  = X { x: number }
+  ; Y { x: float }
+  ; X { x: symbol }
+  ; Y { x: float }
+  ; Z { x: symbol }
 
 
 // Non Existing type.
-.type B1 = X { definitlyNotAType }
+.type B1 = X { x: definitlyNotAType }
 
 
 
 // The same branch used twice (currently disallowed)
-.type C1 = G { number }
-.type D1 = G { number }
+.type C1 = G { x: number }
+.type D1 = G { x: number }
 

@@ -123,7 +123,7 @@ private:
     void checkRecordType(const AstRecordType& type);
     void checkSubsetType(const AstSubsetType& type);
     void checkUnionType(const AstUnionType& type);
-    void checkSumType(const AstSumType& type);
+    void checkADT(const AstAlgebraicDataType& type);
 
     /** check if all the branches refer to the existing types. */
     void checkADTinits();
@@ -716,7 +716,7 @@ void AstSemanticCheckerImpl::checkRecordType(const AstRecordType& type) {
     }
 }
 
-void AstSemanticCheckerImpl::checkSumType(const AstSumType& type) {
+void AstSemanticCheckerImpl::checkADT(const AstAlgebraicDataType& type) {
     // check if all branches contain properly defined types.
     for (auto* branch : type.getBranches()) {
         if (!typeEnv.isType(branch->getType())) {
@@ -766,8 +766,8 @@ void AstSemanticCheckerImpl::checkTypesDeclarations() {
             checkRecordType(*as<AstRecordType>(type));
         } else if (isA<AstSubsetType>(type)) {
             checkSubsetType(*as<AstSubsetType>(type));
-        } else if (isA<AstSumType>(type)) {
-            checkSumType(*as<AstSumType>(type));
+        } else if (isA<AstAlgebraicDataType>(type)) {
+            checkADT(*as<AstAlgebraicDataType>(type));
         } else {
             fatal("unsupported type construct: %s", typeid(type).name());
         }
@@ -775,7 +775,7 @@ void AstSemanticCheckerImpl::checkTypesDeclarations() {
 
     // Check if all the branch names are unique in sum types.
     std::map<std::string, std::vector<SrcLocation>> branchToLocation;
-    visitDepthFirst(program.getTypes(), [&](const AstSumType& type) {
+    visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& type) {
         for (auto* branch : type.getBranches()) {
             branchToLocation[branch->getName()].push_back(branch->getSrcLoc());
         }

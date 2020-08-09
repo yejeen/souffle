@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file SumType.h
+ * @file AlgebraicDataType.h
  *
  * Defines the node corresponding to an ast declaration of Algebraic Data Type
  *
@@ -24,11 +24,20 @@
 namespace souffle {
 
 /**
- * Sum types aka tagged union
+ * @class AstAlgebraicDataType
+ * @brief Combination of types using sums and products.
+ *
+ * ADT combines a simpler types using product types and sum types.
+ *
+ * Example:
+ * .type Nat = S {n : Nat} ; Zero {}
+ *
+ * The type Nat has two branches, S which takes element of type Nat and Zero which doesn't take any args.
+ *
  */
-class AstSumType : public AstType {
+class AstAlgebraicDataType : public AstType {
 public:
-    AstSumType(AstQualifiedName name, VecOwn<AstBranchDeclaration> bs, SrcLocation loc = {})
+    AstAlgebraicDataType(AstQualifiedName name, VecOwn<AstBranchDeclaration> bs, SrcLocation loc = {})
             : AstType(std::move(name), std::move(loc)), branches(std::move(bs)) {
         assert(!branches.empty());
     };
@@ -41,13 +50,13 @@ public:
         os << tfm::format(".type %s = %s", getQualifiedName(), join(branches, " ; "));
     }
 
-    AstSumType* clone() const override {
-        return new AstSumType(getQualifiedName(), souffle::clone(branches), getSrcLoc());
+    AstAlgebraicDataType* clone() const override {
+        return new AstAlgebraicDataType(getQualifiedName(), souffle::clone(branches), getSrcLoc());
     }
 
 protected:
     bool equal(const AstNode& node) const override {
-        const auto& other = dynamic_cast<const AstSumType&>(node);
+        const auto& other = dynamic_cast<const AstAlgebraicDataType&>(node);
         return getQualifiedName() == other.getQualifiedName() && branches == other.branches;
     }
 

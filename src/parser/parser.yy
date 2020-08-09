@@ -63,7 +63,7 @@
     #include "ast/Relation.h"
     #include "ast/StringConstant.h"
     #include "ast/SubsetType.h"
-    #include "ast/SumType.h"
+    #include "ast/AlgebraicDataType.h"
     #include "ast/BranchDeclaration.h"
     #include "ast/Type.h"
     #include "ast/TypeCast.h"
@@ -417,7 +417,7 @@ type
   : TYPE IDENT SUBTYPE IDENT             { $$ = mk<AstSubsetType>($2, $4, @$); }
   | TYPE IDENT EQUALS  union_type_list   { $$ = mk<AstUnionType>($2, $4, @$); }
   | TYPE IDENT EQUALS  record_type_list  { $$ = mk<AstRecordType>($2, $4, @$); }
-  | TYPE IDENT EQUALS  sum_branch_list   { $$ = mk<AstSumType>($2, $4, @$); }
+  | TYPE IDENT EQUALS  sum_branch_list   { $$ = mk<AstAlgebraicDataType>($2, $4, @$); }
     /* deprecated subset type forms */
   | NUMBER_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "number", @$); }
   | SYMBOL_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$); }
@@ -436,7 +436,8 @@ sum_branch_list
   ;
 
 sum_branch
-  : IDENT[name] LBRACE identifier[type] RBRACE { $$ = mk<AstBranchDeclaration>($name, $type, @$); }
+  : IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
+  { $$ = mk<AstBranchDeclaration>($name, $attributes, @$); }
   ;
 
 /**

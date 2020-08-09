@@ -16,20 +16,29 @@
 
 #pragma once
 
+#include "ast/Attribute.h"
 #include "ast/Node.h"
 #include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
+#include "utility/ContainerUtil.h"
 #include "utility/tinyformat.h"
 
 namespace souffle {
 
+/**
+ * @class AstBranchDeclaration
+ * @brief Wrapper for the single branch declaration (product type) inside ADT declaration.
+ *
+ * A branch declaration corresponds to a product type and forms a part of ADT declaration.
+ * Currently it's required for all the branches to have unique names.
+ */
 class AstBranchDeclaration : public AstNode {
 public:
-    AstBranchDeclaration(std::string n, AstQualifiedName t, SrcLocation l = {})
-            : AstNode(std::move(l)), name(std::move(n)), type(std::move(t)){};
+    AstBranchDeclaration(std::string n, VecOwn<AstAttribute> fs, SrcLocation l = {})
+            : AstNode(std::move(l)), name(std::move(n)), fields(std::move(fs)){};
 
     bool operator==(const AstBranchDeclaration& other) const {
-        return name == other.getName() && type == other.getType();
+        return name == other.getName();
     }
 
     const std::string& getName() const {
@@ -37,21 +46,21 @@ public:
     }
 
     const AstQualifiedName& getType() const {
-        return type;
+        return fields.at(0)->getTypeName();
     }
 
     AstBranchDeclaration* clone() const override {
-        return new AstBranchDeclaration(name, type, getSrcLoc());
+        return new AstBranchDeclaration(name, souffle::clone(fields), getSrcLoc());
     }
 
 protected:
     void print(std::ostream& os) const override {
-        os << tfm::format("%s {%s}", name, type);
+        os << tfm::format("%s {%s}", name, join(fields, ", "));
     }
 
 private:
-    std::string name;       // < the branch name
-    AstQualifiedName type;  // < the branch type
+    std::string name;             // < the branch name
+    VecOwn<AstAttribute> fields;  // < the branch fields
 };
 
 }  // namespace souffle
