@@ -207,15 +207,19 @@ const Type* TypeEnvironmentAnalysis::createType(
         return &recordType;
 
     } else if (isA<AstAlgebraicDataType>(astType)) {
-        auto& adt = env.createType<SumType>(typeName);
+        auto& adt = env.createType<AlgebraicDataType>(typeName);
 
-        std::vector<SumType::Branch> elements;
+        std::vector<AlgebraicDataType::Branch> elements;
         for (auto* branch : as<AstAlgebraicDataType>(astType)->getBranches()) {
-            auto* branchType = createType(branch->getType(), nameToAstType);
-            if (branchType == nullptr) {
-                return nullptr;
+            std::vector<const Type*> branchTypes;
+
+            for (auto* attr : branch->getFields()) {
+                auto* type = createType(attr->getTypeName(), nameToAstType);
+                if (type == nullptr) return nullptr;
+                branchTypes.push_back(type);
             }
-            elements.push_back({branch->getName(), branchType});
+
+            elements.push_back({branch->getConstructor(), std::move(branchTypes)});
         }
         adt.setBranches(std::move(elements));
 

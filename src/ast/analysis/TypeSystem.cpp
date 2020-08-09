@@ -98,7 +98,7 @@ struct TypeVisitor {
         FORWARD(Subset);
         FORWARD(Union);
         FORWARD(Record);
-        FORWARD(Sum);
+        FORWARD(AlgebraicData);
 
         fatal("Unsupported type encountered!");
     }
@@ -113,7 +113,7 @@ struct TypeVisitor {
     VISIT(Subset)
     VISIT(Union)
     VISIT(Record)
-    VISIT(Sum)
+    VISIT(AlgebraicData)
 
     virtual R visitType(const Type& /*type*/) const {
         return R();
@@ -158,7 +158,7 @@ bool isOfRootType(const Type& type, const Type& root) {
             return type == root || isOfRootType(type.getBaseType(), root);
         }
 
-        bool visitSumType(const SumType& type) const override {
+        bool visitAlgebraicDataType(const AlgebraicDataType& type) const override {
             return type == root;
         }
 
@@ -183,7 +183,7 @@ bool isOfKind(const Type& type, TypeAttribute kind) {
     if (kind == TypeAttribute::Record) {
         return isA<RecordType>(type);
     } else if (kind == TypeAttribute::Sum) {
-        return isA<SumType>(type);
+        return isA<AlgebraicDataType>(type);
     }
 
     return isOfRootType(type, type.getTypeEnvironment().getConstantType(kind));

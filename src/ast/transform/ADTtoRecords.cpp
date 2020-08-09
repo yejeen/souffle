@@ -49,14 +49,14 @@ bool ADTtoRecords::transform(AstTranslationUnit& tu) {
             auto& adt = *as<AstADTinit>(node);
 
             auto& type = sumTypesBranches.unsafeGetType(adt.getBranch());
-            assert(isA<SumType>(type));
+            assert(isA<AlgebraicDataType>(type));
 
-            auto& branches = as<SumType>(type)->getBranches();
+            auto& branches = as<AlgebraicDataType>(type)->getBranches();
 
             // Find branch ID.
-            SumType::Branch searchDummy = {adt.getBranch(), nullptr};
+            AlgebraicDataType::Branch searchDummy{adt.getBranch(), {}};
             auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
-                    [](const SumType::Branch& left, const SumType::Branch& right) {
+                    [](const AlgebraicDataType::Branch& left, const AlgebraicDataType::Branch& right) {
                         return left.name < right.name;
                     });
             auto branchID = std::distance(std::begin(branches), iterToBranch);

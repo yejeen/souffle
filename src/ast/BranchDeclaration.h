@@ -22,6 +22,8 @@
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/tinyformat.h"
+#include <string>
+#include <vector>
 
 namespace souffle {
 
@@ -34,32 +36,28 @@ namespace souffle {
  */
 class AstBranchDeclaration : public AstNode {
 public:
-    AstBranchDeclaration(std::string n, VecOwn<AstAttribute> fs, SrcLocation l = {})
-            : AstNode(std::move(l)), name(std::move(n)), fields(std::move(fs)){};
+    AstBranchDeclaration(std::string name, VecOwn<AstAttribute> fs, SrcLocation l = {})
+            : AstNode(std::move(l)), constructor(std::move(name)), fields(std::move(fs)){};
 
-    bool operator==(const AstBranchDeclaration& other) const {
-        return name == other.getName();
+    const std::string& getConstructor() const {
+        return constructor;
     }
 
-    const std::string& getName() const {
-        return name;
-    }
-
-    const AstQualifiedName& getType() const {
-        return fields.at(0)->getTypeName();
+    std::vector<AstAttribute*> getFields() {
+        return toPtrVector(fields);
     }
 
     AstBranchDeclaration* clone() const override {
-        return new AstBranchDeclaration(name, souffle::clone(fields), getSrcLoc());
+        return new AstBranchDeclaration(constructor, souffle::clone(fields), getSrcLoc());
     }
 
 protected:
     void print(std::ostream& os) const override {
-        os << tfm::format("%s {%s}", name, join(fields, ", "));
+        os << tfm::format("%s {%s}", constructor, join(fields, ", "));
     }
 
 private:
-    std::string name;             // < the branch name
+    std::string constructor;      // < the branch constructor
     VecOwn<AstAttribute> fields;  // < the branch fields
 };
 

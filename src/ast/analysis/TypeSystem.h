@@ -207,21 +207,21 @@ protected:
 };
 
 /**
- * Sum type
+ * Algebraic Data Type
  *
  * Invariant: vector "branches" is sorted.
  */
-class SumType : public Type {
+class AlgebraicDataType : public Type {
 public:
     struct Branch {
-        std::string name;  // < the name of the branch
-        const Type* type;  // < the refined type of the branch
+        std::string name;                // < the name of the branch
+        std::vector<const Type*> types;  // < Product type associated with this branch.
     };
 
     void setBranches(std::vector<Branch> bs) {
         branchToType.clear();
         for (auto& branch : bs) {
-            branchToType[branch.name] = branch.type;
+            branchToType[branch.name] = branch.types.at(0);
         }
         branches = std::move(bs);
         std::sort(branches.begin(), branches.end(),
@@ -238,7 +238,7 @@ public:
     }
 
 private:
-    SumType(const TypeEnvironment& env, AstQualifiedName name) : Type(env, std::move(name)) {}
+    AlgebraicDataType(const TypeEnvironment& env, AstQualifiedName name) : Type(env, std::move(name)) {}
 
     friend class TypeEnvironment;
 

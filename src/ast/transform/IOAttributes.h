@@ -142,8 +142,9 @@ private:
             json11::Json relJson = json11::Json::object{{"arity", arity}, {"auxArity", auxArity},
                     {"types", json11::Json::array(attributesTypes.begin(), attributesTypes.end())}};
 
-            json11::Json types = json11::Json::object{{"relation", relJson},
-                    {"records", getRecordsTypes(translationUnit)}, {"ADTs", getSumTypes(translationUnit)}};
+            json11::Json types =
+                    json11::Json::object{{"relation", relJson}, {"records", getRecordsTypes(translationUnit)},
+                            {"ADTs", getAlgebraicDataTypes(translationUnit)}};
 
             io->addDirective("types", types.dump());
             changed = true;
@@ -159,7 +160,7 @@ private:
      * Get sum types info for IO.
      * If they don't exists - create them.
      */
-    json11::Json getSumTypes(AstTranslationUnit& translationUnit) const {
+    json11::Json getAlgebraicDataTypes(AstTranslationUnit& translationUnit) const {
         static json11::Json sumTypesInfo;
 
         // Check if the types were already constructed
@@ -172,15 +173,15 @@ private:
 
         std::map<std::string, json11::Json> sumTypes;
 
-        visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& astSumType) {
-            auto& sumType = dynamic_cast<const SumType&>(typeEnv.getType(astSumType));
+        visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& astAlgebraicDataType) {
+            auto& sumType = dynamic_cast<const AlgebraicDataType&>(typeEnv.getType(astAlgebraicDataType));
 
             auto& branches = sumType.getBranches();
 
             std::vector<json11::Json> branchsTypes;
 
             for (size_t branchID = 0; branchID < branches.size(); ++branchID) {
-                auto&& branchType = getTypeQualifier(*branches[branchID].type);
+                auto&& branchType = getTypeQualifier(*branches[branchID].types.at(0));
                 auto branchInfo = json11::Json::object{
                         {{"type", std::move(branchType)}, {"name", branches[branchID].name}}};
                 branchsTypes.push_back(std::move(branchInfo));

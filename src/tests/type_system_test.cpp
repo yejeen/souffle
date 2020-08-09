@@ -264,10 +264,10 @@ TEST(TypeSystem, EquivTypes) {
     EXPECT_TRUE(areEquivalentTypes(A, U));
 }
 
-TEST(TypeSystem, SumType) {
+TEST(TypeSystem, AlgebraicDataType) {
     TypeEnvironment env;
 
-    auto& A = env.createType<SumType>("A");
+    auto& A = env.createType<AlgebraicDataType>("A");
 
     EXPECT_TRUE(isSubtypeOf(A, A));
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, A)));

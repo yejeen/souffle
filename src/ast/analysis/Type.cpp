@@ -730,14 +730,14 @@ private:
         }
 
         // sanity check
-        assert(isA<SumType>(correspondingType));
+        assert(isA<AlgebraicDataType>(correspondingType));
 
         // $Branch(x) <: ADTtype
         // x <: branchType
         addConstraint(isSubtypeOf(getVar(adt), *correspondingType));
 
         auto argVar = getVar(adt.getArgument());
-        auto& branchType = as<SumType>(correspondingType)->getBranchType(adt.getBranch());
+        auto& branchType = as<AlgebraicDataType>(correspondingType)->getBranchType(adt.getBranch());
         addConstraint(isSubtypeOf(argVar, branchType));
     }
 

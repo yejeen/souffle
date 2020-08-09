@@ -719,10 +719,12 @@ void AstSemanticCheckerImpl::checkRecordType(const AstRecordType& type) {
 void AstSemanticCheckerImpl::checkADT(const AstAlgebraicDataType& type) {
     // check if all branches contain properly defined types.
     for (auto* branch : type.getBranches()) {
-        if (!typeEnv.isType(branch->getType())) {
-            report.addError(tfm::format("Undefined type %s in definition of branch %s", branch->getType(),
-                                    branch->getName()),
-                    branch->getSrcLoc());
+        for (auto* field : branch->getFields()) {
+            if (!typeEnv.isType(field->getTypeName())) {
+                report.addError(tfm::format("Undefined type %s in definition of branch %s",
+                                        field->getTypeName(), branch->getConstructor()),
+                        field->getSrcLoc());
+            }
         }
     }
 }
@@ -777,7 +779,7 @@ void AstSemanticCheckerImpl::checkTypesDeclarations() {
     std::map<std::string, std::vector<SrcLocation>> branchToLocation;
     visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& type) {
         for (auto* branch : type.getBranches()) {
-            branchToLocation[branch->getName()].push_back(branch->getSrcLoc());
+            branchToLocation[branch->getConstructor()].push_back(branch->getSrcLoc());
         }
     });
 
@@ -1391,7 +1393,7 @@ void TypeChecker::visitADTinit(const AstADTinit& adt) {
     }
 
     // We know now that the set "types" is a singleton
-    auto& sumType = *as<SumType>(*types.begin());
+    auto& sumType = *as<AlgebraicDataType>(*types.begin());
 
     auto& argumentType = sumType.getBranchType(adt.getBranch());
 

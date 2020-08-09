@@ -31,7 +31,7 @@ void SumTypeBranchesAnalysis::run(const AstTranslationUnit& tu) {
         if (!env.isType(typeName)) return;
 
         for (auto& branch : adt.getBranches()) {
-            branchToType[branch->getName()] = &env.getType(typeName);
+            branchToType[branch->getConstructor()] = &env.getType(typeName);
         }
     });
 }
