@@ -5,21 +5,16 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 //
-// Load ADT
-// Test reading adt in CSV format
+// Store ADT 2
+// Test writing complex adts in CSV format
 //
 
 
-.type T = A { x : number }
-        | B { x : symbol }
+.type Nat = S {x : Nat}
+          | Zero {}
 
 
-
-.decl R(x : T, y : T)
-.input R
-
-.decl Rout(x : T, y : T)
-Rout(x, y) :- R(x, y).
-.output Rout
-
-
+.decl NumToNat(u : unsigned, n: Nat)
+NumToNat(0, $Zero).
+NumToNat(x + 1, $S(n)) :- NumToNat(x, n), x < 10.
+.output NumToNat

@@ -30,7 +30,7 @@ namespace souffle {
  * ADT combines a simpler types using product types and sum types.
  *
  * Example:
- * .type Nat = S {n : Nat} ; Zero {}
+ * .type Nat = S {n : Nat} | Zero {}
  *
  * The type Nat has two branches, S which takes element of type Nat and Zero which doesn't take any args.
  *
@@ -47,7 +47,7 @@ public:
     }
 
     void print(std::ostream& os) const override {
-        os << tfm::format(".type %s = %s", getQualifiedName(), join(branches, " ; "));
+        os << tfm::format(".type %s = %s", getQualifiedName(), join(branches, " | "));
     }
 
     AstAlgebraicDataType* clone() const override {

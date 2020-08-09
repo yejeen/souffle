@@ -431,13 +431,15 @@ union_type_list
   ;
 
 sum_branch_list
-  : sum_branch                           {          $$.push_back($sum_branch); }
-  | sum_branch_list SEMICOLON sum_branch { $$ = $1; $$.push_back($sum_branch); }
+  : sum_branch                      {          $$.push_back($sum_branch); }
+  | sum_branch_list PIPE sum_branch { $$ = $1; $$.push_back($sum_branch); }
   ;
 
 sum_branch
-  : IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
-  { $$ = mk<AstBranchDeclaration>($name, $attributes, @$); }
+  : IDENT[name] LBRACE RBRACE
+    { $$ = mk<AstBranchDeclaration>($name, VecOwn<AstAttribute>{}, @$); }
+  | IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
+    { $$ = mk<AstBranchDeclaration>($name, $attributes, @$); }
   ;
 
 /**
@@ -652,7 +654,9 @@ arg
   /* TODO (azreika): in next version: prepend records with identifiers */
   | LBRACKET arg_list RBRACKET { $$ = mk<AstRecordInit>($arg_list, @$); }
 
+  // Branch of adt
   | DOLLAR IDENT[branch] LPAREN arg_list RPAREN { $$ = mk<AstBranchInit>($branch, $arg_list, @$); }
+  | DOLLAR IDENT[branch]                        { $$ = mk<AstBranchInit>($branch, VecOwn<AstArgument>{}, @$); }
 
   |     LPAREN arg                  RPAREN { $$ = $2; }
   | AS  LPAREN arg COMMA identifier RPAREN { $$ = mk<AstTypeCast>($3, $identifier, @$); }

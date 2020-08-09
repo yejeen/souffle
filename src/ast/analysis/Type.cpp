@@ -735,8 +735,13 @@ private:
         // Constraint on the whole branch. $Branch(...) <: ADTtype
         addConstraint(isSubtypeOf(getVar(adt), *correspondingType));
 
+        std::vector<const Type*> branchTypes;
         // Constraints on arguments
-        auto& branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+        try {
+            branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+        } catch (...) {
+            return;  // Invalid program.
+        }
 
         auto branchArgs = adt.getArguments();
 

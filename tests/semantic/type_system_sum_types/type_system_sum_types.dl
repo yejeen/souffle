@@ -14,10 +14,10 @@
 // Repeated branches
 .type A1
   = X { x: number }
-  ; Y { x: float }
-  ; X { x: symbol }
-  ; Y { x: float }
-  ; Z { x: symbol }
+  | Y { x: float }
+  | X { x: symbol }
+  | Y { x: float }
+  | Z { x: symbol }
 
 
 // Non Existing type.

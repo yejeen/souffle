@@ -11,7 +11,7 @@
 
 
 .type T = A { x: number }
-        ; B { x: symbol }
+        | B { x: symbol }
 
 
 

@@ -216,7 +216,17 @@ public:
     struct Branch {
         std::string name;                // < the name of the branch
         std::vector<const Type*> types;  // < Product type associated with this branch.
+
+        void print(std::ostream& out) const {
+            out << tfm::format("%s {%s}", this->name,
+                    join(types, ", ", [](std::ostream& out, const Type* t) { out << t->getName(); }));
+        }
     };
+
+    void print(std::ostream& out) const override {
+        out << tfm::format("%s = %s", name,
+                join(branches, " | ", [](std::ostream& out, const Branch& branch) { branch.print(out); }));
+    }
 
     void setBranches(std::vector<Branch> bs) {
         construtorToBranch.clear();

@@ -210,6 +210,7 @@ const Type* TypeEnvironmentAnalysis::createType(
         auto& adt = env.createType<AlgebraicDataType>(typeName);
 
         std::vector<AlgebraicDataType::Branch> elements;
+
         for (auto* branch : as<AstAlgebraicDataType>(astType)->getBranches()) {
             std::vector<const Type*> branchTypes;
 
@@ -218,9 +219,9 @@ const Type* TypeEnvironmentAnalysis::createType(
                 if (type == nullptr) return nullptr;
                 branchTypes.push_back(type);
             }
-
             elements.push_back({branch->getConstructor(), std::move(branchTypes)});
         }
+
         adt.setBranches(std::move(elements));
 
         return &adt;
