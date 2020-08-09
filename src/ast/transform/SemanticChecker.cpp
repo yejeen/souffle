@@ -126,7 +126,7 @@ private:
     void checkADT(const AstAlgebraicDataType& type);
 
     /** check if all the branches refer to the existing types. */
-    void checkADTinits();
+    void checkBranchInits();
 
     void checkNamespaces();
     void checkIO();
@@ -163,7 +163,7 @@ private:
     void visitNumericConstant(const AstNumericConstant& constant) override;
     void visitNilConstant(const AstNilConstant& constant) override;
     void visitRecordInit(const AstRecordInit& rec) override;
-    void visitADTinit(const AstADTinit& adt) override;
+    void visitBranchInit(const AstBranchInit& adt) override;
     void visitTypeCast(const AstTypeCast& cast) override;
     void visitIntrinsicFunctor(const AstIntrinsicFunctor& fun) override;
     void visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) override;
@@ -205,7 +205,7 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
 
     checkTypesDeclarations();
 
-    checkADTinits();
+    checkBranchInits();
 
     // check rules
     for (auto* rel : program.getRelations()) {
@@ -291,9 +291,9 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
     }
 }
 
-void AstSemanticCheckerImpl::checkADTinits() {
-    visitDepthFirst(program.getClauses(), [&](const AstADTinit& adt) {
-        if (sumTypesBranches.getType(adt.getBranch()) == nullptr) {
+void AstSemanticCheckerImpl::checkBranchInits() {
+    visitDepthFirst(program.getClauses(), [&](const AstBranchInit& adt) {
+        if (sumTypesBranches.getType(adt.getConstructor()) == nullptr) {
             report.addError("Undeclared branch", adt.getSrcLoc());
         }
     });
@@ -459,12 +459,10 @@ bool isConstantArgument(const AstArgument* arg) {
     } else if (auto* typeCast = as<AstTypeCast>(arg)) {
         return isConstantArgument(typeCast->getValue());
     } else if (auto* term = as<AstTerm>(arg)) {
-        // Term covers intrinsic functor and records. User-functors are handled earlier.
+        // Term covers intrinsic functor, records and adts. User-functors are handled earlier.
         return all_of(term->getArguments(), isConstantArgument);
     } else if (isA<AstConstant>(arg)) {
         return true;
-    } else if (auto* adt = as<AstADTinit>(arg)) {
-        return isConstantArgument(adt->getArgument());
     } else {
         fatal("unsupported argument type: %s", typeid(arg).name());
     }
@@ -1384,10 +1382,10 @@ void TypeChecker::visitRecordInit(const AstRecordInit& rec) {
     }
 }
 
-void TypeChecker::visitADTinit(const AstADTinit& adt) {
+void TypeChecker::visitBranchInit(const AstBranchInit& adt) {
     TypeSet types = typeAnalysis.getTypes(&adt);
 
-    if (!isOfKind(types, TypeAttribute::Sum) || types.isAll() || types.size() != 1) {
+    if (!isOfKind(types, TypeAttribute::ADT) || types.isAll() || types.size() != 1) {
         report.addError("Ambiguous branch", adt.getSrcLoc());
         return;
     }
@@ -1395,15 +1393,17 @@ void TypeChecker::visitADTinit(const AstADTinit& adt) {
     // We know now that the set "types" is a singleton
     auto& sumType = *as<AlgebraicDataType>(*types.begin());
 
-    auto& argumentType = sumType.getBranchType(adt.getBranch());
+    auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getConstructor());
+    auto args = adt.getArguments();
 
-    auto argTypes = typeAnalysis.getTypes(adt.getArgument());
-
-    // Check if the argument's type agrees with the branch declarations
-    if (!all_of(argTypes, [&](const Type& t) { return isSubtypeOf(t, argumentType); })) {
-        // TODO: Give better error
-        report.addError(
-                "Branch argument's type doesn't match its declared type", adt.getArgument()->getSrcLoc());
+    for (size_t i = 0; i < args.size(); ++i) {
+        auto argTypes = typeAnalysis.getTypes(args[i]);
+        bool correctType =
+                all_of(argTypes, [&](const Type& t) { return isSubtypeOf(t, *argsDeclaredTypes[i]); });
+        if (!correctType) {
+            // TODO (darth_tytus): Give better error
+            report.addError("Branch argument's type doesn't match its declared type", args[i]->getSrcLoc());
+        }
     }
 }
 
@@ -1470,7 +1470,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                 report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
                 break;
             case TypeAttribute::Record: fatal("Invalid return type");
-            case TypeAttribute::Sum: fatal("Invalid return type");
+            case TypeAttribute::ADT: fatal("Invalid return type");
         }
     }
 
@@ -1491,7 +1491,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                     report.addError("Non-float argument for functor", arg->getSrcLoc());
                     break;
                 case TypeAttribute::Record: fatal("Invalid argument type");
-                case TypeAttribute::Sum: fatal("Invalid argument type");
+                case TypeAttribute::ADT: fatal("Invalid argument type");
             }
         }
         ++i;
@@ -1535,7 +1535,7 @@ void TypeChecker::visitBinaryConstraint(const AstBinaryConstraint& constraint) {
                               case TypeAttribute::Unsigned: out << "`unsigned`"; break;
                               case TypeAttribute::Float: out << "`float`"; break;
                               case TypeAttribute::Record: out << "a record"; break;
-                              case TypeAttribute::Sum: out << "a sum"; break;
+                              case TypeAttribute::ADT: out << "a sum"; break;
                           }
                       });
                 report.addError(ss.str(), side.getSrcLoc());

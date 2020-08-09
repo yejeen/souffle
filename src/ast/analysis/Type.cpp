@@ -722,23 +722,29 @@ private:
         }
     }
 
-    void visitADTinit(const AstADTinit& adt) override {
-        auto* correspondingType = sumTypesBranches.getType(adt.getBranch());
+    void visitBranchInit(const AstBranchInit& adt) override {
+        auto* correspondingType = sumTypesBranches.getType(adt.getConstructor());
 
         if (correspondingType == nullptr) {
             return;  // malformed program.
         }
 
-        // sanity check
+        // Sanity check
         assert(isA<AlgebraicDataType>(correspondingType));
 
-        // $Branch(x) <: ADTtype
-        // x <: branchType
+        // Constraint on the whole branch. $Branch(...) <: ADTtype
         addConstraint(isSubtypeOf(getVar(adt), *correspondingType));
 
-        auto argVar = getVar(adt.getArgument());
-        auto& branchType = as<AlgebraicDataType>(correspondingType)->getBranchType(adt.getBranch());
-        addConstraint(isSubtypeOf(argVar, branchType));
+        // Constraints on arguments
+        auto& branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+
+        auto branchArgs = adt.getArguments();
+
+        // Add constraints for each of the branch arguments.
+        for (size_t i = 0; i < branchArgs.size(); ++i) {
+            auto argVar = getVar(branchArgs[i]);
+            addConstraint(isSubtypeOf(argVar, *branchTypes[i]));
+        }
     }
 
     void visitAggregator(const AstAggregator& agg) override {

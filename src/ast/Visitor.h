@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "ast/ADTinit.h"
 #include "ast/Aggregator.h"
 #include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
@@ -24,6 +23,7 @@
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
@@ -114,7 +114,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(NilConstant)
         FORWARD(TypeCast)
         FORWARD(RecordInit)
-        FORWARD(ADTinit)
+        FORWARD(BranchInit)
         FORWARD(Aggregator)
         FORWARD(SubroutineArgument)
 
@@ -163,7 +163,7 @@ protected:
     LINK(Counter, Argument)
     LINK(TypeCast, Argument)
     LINK(SubroutineArgument, Argument)
-    LINK(ADTinit, Argument)
+    LINK(BranchInit, Argument)
 
     LINK(NumericConstant, Constant)
     LINK(StringConstant, Constant)

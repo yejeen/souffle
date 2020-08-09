@@ -182,7 +182,7 @@ bool isOfRootType(const Type& type, const Type& root) {
 bool isOfKind(const Type& type, TypeAttribute kind) {
     if (kind == TypeAttribute::Record) {
         return isA<RecordType>(type);
-    } else if (kind == TypeAttribute::Sum) {
+    } else if (kind == TypeAttribute::ADT) {
         return isA<AlgebraicDataType>(type);
     }
 
@@ -221,7 +221,7 @@ std::string getTypeQualifier(const Type& type) {
                 str.append("s");
             } else if (isOfKind(type, TypeAttribute::Record)) {
                 str.append("r");
-            } else if (isOfKind(type, TypeAttribute::Sum)) {
+            } else if (isOfKind(type, TypeAttribute::ADT)) {
                 str.append("+");
             } else {
                 fatal("Unsupported kind");

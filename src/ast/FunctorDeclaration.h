@@ -82,7 +82,7 @@ protected:
                 case TypeAttribute::Float: return "float";
                 case TypeAttribute::Unsigned: return "unsigned";
                 case TypeAttribute::Record: break;
-                case TypeAttribute::Sum: break;
+                case TypeAttribute::ADT: break;
             }
             fatal("unhandled `TypeAttribute`");
         };

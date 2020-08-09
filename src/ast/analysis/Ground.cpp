@@ -221,15 +221,20 @@ struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
         addConstraint(imply(vars, cur));
     }
 
-    void visitADTinit(const AstADTinit& adt) override {
+    void visitBranchInit(const AstBranchInit& adt) override {
         auto branchVar = getVar(adt);
-        auto argVar = getVar(adt.getArgument());
 
-        // If the argument is grounded so is whole the branch.
-        addConstraint(imply(branchVar, argVar));
+        std::vector<BoolDisjunctVar> argVars;
 
-        // if the branch is grounded so is its argument.
-        addConstraint(imply(argVar, branchVar));
+        // If the branch is grounded so are its arguments.
+        for (const auto* arg : adt.getArguments()) {
+            auto argVar = getVar(arg);
+            addConstraint(imply(branchVar, argVar));
+            argVars.push_back(argVar);
+        }
+
+        // if all arguments are grounded so is the branch.
+        addConstraint(imply(argVars, branchVar));
     }
 
     // constants are also sources of grounded values

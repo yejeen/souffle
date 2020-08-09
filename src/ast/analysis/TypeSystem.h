@@ -219,17 +219,17 @@ public:
     };
 
     void setBranches(std::vector<Branch> bs) {
-        branchToType.clear();
+        construtorToBranch.clear();
         for (auto& branch : bs) {
-            branchToType[branch.name] = branch.types.at(0);
+            construtorToBranch[branch.name] = branch;
         }
         branches = std::move(bs);
         std::sort(branches.begin(), branches.end(),
                 [](const Branch& left, const Branch& right) { return left.name < right.name; });
     }
 
-    const Type& getBranchType(const std::string& branch) const {
-        return *branchToType.at(branch);
+    const std::vector<const Type*>& getBranchTypes(const std::string& branch) const {
+        return construtorToBranch.at(branch).types;
     }
 
     /** Return the branches as a sorted vector */
@@ -243,7 +243,7 @@ private:
     friend class TypeEnvironment;
 
     std::vector<Branch> branches;
-    std::map<std::string, const Type*> branchToType;
+    std::map<std::string, Branch> construtorToBranch;
 };
 
 /**
@@ -434,7 +434,7 @@ public:
             case TypeAttribute::Float: return getType("__floatConstant");
             case TypeAttribute::Symbol: return getType("__symbolConstant");
             case TypeAttribute::Record: break;
-            case TypeAttribute::Sum: break;
+            case TypeAttribute::ADT: break;
         }
 
         fatal("There is no constant record type");

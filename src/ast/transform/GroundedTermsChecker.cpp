@@ -57,9 +57,9 @@ void GroundedTermsChecker::verify(AstTranslationUnit& translationUnit) {
         });
 
         // All sums need to be grounded
-        visitDepthFirst(clause, [&](const AstADTinit& adt) {
+        visitDepthFirst(clause, [&](const AstBranchInit& adt) {
             if (!isGrounded[&adt]) {
-                report.addError("Ungrounded record", adt.getSrcLoc());
+                report.addError("Ungrounded ADT branch", adt.getSrcLoc());
             }
         });
     });

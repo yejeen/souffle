@@ -626,7 +626,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                         floatVal[i] = ramBitCast<RamFloat>(arg);
                         values[i] = &floatVal[i];
                         break;
-                    case TypeAttribute::Sum: fatal("ADT support is not implemented");
+                    case TypeAttribute::ADT: fatal("ADT support is not implemented");
                     case TypeAttribute::Record: fatal("Record support is not implemented");
                 }
             }
@@ -639,7 +639,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                 case TypeAttribute::Signed: codomain = &FFI_RamSigned; break;
                 case TypeAttribute::Unsigned: codomain = &FFI_RamUnsigned; break;
                 case TypeAttribute::Float: codomain = &FFI_RamFloat; break;
-                case TypeAttribute::Sum: fatal("Not implemented");
+                case TypeAttribute::ADT: fatal("Not implemented");
                 case TypeAttribute::Record: fatal("Not implemented");
             }
 
@@ -657,7 +657,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
                 case TypeAttribute::Unsigned: return ramBitCast(static_cast<RamUnsigned>(rc));
                 case TypeAttribute::Float: return ramBitCast(static_cast<RamFloat>(rc));
-                case TypeAttribute::Sum: fatal("Not implemented");
+                case TypeAttribute::ADT: fatal("Not implemented");
                 case TypeAttribute::Record: fatal("Not implemented");
             }
             fatal("Unsupported user defined operator");

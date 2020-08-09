@@ -11,7 +11,7 @@
  * @file ADTtoRecords.h
  *
  * Defines the desugaring of ADT to records.
- * Each record has a form (branch_id, argument).
+ * Each record has a form [branch_id, [arguments]].
  *
  ***********************************************************************/
 

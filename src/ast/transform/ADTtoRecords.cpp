@@ -13,9 +13,9 @@
  ***********************************************************************/
 
 #include "ast/transform/ADTtoRecords.h"
-#include "ast/ADTinit.h"
 #include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
+#include "ast/BranchInit.h"
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/RecordInit.h"
@@ -40,32 +40,42 @@ bool ADTtoRecords::transform(AstTranslationUnit& tu) {
             // Rewrite sub-expressions first
             node->apply(*this);
 
-            if (!isA<AstADTinit>(node)) {
+            if (!isA<AstBranchInit>(node)) {
                 return node;
             }
 
             changed = true;
 
-            auto& adt = *as<AstADTinit>(node);
+            auto& adt = *as<AstBranchInit>(node);
 
-            auto& type = sumTypesBranches.unsafeGetType(adt.getBranch());
+            auto& type = sumTypesBranches.unsafeGetType(adt.getConstructor());
             assert(isA<AlgebraicDataType>(type));
 
             auto& branches = as<AlgebraicDataType>(type)->getBranches();
 
             // Find branch ID.
-            AlgebraicDataType::Branch searchDummy{adt.getBranch(), {}};
+            AlgebraicDataType::Branch searchDummy{adt.getConstructor(), {}};
             auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
                     [](const AlgebraicDataType::Branch& left, const AlgebraicDataType::Branch& right) {
                         return left.name < right.name;
                     });
+
             auto branchID = std::distance(std::begin(branches), iterToBranch);
 
-            VecOwn<AstArgument> recordArgs;
-            recordArgs.push_back(mk<AstArgument, AstNumericConstant>(branchID));
-            recordArgs.emplace_back(adt.getArgument()->clone());
+            // Collect branch arguments
+            VecOwn<AstArgument> branchArguments;
+            for (auto* arg : adt.getArguments()) {
+                branchArguments.emplace_back(arg->clone());
+            }
 
-            return mk<AstRecordInit>(std::move(recordArgs), adt.getSrcLoc());
+            auto branchArgsAsRecord = mk<AstArgument, AstRecordInit>(std::move(branchArguments));
+
+            VecOwn<AstArgument> finalRecordArgs;
+
+            finalRecordArgs.push_back(mk<AstArgument, AstNumericConstant>(branchID));
+            finalRecordArgs.push_back(std::move(branchArgsAsRecord));
+
+            return mk<AstRecordInit>(std::move(finalRecordArgs), adt.getSrcLoc());
         }
     };
 

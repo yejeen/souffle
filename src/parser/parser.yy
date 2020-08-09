@@ -35,7 +35,7 @@
 /* -- Dependencies -- */
 %code requires {
     #include "AggregateOp.h"
-    #include "ast/ADTinit.h"
+    #include "ast/BranchInit.h"
     #include "ast/Aggregator.h"
     #include "ast/Argument.h"
     #include "ast/Atom.h"
@@ -652,7 +652,7 @@ arg
   /* TODO (azreika): in next version: prepend records with identifiers */
   | LBRACKET arg_list RBRACKET { $$ = mk<AstRecordInit>($arg_list, @$); }
 
-  | DOLLAR IDENT[branch] LPAREN arg RPAREN { $$ = mk<AstADTinit>($branch, $4, @$); }
+  | DOLLAR IDENT[branch] LPAREN arg_list RPAREN { $$ = mk<AstBranchInit>($branch, $arg_list, @$); }
 
   |     LPAREN arg                  RPAREN { $$ = $2; }
   | AS  LPAREN arg COMMA identifier RPAREN { $$ = mk<AstTypeCast>($3, $identifier, @$); }
