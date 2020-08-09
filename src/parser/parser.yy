@@ -334,6 +334,7 @@
 %type <Mov<VecOwn<AstIO>>>                   io_relation_list
 %type <Mov<std::string>>                     kvp_value
 %type <Mov<VecOwn<AstArgument>>>             non_empty_arg_list
+%type <Mov<Own<AstAttribute>>>               attribute
 %type <Mov<VecOwn<AstAttribute>>>            non_empty_attributes
 %type <Mov<AstExecutionOrder::ExecOrder>>    non_empty_exec_order_list
 %type <Mov<std::vector<TypeAttribute>>>      non_empty_functor_arg_type_list
@@ -477,15 +478,19 @@ record_type_list
   : LBRACKET RBRACKET                       { }
   | LBRACKET non_empty_attributes RBRACKET  { $$ = $2; }
   ;
+
 attributes_list
   : LPAREN RPAREN                       { }
   | LPAREN non_empty_attributes RPAREN  { $$ = $2; }
   ;
+
 non_empty_attributes
-  :                            IDENT COLON identifier
-    {           $$.push_back(mk<AstAttribute>($IDENT, $identifier, @identifier)); }
-  | non_empty_attributes COMMA IDENT COLON identifier
-    { $$ = $1;  $$.push_back(mk<AstAttribute>($IDENT, $identifier, @identifier)); }
+  : attribute                            {           $$.push_back($attribute); }
+  | non_empty_attributes COMMA attribute { $$ = $1;  $$.push_back($attribute); }
+  ;
+
+attribute
+  : IDENT[name] COLON identifier[type] { $$ = mk<AstAttribute>($name, $type, @type); }
   ;
 
 /* Relation tags */
