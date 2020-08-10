@@ -135,7 +135,7 @@ protected:
 
         const RamDomain* branchArgs = recordTable.unpack(wrappedBranchArgs, branchTypes.size());
 
-        destination << tfm::format("$%s", branchInfo["name"].string_value());
+        destination << "$" << branchInfo["name"].string_value();
 
         if (branchTypes.size() > 0) {
             destination << "(";

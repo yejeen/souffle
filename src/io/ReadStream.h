@@ -137,9 +137,8 @@ protected:
             size_t* charactersRead = nullptr) {
         const size_t initial_position = pos;
 
-        // Branch will be encoded as (branchIdx, branchValue).
+        // Branch will be encoded as [branchIdx, [branchValues...]].
         RamDomain branchIdx = -1;
-        RamDomain branchValue;
 
         auto&& adtInfo = types["ADTs"][adtName];
         const auto& branches = adtInfo["branches"];
@@ -150,11 +149,7 @@ protected:
 
         // Consume initial character
         consumeChar(source, '$', pos);
-        size_t consumed = 0;
-        std::string branchName = readUntil(source, "(", pos, &consumed);  // You need to move pos.
-        pos += consumed;
-
-        consumeChar(source, '(', pos);
+        std::string branchName = readAlphanumeric(source, pos);
 
         std::optional<json11::Json> branchInfo = [&]() -> std::optional<json11::Json> {
             for (auto branch : branches.array_items()) {
@@ -170,46 +165,90 @@ protected:
             throw std::invalid_argument("Missing branch information: " + branchName);
         }
 
-        auto branchType = branchInfo.value()["type"].string_value();
-        assert(!branchType.empty());
+        assert(branchInfo.value()["types"].is_array());
+        auto branchTypes = branchInfo.value()["types"].array_items();
 
-        consumed = 0;
-
-        switch (branchType[0]) {
-            case 's': {
-                branchValue = symbolTable.unsafeLookup(readUntil(source, ")", pos, &consumed));
-                break;
+        // Handle a branch without arguments.
+        if (branchTypes.empty()) {
+            if (charactersRead != nullptr) {
+                *charactersRead = pos - initial_position;
             }
-            case 'i': {
-                branchValue = RamSignedFromString(source.substr(pos), &consumed);
-                break;
-            }
-            case 'u': {
-                branchValue = ramBitCast(RamUnsignedFromString(source.substr(pos), &consumed));
-                break;
-            }
-            case 'f': {
-                branchValue = ramBitCast(RamFloatFromString(source.substr(pos), &consumed));
-                break;
-            }
-            case 'r': {
-                branchValue = readRecord(source, branchType, pos, &consumed);
-                break;
-            }
-            case '+': {
-                branchValue = readADT(source, branchType, pos, &consumed);
-                break;
-            }
-            default: fatal("Invalid type attribute");
+            RamDomain emptyArgs = recordTable.pack(toVector<RamDomain>().data(), 0);
+            return recordTable.pack(toVector<RamDomain>(branchIdx, emptyArgs).data(), 2);
         }
-        pos += consumed;
+
+        consumeChar(source, '(', pos);
+
+        std::vector<RamDomain> branchArgs(branchTypes.size());
+
+        for (size_t i = 0; i < branchTypes.size(); ++i) {
+            auto argType = branchTypes[i].string_value();
+            assert(!argType.empty());
+
+            size_t consumed = 0;
+
+            if (i > 0) {
+                consumeChar(source, ',', pos);
+            }
+            consumeWhiteSpace(source, pos);
+
+            switch (argType[0]) {
+                case 's': {
+                    branchArgs[i] = symbolTable.unsafeLookup(readUntil(source, ",)", pos, &consumed));
+                    break;
+                }
+                case 'i': {
+                    branchArgs[i] = RamSignedFromString(source.substr(pos), &consumed);
+                    break;
+                }
+                case 'u': {
+                    branchArgs[i] = ramBitCast(RamUnsignedFromString(source.substr(pos), &consumed));
+                    break;
+                }
+                case 'f': {
+                    branchArgs[i] = ramBitCast(RamFloatFromString(source.substr(pos), &consumed));
+                    break;
+                }
+                case 'r': {
+                    branchArgs[i] = readRecord(source, argType, pos, &consumed);
+                    break;
+                }
+                case '+': {
+                    branchArgs[i] = readADT(source, argType, pos, &consumed);
+                    break;
+                }
+                default: fatal("Invalid type attribute");
+            }
+            pos += consumed;
+        }
 
         consumeChar(source, ')', pos);
+
+        RamDomain branchValue = recordTable.pack(branchArgs.data(), branchArgs.size());
 
         if (charactersRead != nullptr) {
             *charactersRead = pos - initial_position;
         }
+
         return recordTable.pack(toVector<RamDomain>(branchIdx, branchValue).data(), 2);
+    }
+
+    /**
+     * Read the next alphanumeric sequence (corresponding to IDENT).
+     * Consume preceding whitespace
+     */
+    std::string readAlphanumeric(const std::string& source, size_t& pos) {
+        consumeWhiteSpace(source, pos);
+        if (pos >= source.length()) {
+            throw std::invalid_argument("Unexpected end of input");
+        }
+
+        const size_t bgn = pos;
+        while (pos < source.length() && std::isalnum(static_cast<unsigned char>(source[pos]))) {
+            ++pos;
+        }
+
+        return source.substr(bgn, pos - bgn);
     }
 
     std::string readUntil(const std::string& source, const std::string stopChars, const size_t pos,
