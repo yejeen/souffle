@@ -62,7 +62,7 @@ public:
 
     NormalisedClauseRepr(const AstClause* clause) {
         // head
-        AstQualifiedName name("min:head");
+        AstQualifiedName name("@min:head");
         std::vector<std::string> headVars;
         for (const auto* arg : clause->getHead()->getArguments()) {
             headVars.push_back(normaliseArgument(arg));
@@ -353,9 +353,8 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
     }
 
     // create permutation matrix
-    permutationMatrix[0][0] = 1;
-    for (size_t i = 1; i < size; i++) {
-        for (size_t j = 1; j < size; j++) {
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
             if (leftElements[i].name == rightElements[j].name) {
                 permutationMatrix[i][j] = 1;
             }
