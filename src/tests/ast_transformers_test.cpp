@@ -332,7 +332,7 @@ TEST(AstTransformers, CheckAggregatorEquivalence) {
                 // first and second are equivalent
                 D(X) :-
                     B(X),
-                    X < max Y : { C(Y), B(Y) },
+                    X < max Y : { C(Y), B(Y), Y < 2 },
                     A(Z),
                     Z = sum A : { C(A), B(A) }.
 
@@ -340,14 +340,14 @@ TEST(AstTransformers, CheckAggregatorEquivalence) {
                     B(V),
                     A(W),
                     W = sum test1 : { C(test1), B(test1) },
-                    V < max test2 : { C(test2), B(test2) }.
+                    V < max test2 : { C(test2), B(test2), test2 < 2 }.
 
                 // third not equivalent
                 D(V) :-
                     B(V),
                     A(W),
                     W = min test1 : { C(test1), B(test1) },
-                    V < max test2 : { C(test2), B(test2) }.
+                    V < max test2 : { C(test2), B(test2), test2 < 2 }.
 
                 .output D()
             )",
@@ -366,11 +366,13 @@ TEST(AstTransformers, CheckAggregatorEquivalence) {
     // D should now only have the two clauses non-equivalent clauses
     const auto& dClauses = getClauses(program, "D");
     EXPECT_EQ(2, dClauses.size());
-    EXPECT_EQ("D(X) :- \n   B(X),\n   X < max Y : { C(Y),B(Y) },\n   A(Z),\n   Z = sum A : { C(A),B(A) }.",
+    EXPECT_EQ(
+            "D(X) :- \n   B(X),\n   X < max Y : { C(Y),B(Y),Y < 2 },\n   A(Z),\n   Z = sum A : { C(A),B(A) "
+            "}.",
             toString(*dClauses[0]));
     EXPECT_EQ(
             "D(V) :- \n   B(V),\n   A(W),\n   W = min test1 : { C(test1),B(test1) },\n   V < max test2 : { "
-            "C(test2),B(test2) }.",
+            "C(test2),B(test2),test2 < 2 }.",
             toString(*dClauses[1]));
 }
 
