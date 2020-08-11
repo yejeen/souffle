@@ -96,7 +96,7 @@ private:
     bool fullyNormalised{true};
     std::set<std::string> variables{};
     std::set<std::string> constants{};
-    std::vector<NormalisedClauseElementRepr> clauseElements;
+    std::vector<NormalisedClauseElementRepr> clauseElements{};
 
     /**
      * Parse an atom with a preset name qualifier into the element list.
