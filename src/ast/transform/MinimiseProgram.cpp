@@ -72,7 +72,7 @@ public:
 
         // body
         for (const auto* lit : clause->getBodyLiterals()) {
-            addClauseBodyLiteral("@min:level:0", lit);
+            addClauseBodyLiteral("@min:scope:0", lit);
         }
     }
 
@@ -94,6 +94,7 @@ public:
 
 private:
     bool fullyNormalised{true};
+    size_t aggrScopeCount{0};
     std::set<std::string> variables{};
     std::set<std::string> constants{};
     std::vector<NormalisedClauseElementRepr> clauseElements{};
@@ -101,12 +102,12 @@ private:
     /**
      * Parse an atom with a preset name qualifier into the element list.
      */
-    void addClauseAtom(const std::string& qualifier, const std::string& level, const AstAtom* atom);
+    void addClauseAtom(const std::string& qualifier, const std::string& scopeID, const AstAtom* atom);
 
     /**
      * Parse a body literal into the element list.
      */
-    void addClauseBodyLiteral(const std::string& level, const AstLiteral* lit);
+    void addClauseBodyLiteral(const std::string& scopeID, const AstLiteral* lit);
 
     /**
      * Return a normalised string repr of an argument.
@@ -115,12 +116,12 @@ private:
 };
 
 void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseAtom(
-        const std::string& qualifier, const std::string& level, const AstAtom* atom) {
+        const std::string& qualifier, const std::string& scopeID, const AstAtom* atom) {
     AstQualifiedName name(atom->getQualifiedName());
     name.prepend(qualifier);
 
     std::vector<std::string> vars;
-    vars.push_back(level);
+    vars.push_back(scopeID);
     for (const auto* arg : atom->getArguments()) {
         vars.push_back(normaliseArgument(arg));
     }
@@ -128,16 +129,16 @@ void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseAtom(
 }
 
 void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseBodyLiteral(
-        const std::string& level, const AstLiteral* lit) {
+        const std::string& scopeID, const AstLiteral* lit) {
     if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
-        addClauseAtom("@min:atom", level, atom);
+        addClauseAtom("@min:atom", scopeID, atom);
     } else if (const auto* neg = dynamic_cast<const AstNegation*>(lit)) {
-        addClauseAtom("@min:neg", level, neg->getAtom());
+        addClauseAtom("@min:neg", scopeID, neg->getAtom());
     } else if (const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit)) {
         AstQualifiedName name(toBinaryConstraintSymbol(bc->getOperator()));
         name.prepend("@min:operator");
         std::vector<std::string> vars;
-        vars.push_back(level);
+        vars.push_back(scopeID);
         vars.push_back(normaliseArgument(bc->getLHS()));
         vars.push_back(normaliseArgument(bc->getRHS()));
         clauseElements.push_back({.name = name, .params = vars});
@@ -145,7 +146,7 @@ void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseBodyLiteral(
         assert(lit != nullptr && "unexpected nullptr lit");
         fullyNormalised = false;
         std::stringstream qualifier;
-        qualifier << "@min:unhandled:lit:" << level;
+        qualifier << "@min:unhandled:lit:" << scopeID;
         AstQualifiedName name(toString(*lit));
         name.prepend(qualifier.str());
         clauseElements.push_back({.name = name, .params = std::vector<std::string>()});
@@ -177,11 +178,10 @@ std::string MinimiseProgramTransformer::NormalisedClauseRepr::normaliseArgument(
         variables.insert(name.str());
         return name.str();
     } else if (auto* aggr = dynamic_cast<const AstAggregator*>(arg)) {
-        // Set the level to uniquely identify the aggregator
-        static size_t countAggrs = 0;
-        std::stringstream levelID;
-        levelID << "@min:level:" << ++countAggrs;
-        variables.insert(levelID.str());
+        // Set the scope to uniquely identify the aggregator
+        std::stringstream scopeID;
+        scopeID << "@min:scope:" << ++aggrScopeCount;
+        variables.insert(scopeID.str());
 
         // Set the type signature of this aggregator
         std::stringstream aggrTypeSignature;
@@ -191,8 +191,8 @@ std::string MinimiseProgramTransformer::NormalisedClauseRepr::normaliseArgument(
         // - the operator is fixed and cannot be changed
         aggrTypeSignature << ":" << aggr->getOperator();
 
-        // - the level can be remapped as a variable
-        aggrTypeSignatureComponents.push_back(levelID.str());
+        // - the scope can be remapped as a variable
+        aggrTypeSignatureComponents.push_back(scopeID.str());
 
         // - the normalised target expression can be remapped as a variable
         if (aggr->getTargetExpression() != nullptr) {
@@ -203,13 +203,13 @@ std::string MinimiseProgramTransformer::NormalisedClauseRepr::normaliseArgument(
         // Type signature is its own special atom
         clauseElements.push_back({.name = aggrTypeSignature.str(), .params = aggrTypeSignatureComponents});
 
-        // Add each contained normalised clause literal, tying it with the new level
+        // Add each contained normalised clause literal, tying it with the new scope ID
         for (const auto* literal : aggr->getBodyLiterals()) {
-            addClauseBodyLiteral(levelID.str(), literal);
+            addClauseBodyLiteral(scopeID.str(), literal);
         }
 
-        // Aggregator identified by the level ID
-        return levelID.str();
+        // Aggregator identified by the scope ID
+        return scopeID.str();
     } else {
         fullyNormalised = false;
         return "@min:unhandled:arg";
