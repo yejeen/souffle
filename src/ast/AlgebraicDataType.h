@@ -10,7 +10,7 @@
  *
  * @file AlgebraicDataType.h
  *
- * Defines the node corresponding to an ast declaration of Algebraic Data Type
+ * Defines a node corresponding to an ast declaration of Algebraic Data Type
  *
  ***********************************************************************/
 
@@ -32,7 +32,8 @@ namespace souffle {
  * Example:
  * .type Nat = S {n : Nat} | Zero {}
  *
- * The type Nat has two branches, S which takes element of type Nat and Zero which doesn't take any args.
+ * The type Nat has two branches, S which takes element of type Nat and Zero which doesn't take any
+ * arguments.
  *
  */
 class AstAlgebraicDataType : public AstType {

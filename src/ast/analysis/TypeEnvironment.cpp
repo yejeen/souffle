@@ -207,10 +207,12 @@ const Type* TypeEnvironmentAnalysis::createType(
         return &recordType;
 
     } else if (isA<AstAlgebraicDataType>(astType)) {
+        // ADT can be recursive so its need to be forward initialized
         auto& adt = env.createType<AlgebraicDataType>(typeName);
 
         std::vector<AlgebraicDataType::Branch> elements;
 
+        // Create and collect branches types.
         for (auto* branch : as<AstAlgebraicDataType>(astType)->getBranches()) {
             std::vector<const Type*> branchTypes;
 

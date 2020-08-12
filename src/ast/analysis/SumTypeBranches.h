@@ -10,7 +10,7 @@
  *
  * @file SumTypeBranches.h
  *
- * A wrapper for calculating a mapping between branches and types that declare them.
+ * A wrapper/cache for calculating a mapping between branches and types that declare them.
  *
  ***********************************************************************/
 
@@ -31,7 +31,7 @@ public:
     void run(const AstTranslationUnit& translationUnit) override;
 
     /**
-     * A type can be nullptr in case of malformed program.
+     * A type can be nullptr in case of a malformed program.
      */
     const Type* getType(const std::string& branch) const {
         if (contains(branchToType, branch)) {

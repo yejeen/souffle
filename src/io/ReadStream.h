@@ -26,7 +26,6 @@
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -137,7 +136,7 @@ protected:
             size_t* charactersRead = nullptr) {
         const size_t initial_position = pos;
 
-        // Branch will be encoded as [branchIdx, [branchValues...]].
+        // Branch will are encoded as [branchIdx, [branchValues...]].
         RamDomain branchIdx = -1;
 
         auto&& adtInfo = types["ADTs"][adtName];
@@ -149,24 +148,21 @@ protected:
 
         // Consume initial character
         consumeChar(source, '$', pos);
-        std::string branchName = readAlphanumeric(source, pos);
+        std::string constructor = readAlphanumeric(source, pos);
 
-        std::optional<json11::Json> branchInfo = [&]() -> std::optional<json11::Json> {
+        json11::Json branchInfo = [&]() -> json11::Json {
             for (auto branch : branches.array_items()) {
                 ++branchIdx;
-                if (branch["name"].string_value() == branchName) {
+                if (branch["name"].string_value() == constructor) {
                     return branch;
                 }
             }
-            return {};
+
+            throw std::invalid_argument("Missing branch information: " + constructor);
         }();
 
-        if (!branchInfo.has_value()) {
-            throw std::invalid_argument("Missing branch information: " + branchName);
-        }
-
-        assert(branchInfo.value()["types"].is_array());
-        auto branchTypes = branchInfo.value()["types"].array_items();
+        assert(branchInfo["types"].is_array());
+        auto branchTypes = branchInfo["types"].array_items();
 
         // Handle a branch without arguments.
         if (branchTypes.empty()) {
@@ -235,7 +231,8 @@ protected:
 
     /**
      * Read the next alphanumeric sequence (corresponding to IDENT).
-     * Consume preceding whitespace
+     * Consume preceding whitespace.
+     * TODO (darth_tytus): use std::string_view?
      */
     std::string readAlphanumeric(const std::string& source, size_t& pos) {
         consumeWhiteSpace(source, pos);

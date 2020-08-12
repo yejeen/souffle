@@ -11,7 +11,6 @@
  * @file BranchInit.h
  *
  * Defines a argument covering the branch initialization of ADTs.
- * Branches take the form: Constructor { (arg)* }
  *
  ***********************************************************************/
 
@@ -31,7 +30,15 @@
 namespace souffle {
 
 /**
- * ADT branch initialization.
+ * @class AstBranchInit
+ * @brief Initialization of ADT instance.
+ *
+ * Initializes one of the branches of ADT.
+ * The syntax for branches initialization is
+ * $BRANCH_NAME(args...)
+ * In case of the branch with no arguments
+ * it is simplified to $BRANCH_NAME
+ *
  */
 class AstBranchInit : public AstTerm {
 public:

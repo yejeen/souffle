@@ -159,6 +159,10 @@ private:
     /**
      * Get sum types info for IO.
      * If they don't exists - create them.
+     *
+     * The structure of JSON is approximately:
+     * {"ADTs" : {ADT_NAME : {"branches" : [branch..]}, {"arity": ...}}}
+     * branch = {{"types": [types ...]}, ["name": ...]}
      */
     json11::Json getAlgebraicDataTypes(AstTranslationUnit& translationUnit) const {
         static json11::Json sumTypesInfo;

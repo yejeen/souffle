@@ -10,8 +10,10 @@
  *
  * @file ADTtoRecords.h
  *
- * Defines the desugaring of ADT to records.
+ * Defines the desugaring of ADTs to records.
+ *
  * Each record has a form [branch_id, [arguments]].
+ * Branch ID is given by a lexicographical ordering of branches within an ADT.
  *
  ***********************************************************************/
 

@@ -207,9 +207,11 @@ protected:
 };
 
 /**
- * Algebraic Data Type
+ * @class AlgebraicDataType
+ * @brief Aggregates types using sums and products.
  *
- * Invariant: vector "branches" is sorted.
+ *
+ * Invariant: branches are in stored in lexicographical order.
  */
 class AlgebraicDataType : public Type {
 public:
@@ -229,17 +231,17 @@ public:
     }
 
     void setBranches(std::vector<Branch> bs) {
-        construtorToBranch.clear();
-        for (auto& branch : bs) {
-            construtorToBranch[branch.name] = branch;
-        }
         branches = std::move(bs);
         std::sort(branches.begin(), branches.end(),
                 [](const Branch& left, const Branch& right) { return left.name < right.name; });
     }
 
-    const std::vector<const Type*>& getBranchTypes(const std::string& branch) const {
-        return construtorToBranch.at(branch).types;
+    const std::vector<const Type*>& getBranchTypes(const std::string& constructor) const {
+        for (auto& branch : branches) {
+            if (branch.name == constructor) return branch.types;
+        }
+        // Branch doesn't exist.
+        throw std::out_of_range("Trying to access non-existing branch.");
     }
 
     /** Return the branches as a sorted vector */
@@ -253,7 +255,6 @@ private:
     friend class TypeEnvironment;
 
     std::vector<Branch> branches;
-    std::map<std::string, Branch> construtorToBranch;
 };
 
 /**

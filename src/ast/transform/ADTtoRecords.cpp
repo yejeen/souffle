@@ -60,6 +60,7 @@ bool ADTtoRecords::transform(AstTranslationUnit& tu) {
                         return left.name < right.name;
                     });
 
+            // Branch id corresponds to the position in lexicographical ordering.
             auto branchID = std::distance(std::begin(branches), iterToBranch);
 
             // Collect branch arguments
@@ -68,8 +69,10 @@ bool ADTtoRecords::transform(AstTranslationUnit& tu) {
                 branchArguments.emplace_back(arg->clone());
             }
 
+            // Store branch arguments as record [branch_args...]
             auto branchArgsAsRecord = mk<AstArgument, AstRecordInit>(std::move(branchArguments));
 
+            // Arguments for the resulting record [branch_id, [branch_args...]].
             VecOwn<AstArgument> finalRecordArgs;
 
             finalRecordArgs.push_back(mk<AstArgument, AstNumericConstant>(branchID));
