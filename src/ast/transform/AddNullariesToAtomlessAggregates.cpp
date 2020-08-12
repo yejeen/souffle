@@ -1,6 +1,6 @@
 /*
  * Souffle - A Datalog Compiler
- * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
+ * Copyright (c) 2020, Souffle Developers. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
@@ -24,10 +24,10 @@
 #include "ast/Literal.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
-#include "ast/QualifiedName.h"
-#include "ast/Relation.h"
-#include "ast/TranslationUnit.h"
-#include "ast/TypeSystem.h"
+#include "ast/analysis/QualifiedName.h"
+#include "ast/analysis/Relation.h"
+#include "ast/analysis/TranslationUnit.h"
+#include "ast/analysis/TypeSystem.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
