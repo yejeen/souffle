@@ -708,7 +708,6 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                             "Unsupported complex aggregation body encountered!");
                 }
             }
-
             // translate arguments's of atom (if exists) to conditions
             if (atom != nullptr) {
                 size_t pos = 0;
