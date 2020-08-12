@@ -103,7 +103,7 @@ souffle_sources = \
         SignalHandler.h                                    \
         TypeAttribute.h                                    \
         Util.cpp                                           \
-        ast/BranchInit.h                                      \
+        ast/BranchInit.h                                   \
         ast/AlgebraicDataType.h                            \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \

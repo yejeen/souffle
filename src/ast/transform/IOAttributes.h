@@ -184,16 +184,14 @@ private:
 
             std::vector<json11::Json> branchesInfo;
 
-            for (size_t branchID = 0; branchID < branches.size(); ++branchID) {
-                auto branch = branches[branchID];
-
+            for (const auto& branch : branches) {
                 std::vector<json11::Json> branchTypes;
                 for (auto* type : branch.types) {
                     branchTypes.push_back(getTypeQualifier(*type));
                 }
 
-                auto branchInfo = json11::Json::object{
-                        {{"types", std::move(branchTypes)}, {"name", branches[branchID].name}}};
+                auto branchInfo =
+                        json11::Json::object{{{"types", std::move(branchTypes)}, {"name", branch.name}}};
                 branchesInfo.push_back(std::move(branchInfo));
             }
 
