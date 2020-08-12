@@ -10,6 +10,8 @@
  *
  * @file UnnamedVariable.h
  *
+ * Defines the unnamed variable class
+ *
  ***********************************************************************/
 
 #pragma once
@@ -20,7 +22,8 @@
 namespace souffle {
 
 /**
- * Unnamed Variable
+ * @class AstUnnamedVariable
+ * @brief Unnamed variable class
  */
 class AstUnnamedVariable : public AstArgument {
 public:

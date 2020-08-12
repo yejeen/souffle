@@ -1,6 +1,6 @@
 /*
  * Souffle - A Datalog Compiler
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Copyright (c) 2018, The Souffle Developers. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "Global.h"
+#include "ram/Relation.h"
 #include "ram/analysis/Analysis.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
@@ -23,10 +25,13 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -50,118 +55,46 @@ enum class AttributeConstraint { None, Equal, Inequal };
  * no value exists (i.e. attribute is unbounded) in the search. */
 class SearchSignature {
 public:
-    explicit SearchSignature(size_t arity) : constraints(arity, AttributeConstraint::None) {}
-
-    inline size_t arity() const {
-        return constraints.size();
-    }
+    explicit SearchSignature(size_t arity);
+    size_t arity() const;
 
     // array subscript operator
-    inline AttributeConstraint operator[](std::size_t pos) const {
-        assert(pos < constraints.size());
-        return constraints[pos];
-    }
+    AttributeConstraint& operator[](std::size_t pos);
+    const AttributeConstraint& operator[](std::size_t pos) const;
 
     // comparison operators
-    inline bool operator<(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        size_t len = constraints.size();
-        for (size_t i = 0; i < len; ++i) {
-            size_t index = len - i - 1;  // get right to left index order
+    bool operator<(const SearchSignature& other) const;
+    bool operator==(const SearchSignature& other) const;
+    bool operator!=(const SearchSignature& other) const;
 
-            // if ours has a constraint and other's has a constraint then it is smaller
-            if (constraints[index] < other.constraints[index]) {
-                return true;
-            }
-            // if ours has a constraint and other's has no constraint then it is larger
-            else if (constraints[index] > other.constraints[index]) {
-                return false;
-            }
-        }
-        return false;
-    }
+    bool empty() const;
+    bool containsEquality() const;
 
-    // needed for asserts
-    inline bool operator==(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        return constraints == other.constraints;
-    }
-
-    inline bool empty() const {
-        size_t len = constraints.size();
-        for (size_t i = 0; i < len; ++i) {
-            if (constraints[i] != AttributeConstraint::None) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    inline bool isStrictSubset(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        size_t len = constraints.size();
-        for (size_t i = 0; i < len; ++i) {
-            if ((constraints[i] != AttributeConstraint::None) &&
-                    (other.constraints[i] == AttributeConstraint::None)) {
-                return false;
-            }
-        }
-        return constraints != other.constraints;
-    }
-
-    static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
-        assert(lhs.arity() == rhs.arity());
-        SearchSignature delta(lhs.arity());
-        for (size_t i = 0; i < lhs.arity(); ++i) {
-            // if constraints are the same then delta is nothing
-            if (lhs.constraints[i] == rhs.constraints[i]) {
-                delta.constraints[i] = AttributeConstraint::None;
-                continue;
-            }
-
-            // if rhs has no constraint then delta has lhs constraint
-            if (rhs.constraints[i] == AttributeConstraint::None) {
-                delta.constraints[i] = lhs.constraints[i];
-                continue;
-            }
-
-            assert(false && "lhs and rhs should not have inequal/equal pair constraints");
-        }
-        return delta;
-    }
-
-    static SearchSignature getFullSearchSignature(size_t arity) {
-        SearchSignature res(arity);
-        for (size_t i = 0; i < arity; ++i) {
-            res.constraints[i] = AttributeConstraint::Equal;
-        }
-        return res;
-    }
-
-    // set a constraint
-    inline SearchSignature& set(size_t pos, AttributeConstraint constraint) {
-        assert(pos < constraints.size());
-        constraints[pos] = constraint;
-        return *this;
-    }
+    static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs);
+    static bool isSubset(const SearchSignature& lhs, const SearchSignature& rhs);
+    static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
+    static SearchSignature getFullSearchSignature(size_t arity);
+    static SearchSignature getDischarged(const SearchSignature& signature);
 
     friend std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
+
+    // hashing class
+    class Hasher {
+    public:
+        size_t operator()(const SearchSignature& searchSignature) const {
+            std::size_t seed = searchSignature.arity();
+            for (auto& constraint : searchSignature.constraints) {
+                seed ^= static_cast<size_t>(constraint) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
 
 private:
     std::vector<AttributeConstraint> constraints;
 };
 
-inline std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
-    size_t len = signature.constraints.size();
-    for (size_t i = 0; i < len; ++i) {
-        switch (signature.constraints[len - 1 - i]) {
-            case AttributeConstraint::None: out << 0; break;
-            case AttributeConstraint::Equal: out << 1; break;
-            case AttributeConstraint::Inequal: out << 2; break;
-        }
-    }
-    return out;
-}
+std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
 
 /**
  * @class MaxMatching
@@ -184,7 +117,7 @@ class MaxMatching {
 public:
     using Node = uint32_t;
     /* The nodes of the bi-partite graph are index signatures of RAM operation */
-    using Nodes = std::set<Node, std::greater<Node>>;
+    using Nodes = std::unordered_set<Node>;
     /* Distance between nodes */
     using Distance = int;
     /**
@@ -192,7 +125,7 @@ public:
      * graph maps to another node. If no map exist for a node, there is no adjacent edge
      * exists for that node.
      */
-    using Matchings = std::map<Node, Node, std::greater<Node>>;
+    using Matchings = std::unordered_map<Node, Node>;
 
     /* Node constant representing no match */
     const Node NullVertex = 0;
@@ -248,11 +181,11 @@ private:
     /**
      * Edges in the bi-partite graph
      */
-    using Edges = std::set<Node>;
+    using Edges = std::unordered_set<Node>;
     /**
      * Bi-partite graph of instance
      */
-    using Graph = std::map<Node, Edges>;
+    using Graph = std::unordered_map<Node, Edges>;
     /**
      * distance function of nodes
      */
@@ -279,14 +212,30 @@ private:
 class MinIndexSelection {
 public:
     using AttributeIndex = uint32_t;
-    using SignatureIndexMap = std::map<SearchSignature, AttributeIndex>;
-    using IndexSignatureMap = std::map<AttributeIndex, SearchSignature>;
+    using AttributeSet = std::unordered_set<AttributeIndex>;
+    using SignatureMap = std::unordered_map<SearchSignature, SearchSignature, SearchSignature::Hasher>;
+    using SignatureIndexMap = std::unordered_map<SearchSignature, AttributeIndex, SearchSignature::Hasher>;
+    using IndexSignatureMap = std::unordered_map<AttributeIndex, SearchSignature>;
+    using DischargeMap = std::unordered_map<SearchSignature, AttributeSet, SearchSignature::Hasher>;
     using LexOrder = std::vector<AttributeIndex>;
     using OrderCollection = std::vector<LexOrder>;
-    using Chain = std::set<SearchSignature>;
-    using ChainOrderMap = std::vector<Chain>;
-    using SearchSet = std::set<SearchSignature>;
-    using AttributeSet = std::unordered_set<AttributeIndex>;
+    using Chain = std::vector<SearchSignature>;
+    // A chain is a vector of SearchSignature to support inserting incomparable elements later
+    // E.g. 1 --> 2 we don't have 1 and 2 as comparable but they form a valid lex-order
+    using ChainOrderMap = std::list<Chain>;
+
+    class SearchComparator {
+    public:
+        bool operator()(const SearchSignature& s1, const SearchSignature& s2) const {
+            auto hasher = SearchSignature::Hasher();
+            return hasher(s1) < hasher(s2);
+        }
+    };
+
+    using SearchSet = std::set<SearchSignature, SearchComparator>;
+    // SearchSignatures only have a partial order, however we need to produce a unique ordering of searches
+    // when we output the name of the index and therefore we order the SearchSignatures arbitrarily by their
+    // hashes
 
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
@@ -324,8 +273,10 @@ public:
         return chainToOrder;
     }
 
-    /** @Brief check whether number of constraints in k is not equal
-        to number of columns in lexicographical order */
+    /**
+     * Check whether number of constraints in k is not equal to number of columns in lexicographical
+     * order
+     * */
     bool isSubset(SearchSignature cols) const {
         int idx = map(cols);
         return card(cols) < orders[idx].size();
@@ -338,9 +289,9 @@ public:
      *  @param size of the index
      */
     void insertDefaultTotalIndex(size_t arity) {
-        Chain chain = std::set<SearchSignature>();
+        Chain chain = std::vector<SearchSignature>();
         SearchSignature fullIndexKey = SearchSignature::getFullSearchSignature(arity);
-        chain.insert(fullIndexKey);
+        chain.push_back(fullIndexKey);
         chainToOrder.push_back(std::move(chain));
         LexOrder totalOrder;
         for (size_t i = 0; i < arity; ++i) {
@@ -348,26 +299,14 @@ public:
         }
         orders.push_back(std::move(totalOrder));
     }
-    /** Return the attribute position for each inequality that should be discharged.
-     *  NOTE: For now, all inequalities will be discharged but later the lex-orders will be inspected
-     * If an inequality is not in the last position of a lex-order only then is it discharged
+    /** Return the attribute position for each indexed operation that should be discharged.
      */
-    AttributeSet getAttributesToDischarge() {
-        AttributeSet attributesToDischarge;
-        for (auto search : searches) {
-            size_t arity = search.arity();
-            for (size_t i = 0; i < arity; ++i) {
-                if (search[i] == AttributeConstraint::Inequal) {
-                    attributesToDischarge.insert(i);
-                }
-            }
-        }
-        return attributesToDischarge;
-    }
+    AttributeSet getAttributesToDischarge(const SearchSignature& s, const RamRelation& rel);
 
 protected:
     SignatureIndexMap signatureToIndexA;  // mapping of a SearchSignature on A to its unique index
     SignatureIndexMap signatureToIndexB;  // mapping of a SearchSignature on B to its unique index
+    DischargeMap dischargedMap;           // mapping of a SearchSignature to the attributes to discharge
     IndexSignatureMap indexToSignature;   // mapping of a unique index to its SearchSignature
     SearchSet searches;                   // set of search patterns on table
     OrderCollection orders;               // collection of lexicographical orders
@@ -390,7 +329,7 @@ protected:
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
         int i = 0;
         for (auto it = chainToOrder.begin(); it != chainToOrder.end(); ++it, ++i) {
-            if (it->find(cols) != it->end()) {
+            if (std::find(it->begin(), it->end(), cols) != it->end()) {
                 assert((size_t)i < orders.size());
                 return i;
             }
@@ -400,11 +339,15 @@ protected:
 
     /** @Brief insert an index based on the delta */
     void insertIndex(LexOrder& ids, SearchSignature delta) {
+        LexOrder backlog;  // add inequalities at the end
         for (size_t pos = 0; pos < delta.arity(); pos++) {
-            if (delta[pos] != AttributeConstraint::None) {
+            if (delta[pos] == AttributeConstraint::Equal) {
                 ids.push_back(pos);
+            } else if (delta[pos] == AttributeConstraint::Inequal) {
+                backlog.push_back(pos);
             }
         }
+        ids.insert(ids.end(), backlog.begin(), backlog.end());
     }
 
     /** @Brief get a chain from a matching
@@ -419,6 +362,14 @@ protected:
 
     /** @Brief get all chains from the matching */
     const ChainOrderMap getChainsFromMatching(const MaxMatching::Matchings& match, const SearchSet& nodes);
+
+    /** @param OldSearch to be updated
+     *  @param NewSearch to replace the OldSearch
+     */
+    void updateSearch(SearchSignature oldSearch, SearchSignature newSearch);
+
+    /** @Brief remove arbitrary extra inequalities */
+    void removeExtraInequalities();
 
     /** @Brief get all nodes which are unmatched from A-> B */
     const SearchSet getUnmatchedKeys(const MaxMatching::Matchings& match, const SearchSet& nodes) {

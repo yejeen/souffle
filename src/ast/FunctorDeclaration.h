@@ -10,15 +10,15 @@
  *
  * @file FunctorDeclaration.h
  *
- * Defines external functors.
+ * Defines the external functor class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "RamTypes.h"
-#include "SrcLocation.h"
+#include "TypeAttribute.h"
 #include "ast/Node.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
@@ -33,7 +33,11 @@
 namespace souffle {
 
 /**
- * AstFunctorDeclaration
+ * @class AstFunctorDeclaration
+ * @brief User-defined functor declaration
+ *
+ * Example:
+ *    .declfun foo(x:number, y:number):number
  */
 
 class AstFunctorDeclaration : public AstNode {
@@ -45,26 +49,26 @@ public:
         assert(this->name.length() > 0 && "functor name is empty");
     }
 
-    /** get name */
+    /** Return name */
     const std::string& getName() const {
         return name;
     }
 
-    /** get type */
+    /** Return type */
     const std::vector<TypeAttribute>& getArgsTypes() const {
         return argsTypes;
     }
 
+    /** Get return type */
     TypeAttribute getReturnType() const {
         return returnType;
     }
 
-    /** get number of arguments */
+    /** Return number of arguments */
     size_t getArity() const {
         return argsTypes.size();
     }
 
-    /** clone */
     AstFunctorDeclaration* clone() const override {
         return new AstFunctorDeclaration(name, argsTypes, returnType, getSrcLoc());
     }
@@ -92,7 +96,7 @@ protected:
         return name == other.name && argsTypes == other.argsTypes && returnType == other.returnType;
     }
 
-    /** name of functor */
+    /** Name of functor */
     const std::string name;
 
     /** Types of arguments */

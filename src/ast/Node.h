@@ -10,13 +10,13 @@
  *
  * @file Node.h
  *
- * Abstract class definitions for AST nodes
+ * Defines the AST abstract node class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
+#include "parser/SrcLocation.h"
 #include <iosfwd>
 #include <string>
 #include <typeinfo>
@@ -29,7 +29,7 @@ class AstNodeMapper;
 
 /**
  *  @class AstNode
- *  @brief Abstract class for syntactic elements in a Datalog program.
+ *  @brief Abstract class for syntactic elements in an input program.
  */
 class AstNode {
 public:

@@ -10,8 +10,7 @@
  *
  * @file Visitor.h
  *
- * Provides some infrastructure for the implementation of operations
- * on top of AST structures.
+ * Defines a visitor pattern for AST
  *
  ***********************************************************************/
 
@@ -59,10 +58,6 @@
 #include <vector>
 
 namespace souffle {
-class AstConstant;
-class AstFunctor;
-class AstTerm;
-class AstType;
 
 /** A tag type required for the is_ast_visitor type trait to identify AstVisitors */
 struct ast_visitor_tag {};

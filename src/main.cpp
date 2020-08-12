@@ -19,7 +19,6 @@
 #include "ErrorReport.h"
 #include "Explain.h"
 #include "Global.h"
-#include "ParserDriver.h"
 #include "RamTypes.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -59,31 +58,34 @@
 #include "ast/transform/ReorderLiterals.h"
 #include "ast/transform/ReplaceSingletonVariables.h"
 #include "ast/transform/ResolveAliases.h"
-#include "ast/transform/ResolveAnonymousRecordsAliases.h"
+#include "ast/transform/ResolveAnonymousRecordAliases.h"
 #include "ast/transform/SemanticChecker.h"
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast/transform/UserDefinedFunctors.h"
 #include "config.h"
 #include "interpreter/InterpreterEngine.h"
 #include "interpreter/InterpreterProgInterface.h"
+#include "parser/ParserDriver.h"
 #include "profile/Tui.h"
 #include "ram/Node.h"
 #include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/ChoiceConversion.h"
 #include "ram/transform/CollapseFilters.h"
+#include "ram/transform/Conditional.h"
 #include "ram/transform/EliminateDuplicates.h"
 #include "ram/transform/ExpandFilter.h"
 #include "ram/transform/HoistAggregate.h"
 #include "ram/transform/HoistConditions.h"
 #include "ram/transform/IfConversion.h"
 #include "ram/transform/IndexedInequality.h"
+#include "ram/transform/Loop.h"
 #include "ram/transform/MakeIndex.h"
 #include "ram/transform/Parallel.h"
 #include "ram/transform/ReorderConditions.h"
 #include "ram/transform/ReorderFilterBreak.h"
 #include "ram/transform/ReportIndex.h"
-#include "ram/transform/Transformer.h"
+#include "ram/transform/Sequence.h"
 #include "ram/transform/TupleId.h"
 #include "synthesiser/Synthesiser.h"
 #include "utility/ContainerUtil.h"
@@ -468,7 +470,7 @@ int main(int argc, char** argv) {
             std::make_unique<UniqueAggregationVariablesTransformer>(),
             std::make_unique<AstUserDefinedFunctorsTransformer>(),
             std::make_unique<FixpointTransformer>(
-                    std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordsAliases>(),
+                    std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordAliases>(),
                             std::make_unique<FoldAnonymousRecords>())),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<AstSemanticChecker>(),
             std::make_unique<MaterializeSingletonAggregationTransformer>(),
@@ -579,9 +581,9 @@ int main(int argc, char** argv) {
                     std::make_unique<HoistConditionsTransformer>(), std::make_unique<MakeIndexTransformer>()
                     // not sure if I need to move out the filter transform
                     )),
-            std::make_unique<IndexedInequalityTransformer>(), std::make_unique<IfConversionTransformer>(),
-            std::make_unique<ChoiceConversionTransformer>(), std::make_unique<CollapseFiltersTransformer>(),
-            std::make_unique<TupleIdTransformer>(),
+            std::make_unique<RamLoopTransformer>(std::make_unique<IndexedInequalityTransformer>()),
+            std::make_unique<IfConversionTransformer>(), std::make_unique<ChoiceConversionTransformer>(),
+            std::make_unique<CollapseFiltersTransformer>(), std::make_unique<TupleIdTransformer>(),
             std::make_unique<RamLoopTransformer>(std::make_unique<RamTransformerSequence>(
                     std::make_unique<HoistAggregateTransformer>(), std::make_unique<TupleIdTransformer>())),
             std::make_unique<ExpandFilterTransformer>(), std::make_unique<HoistConditionsTransformer>(),

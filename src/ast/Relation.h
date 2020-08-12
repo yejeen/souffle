@@ -10,19 +10,18 @@
  *
  * @file Relation.h
  *
- * Defines class Relation that represents relations in a Datalog program.
- * A relation can either be an IDB or EDB relation.
+ * Defines the relation class and helper its classes
  *
  ***********************************************************************/
 
 #pragma once
 
 #include "RelationTag.h"
-#include "SrcLocation.h"
 #include "ast/Attribute.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/QualifiedName.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
@@ -37,13 +36,9 @@
 
 namespace souffle {
 
-/*!
- * @class Relation
- * @brief Intermediate representation of a datalog relation
- *
- * A relation has a name, types of its arguments, qualifier type,
- * and dependencies to other relations.
- *
+/**
+ * @class AstRelation
+ * @brief Defines a relation with a name, attributes, qualifiers, and internal representation.
  */
 class AstRelation : public AstNode {
 public:
@@ -52,7 +47,7 @@ public:
         setSrcLoc(std::move(loc));
     }
 
-    /** get qualified relation name */
+    /** Get qualified relation name */
     const AstQualifiedName& getQualifiedName() const {
         return name;
     }
@@ -108,7 +103,7 @@ public:
         this->representation = representation;
     }
 
-    /** check for a relation qualifier */
+    /** Check for a relation qualifier */
     bool hasQualifier(RelationQualifier q) const {
         return qualifiers.find(q) != qualifiers.end();
     }
@@ -160,6 +155,9 @@ protected:
 };
 
 /**
+ * @class AstNameComparison
+ * @brief Comparator for relations
+ *
  * Lexicographical order for AstRelation
  * using the qualified name as an ordering criteria.
  */
@@ -172,6 +170,7 @@ struct AstNameComparison {
     }
 };
 
+/** Relation set */
 using AstRelationSet = std::set<const AstRelation*, AstNameComparison>;
 
 }  // end of namespace souffle

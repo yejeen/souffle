@@ -10,18 +10,18 @@
  *
  * @file Atom.h
  *
- * Defines a class for atoms.
+ * Defines the atom class
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Argument.h"
 #include "ast/Literal.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/QualifiedName.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
@@ -35,36 +35,39 @@
 namespace souffle {
 
 /**
- * Subclass of Literal that represents the use of a relation
- * either in the head or in the body of a Clause, e.g., parent(x,y).
- * The arguments of the atom can be variables or constants.
+ * @class AstAtom
+ * @brief An atom class
+ *
+ * An atom representing the use of a relation
+ * either in the head or in the body of a clause,
+ * e.g., parent(x,y), !parent(x,y), ...
  */
 class AstAtom : public AstLiteral {
 public:
     AstAtom(AstQualifiedName name = {}, VecOwn<AstArgument> args = {}, SrcLocation loc = {})
             : AstLiteral(std::move(loc)), name(std::move(name)), arguments(std::move(args)) {}
 
-    /** get qualified name */
+    /** Return qualified name */
     const AstQualifiedName& getQualifiedName() const {
         return name;
     }
 
-    /** get arity of the atom */
+    /** Return arity of the atom */
     size_t getArity() const {
         return arguments.size();
     }
 
-    /** set qualified name */
+    /** Set qualified name */
     void setQualifiedName(AstQualifiedName n) {
         name = std::move(n);
     }
 
-    /** add argument to the atom */
+    /** Add argument to the atom */
     void addArgument(Own<AstArgument> arg) {
         arguments.push_back(std::move(arg));
     }
 
-    /** get arguments */
+    /** Return arguments */
     std::vector<AstArgument*> getArguments() const {
         return toPtrVector(arguments);
     }
@@ -97,10 +100,10 @@ protected:
         return name == other.name && equal_targets(arguments, other.arguments);
     }
 
-    /** name */
+    /** Name of atom */
     AstQualifiedName name;
 
-    /** arguments */
+    /** Arguments of atom */
     VecOwn<AstArgument> arguments;
 };
 

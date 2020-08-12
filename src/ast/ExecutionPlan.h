@@ -10,7 +10,7 @@
  *
  * @file ExecutionPlan.h
  *
- * Defines AST Clauses
+ * Defines an execution plan class
  *
  ***********************************************************************/
 
@@ -31,17 +31,25 @@
 namespace souffle {
 
 /**
- * The class utilized to model user-defined execution plans for various
- * versions of clauses.
+ * @brief AstExecutionPlan
+ * @class Defines a user-defined execution plan for a clause.
+ *
+ * An user-defined execution plan consists of one or more
+ * execution orders. An execution order is a permutation
+ * of atoms in a clause.
+ *
+ * Example:
+ *   .plan 0:(1,2,3), 2:(3,2,1)
+ *
  */
 class AstExecutionPlan : public AstNode {
 public:
-    /** updates execution order for rule version */
+    /** Set execution order for a given rule version */
     void setOrderFor(int version, Own<AstExecutionOrder> plan) {
         plans[version] = std::move(plan);
     }
 
-    /** get orders */
+    /** Get orders */
     std::map<int, const AstExecutionOrder*> getOrders() const {
         std::map<int, const AstExecutionOrder*> result;
         for (auto& plan : plans) {
@@ -88,7 +96,7 @@ protected:
     }
 
 private:
-    /** mapping versions of clauses to execution plans */
+    /** Mapping versions of clauses to execution orders */
     std::map<int, Own<AstExecutionOrder>> plans;
 };
 

@@ -10,13 +10,15 @@
  *
  * @file RecordInit.h
  *
+ * Defines the record initialization class
+ *
  ***********************************************************************/
 
 #pragma once
 
-#include "SrcLocation.h"
 #include "ast/Node.h"
 #include "ast/Term.h"
+#include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <ostream>
@@ -25,10 +27,10 @@
 #include <vector>
 
 namespace souffle {
-class AstArgument;
 
 /**
- * Record
+ * @class AstRecordInit
+ * @brief Defines a record initialization class
  */
 class AstRecordInit : public AstTerm {
 public:

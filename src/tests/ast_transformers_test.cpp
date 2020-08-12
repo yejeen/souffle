@@ -18,7 +18,6 @@
 
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "ParserDriver.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -29,6 +28,7 @@
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
+#include "parser/ParserDriver.h"
 #include "utility/StringUtil.h"
 #include <map>
 #include <memory>
@@ -317,6 +317,63 @@ TEST(AstTransformers, CheckClausalEquivalence) {
             "C(r) :- \n   A(r,y),\n   A(r,x),\n   x != 3,\n   x < y,\n   !B(y),\n   y > 3,\n   B(y),\n   "
             "B(x).",
             toString(*cMinClauses[1]));
+}
+
+/**
+ * Test the equivalence (or lack of equivalence) of aggregators using the MinimiseProgramTransfomer.
+ */
+TEST(AstTransformers, CheckAggregatorEquivalence) {
+    ErrorReport errorReport;
+    DebugReport debugReport;
+
+    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+            R"(
+                .decl A,B,C,D(X:number) input
+                // first and second are equivalent
+                D(X) :-
+                    B(X),
+                    X < max Y : { C(Y), B(Y), Y < 2 },
+                    A(Z),
+                    Z = sum A : { C(A), B(A), A > count : { A(M), C(M) } }.
+
+                D(V) :-
+                    B(V),
+                    A(W),
+                    W = sum test1 : { C(test1), B(test1), test1 > count : { C(X), A(X) } },
+                    V < max test2 : { C(test2), B(test2), test2 < 2 }.
+
+                // third not equivalent
+                D(V) :-
+                    B(V),
+                    A(W),
+                    W = min test1 : { C(test1), B(test1), test1 > count : { C(X), A(X) } },
+                    V < max test2 : { C(test2), B(test2), test2 < 2 }.
+
+                .output D()
+            )",
+            errorReport, debugReport);
+
+    const auto& program = *tu->getProgram();
+    std::make_unique<MinimiseProgramTransformer>()->apply(*tu);
+
+    // A, B, C, D should still be the relations
+    EXPECT_EQ(4, program.getRelations().size());
+    EXPECT_NE(nullptr, getRelation(program, "A"));
+    EXPECT_NE(nullptr, getRelation(program, "B"));
+    EXPECT_NE(nullptr, getRelation(program, "C"));
+    EXPECT_NE(nullptr, getRelation(program, "D"));
+
+    // D should now only have the two clauses non-equivalent clauses
+    const auto& dClauses = getClauses(program, "D");
+    EXPECT_EQ(2, dClauses.size());
+    EXPECT_EQ(
+            "D(X) :- \n   B(X),\n   X < max Y : { C(Y),B(Y),Y < 2 },\n   A(Z),\n   Z = sum A : { C(A),B(A),A "
+            "> count : { A(M),C(M) } }.",
+            toString(*dClauses[0]));
+    EXPECT_EQ(
+            "D(V) :- \n   B(V),\n   A(W),\n   W = min test1 : { C(test1),B(test1),test1 > count : { "
+            "C(X),A(X) } },\n   V < max test2 : { C(test2),B(test2),test2 < 2 }.",
+            toString(*dClauses[1]));
 }
 
 /**
