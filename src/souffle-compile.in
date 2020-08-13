@@ -42,9 +42,6 @@ error() {
   fi
 }
 
-#Exit on error
-set -e
-
 # set by autoconf
 CXX="$(printenv CXX || true)"
 test -z "$CXX" && CXX="@CXX@"
@@ -60,7 +57,7 @@ SWIGLANG=""
 # find header files of souffle
 TEST_HEADER="souffle/CompiledSouffle.h"
 HEADER_DIR=$(dirname $0)/../include
-test -f "$HEADER_DIR/$TEST_HEADER"
+test -e "$HEADER_DIR/$TEST_HEADER"
 error "installation error: souffle header files cannot be found" $?
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
