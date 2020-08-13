@@ -237,21 +237,21 @@ struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
         addConstraint(imply(argVars, branchVar));
     }
 
-    // constants are also sources of grounded values
-    void visitConstant(const AstConstant& c) override {
-        addConstraint(isTrue(getVar(c)));
+    // Constants are also sources of grounded values
+    void visitConstant(const AstConstant& constant) override {
+        addConstraint(isTrue(getVar(constant)));
     }
 
-    // aggregators are grounding values
-    void visitAggregator(const AstAggregator& c) override {
-        addConstraint(isTrue(getVar(c)));
+    // Aggregators are grounding values
+    void visitAggregator(const AstAggregator& aggregator) override {
+        addConstraint(isTrue(getVar(aggregator)));
     }
 
-    // functors with grounded values are grounded values
-    void visitFunctor(const AstFunctor& cur) override {
-        auto fun = getVar(cur);
+    // Functors with grounded values are grounded values
+    void visitFunctor(const AstFunctor& functor) override {
+        auto var = getVar(functor);
         std::vector<BoolDisjunctVar> varArgs;
-        for (const auto& arg : cur.getArguments()) {
+        for (const auto& arg : functor.getArguments()) {
             varArgs.push_back(getVar(arg));
         }
         addConstraint(imply(varArgs, fun));

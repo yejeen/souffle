@@ -36,8 +36,8 @@ namespace souffle {
  */
 class AstBranchDeclaration : public AstNode {
 public:
-    AstBranchDeclaration(std::string name, VecOwn<AstAttribute> fs, SrcLocation l = {})
-            : AstNode(std::move(l)), constructor(std::move(name)), fields(std::move(fs)){};
+    AstBranchDeclaration(std::string name, VecOwn<AstAttribute> fields, SrcLocation loc = {})
+            : AstNode(std::move(loc)), constructor(std::move(name)), fields(std::move(fields)){};
 
     const std::string& getConstructor() const {
         return constructor;

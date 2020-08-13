@@ -38,8 +38,8 @@ namespace souffle {
  */
 class AstAlgebraicDataType : public AstType {
 public:
-    AstAlgebraicDataType(AstQualifiedName name, VecOwn<AstBranchDeclaration> bs, SrcLocation loc = {})
-            : AstType(std::move(name), std::move(loc)), branches(std::move(bs)) {
+    AstAlgebraicDataType(AstQualifiedName name, VecOwn<AstBranchDeclaration> branches, SrcLocation loc = {})
+            : AstType(std::move(name), std::move(loc)), branches(std::move(branches)) {
         assert(!branches.empty());
     };
 

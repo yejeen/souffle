@@ -10,7 +10,7 @@
  *
  * @file BranchInit.h
  *
- * Defines a argument covering the branch initialization of ADTs.
+ * Defines an argument covering the branch initialization of ADTs.
  *
  ***********************************************************************/
 
@@ -33,17 +33,15 @@ namespace souffle {
  * @class AstBranchInit
  * @brief Initialization of ADT instance.
  *
- * Initializes one of the branches of ADT.
- * The syntax for branches initialization is
+ * Initializes one of the branches of ADT. The syntax for branches initialization is
  * $BRANCH_NAME(args...)
- * In case of the branch with no arguments
- * it is simplified to $BRANCH_NAME
+ * In case of the branch with no arguments it is simplified to $BRANCH_NAME
  *
  */
 class AstBranchInit : public AstTerm {
 public:
-    AstBranchInit(std::string c, VecOwn<AstArgument> args, SrcLocation loc = {})
-            : AstTerm(std::move(args), std::move(loc)), constructor(std::move(c)) {}
+    AstBranchInit(std::string constructor, VecOwn<AstArgument> args, SrcLocation loc = {})
+            : AstTerm(std::move(args), std::move(loc)), constructor(std::move(constructor)) {}
 
     const std::string& getConstructor() const {
         return constructor;
