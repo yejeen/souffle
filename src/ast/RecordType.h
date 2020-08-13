@@ -23,6 +23,7 @@
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
+#include "utility/tinyformat.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -66,7 +67,7 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-        os << ".type " << getQualifiedName() << "= [" << join(fields, ", ") << "]";
+        os << tfm::format(".type %s = [%s]", getQualifiedName(), join(fields, ", "));
     }
 
     bool equal(const AstNode& node) const override {

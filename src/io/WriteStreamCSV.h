@@ -63,6 +63,7 @@ protected:
             case 'u': destination << ramBitCast<RamUnsigned>(value); break;
             case 'f': destination << ramBitCast<RamFloat>(value); break;
             case 'r': outputRecord(destination, value, type); break;
+            case '+': outputADT(destination, value, type); break;
             default: fatal("unsupported type attribute: `%c`", type[0]);
         }
     }

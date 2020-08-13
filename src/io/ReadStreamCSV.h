@@ -101,6 +101,10 @@ protected:
                         tuple[inputMap[column]] = readRecord(element, ty, 0, &charactersRead);
                         break;
                     }
+                    case '+': {
+                        tuple[inputMap[column]] = readADT(element, ty, 0, &charactersRead);
+                        break;
+                    }
                     case 'i': {
                         tuple[inputMap[column]] = RamSignedFromString(element, &charactersRead);
                         break;

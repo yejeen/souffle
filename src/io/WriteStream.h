@@ -109,10 +109,59 @@ protected:
                 case 'u': destination << ramBitCast<RamUnsigned>(recordValue); break;
                 case 's': destination << symbolTable.unsafeResolve(recordValue); break;
                 case 'r': outputRecord(destination, recordValue, recordType); break;
+                case '+': outputADT(destination, recordValue, recordType); break;
                 default: fatal("Unsupported type attribute: `%c`", recordType[0]);
             }
         }
         destination << "]";
+    }
+
+    void outputADT(std::ostream& destination, const RamDomain value, const std::string& name) {
+        auto&& adtInfo = types["ADTs"][name];
+
+        assert(!adtInfo.is_null() && "Missing adt type information");
+
+        const size_t numBranches = adtInfo["arity"].long_value();
+        assert(numBranches > 0);
+
+        // adt is encoded as [branchID, [branch args]]
+        const RamDomain* tuplePtr = recordTable.unpack(value, 2);
+
+        const RamDomain branchId = tuplePtr[0];
+        const RamDomain wrappedBranchArgs = tuplePtr[1];
+
+        auto branchInfo = adtInfo["branches"][branchId];
+        auto branchTypes = branchInfo["types"].array_items();
+
+        const RamDomain* branchArgs = recordTable.unpack(wrappedBranchArgs, branchTypes.size());
+
+        destination << "$" << branchInfo["name"].string_value();
+
+        if (branchTypes.size() > 0) {
+            destination << "(";
+        }
+
+        // Print arguments
+        for (size_t i = 0; i < branchTypes.size(); ++i) {
+            if (i > 0) {
+                destination << ", ";
+            }
+
+            auto argType = branchTypes[i].string_value();
+            switch (argType[0]) {
+                case 'i': destination << branchArgs[i]; break;
+                case 'f': destination << ramBitCast<RamFloat>(branchArgs[i]); break;
+                case 'u': destination << ramBitCast<RamUnsigned>(branchArgs[i]); break;
+                case 's': destination << symbolTable.unsafeResolve(branchArgs[i]); break;
+                case 'r': outputRecord(destination, branchArgs[i], argType); break;
+                case '+': outputADT(destination, branchArgs[i], argType); break;
+                default: fatal("Unsupported type attribute: `%c`", argType[0]);
+            }
+        }
+
+        if (branchTypes.size() > 0) {
+            destination << ")";
+        }
     }
 };
 

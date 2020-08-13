@@ -247,6 +247,7 @@ inline BinaryConstraintOp convertOverloadedConstraint(
         case TypeAttribute::Unsigned: return BinaryConstraintOp::U##op; \
         case TypeAttribute::Float   : return BinaryConstraintOp::F##op; \
         case TypeAttribute::Symbol  : return BinaryConstraintOp::S##op; \
+        case TypeAttribute::ADT     :                                   \
         case TypeAttribute::Record  : return FAIL();                    \
         }                                                               \
         break; /* HACK: GCC-9 is incorrectly reporting a case fallthru */

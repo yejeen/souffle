@@ -81,10 +81,10 @@ protected:
                 case TypeAttribute::Symbol: return "symbol";
                 case TypeAttribute::Float: return "float";
                 case TypeAttribute::Unsigned: return "unsigned";
-                case TypeAttribute::Record: fatal("unhandled `TypeAttribute`");
+                case TypeAttribute::Record: break;
+                case TypeAttribute::ADT: break;
             }
-
-            UNREACHABLE_BAD_CASE_ANALYSIS
+            fatal("unhandled `TypeAttribute`");
         };
 
         tfm::format(

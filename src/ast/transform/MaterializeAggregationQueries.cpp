@@ -51,7 +51,6 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
     bool changed = false;
 
     AstProgram& program = *translationUnit.getProgram();
-    const TypeEnvironment& env = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
     // if an aggregator has a body consisting of more than an atom => create new relation
     int counter = 0;
@@ -148,7 +147,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             rel->setQualifiedName(relName);
             // add attributes
             std::map<const AstArgument*, TypeSet> argTypes =
-                    TypeAnalysis::analyseTypes(env, *aggClause, program);
+                    TypeAnalysis::analyseTypes(translationUnit, *aggClause);
             for (const auto& cur : head->getArguments()) {
                 rel->addAttribute(std::make_unique<AstAttribute>(toString(*cur),
                         (isOfKind(argTypes[cur], TypeAttribute::Signed)) ? "number" : "symbol"));
