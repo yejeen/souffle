@@ -31,13 +31,16 @@ namespace souffle {
  * @class AstBranchDeclaration
  * @brief Wrapper for the single branch declaration (product type) inside ADT declaration.
  *
+ * @param constructor An entity used to create a variant type. Can be though of as a name of the branch.
+ * @param fields Branch arguments and their types.
+ *
  * A branch declaration corresponds to a product type and forms a part of ADT declaration.
  * Currently it's required for all the branches to have unique names.
  */
 class AstBranchDeclaration : public AstNode {
 public:
-    AstBranchDeclaration(std::string name, VecOwn<AstAttribute> fields, SrcLocation loc = {})
-            : AstNode(std::move(loc)), constructor(std::move(name)), fields(std::move(fields)){};
+    AstBranchDeclaration(std::string constructor, VecOwn<AstAttribute> fields, SrcLocation loc = {})
+            : AstNode(std::move(loc)), constructor(std::move(constructor)), fields(std::move(fields)){};
 
     const std::string& getConstructor() const {
         return constructor;
@@ -57,8 +60,8 @@ protected:
     }
 
 private:
-    std::string constructor;      // < the branch constructor
-    VecOwn<AstAttribute> fields;  // < the branch fields
+    std::string constructor;
+    VecOwn<AstAttribute> fields;
 };
 
 }  // namespace souffle

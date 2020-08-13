@@ -40,7 +40,7 @@ class AstAlgebraicDataType : public AstType {
 public:
     AstAlgebraicDataType(AstQualifiedName name, VecOwn<AstBranchDeclaration> branches, SrcLocation loc = {})
             : AstType(std::move(name), std::move(loc)), branches(std::move(branches)) {
-        assert(!branches.empty());
+        assert(!this->branches.empty());
     };
 
     std::vector<AstBranchDeclaration*> getBranches() const {

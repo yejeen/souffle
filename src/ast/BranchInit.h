@@ -33,10 +33,11 @@ namespace souffle {
  * @class AstBranchInit
  * @brief Initialization of ADT instance.
  *
- * Initializes one of the branches of ADT. The syntax for branches initialization is
- * $BRANCH_NAME(args...)
- * In case of the branch with no arguments it is simplified to $BRANCH_NAME
+ * @param constructor An entity used to create a variant type. Can be though of as a name of the branch.
  *
+ * Initializes one of the branches of ADT. The syntax for branches initialization is
+ * $Constructor(args...)
+ * In case of the branch with no arguments it is simplified to $Constructor.
  */
 class AstBranchInit : public AstTerm {
 public:

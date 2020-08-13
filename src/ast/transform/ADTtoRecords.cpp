@@ -28,7 +28,7 @@
 
 namespace souffle {
 
-bool ADTtoRecords::transform(AstTranslationUnit& tu) {
+bool ADTtoRecordsTransformer::transform(AstTranslationUnit& tu) {
     struct ADTsFuneral : public AstNodeMapper {
         mutable bool changed{false};
         AstTranslationUnit& tu;

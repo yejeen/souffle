@@ -150,13 +150,13 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 
     return std::make_shared<C>(res, vars);
 }
-}  // namespace
 
-struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
+struct GroundednessAnalysis : public AstConstraintAnalysis<BoolDisjunctVar> {
     const RelationDetailCacheAnalysis& relCache;
     std::set<const AstAtom*> ignore;
 
-    Analysis(const AstTranslationUnit& tu) : relCache(*tu.getAnalysis<RelationDetailCacheAnalysis>()) {}
+    GroundednessAnalysis(const AstTranslationUnit& tu)
+            : relCache(*tu.getAnalysis<RelationDetailCacheAnalysis>()) {}
 
     // atoms are producing grounded variables
     void visitAtom(const AstAtom& cur) override {
@@ -254,7 +254,7 @@ struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
         for (const auto& arg : functor.getArguments()) {
             varArgs.push_back(getVar(arg));
         }
-        addConstraint(imply(varArgs, fun));
+        addConstraint(imply(varArgs, var));
     }
 
     // casts propogate groundedness in and out
@@ -263,12 +263,14 @@ struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
     }
 };
 
+}  // namespace
+
 /***
  * computes for variables in the clause whether they are grounded
  */
 std::map<const AstArgument*, bool> getGroundedTerms(const AstTranslationUnit& tu, const AstClause& clause) {
     // run analysis on given clause
-    return Analysis(tu).analyse(clause);
+    return GroundednessAnalysis(tu).analyse(clause);
 }
 
 }  // end of namespace souffle

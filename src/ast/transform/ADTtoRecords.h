@@ -23,14 +23,14 @@
 
 namespace souffle {
 
-class ADTtoRecords : public AstTransformer {
+class ADTtoRecordsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "ADTtoRecords";
     }
 
-    ADTtoRecords* clone() const override {
-        return new ADTtoRecords();
+    ADTtoRecordsTransformer* clone() const override {
+        return new ADTtoRecordsTransformer();
     }
 
 private:
