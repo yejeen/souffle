@@ -108,16 +108,13 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             std::map<std::string, int> varCtr;
 
             // Start by counting occurrences of all variables in the clause
-            visitDepthFirst(clause, [&](const AstVariable& var) {
-                varCtr[var.getName()]++;
-            });
+            visitDepthFirst(clause, [&](const AstVariable& var) { varCtr[var.getName()]++; });
 
             // Then count variables occurring in each aggregate
             // so that we can deduce which variable occur only on the outer scope
             std::map<const AstAggregator*, std::map<std::string, int>> aggVarMap;
-              visitDepthFirst(clause, [&](const AstAggregator& agg) {
-                visitDepthFirst(agg, [&](const AstVariable& var) { aggVarMap[&agg][var.getName()]++;
-               });
+            visitDepthFirst(clause, [&](const AstAggregator& agg) {
+                visitDepthFirst(agg, [&](const AstVariable& var) { aggVarMap[&agg][var.getName()]++; });
             });
 
             std::map<const AstAggregator*, const AstAggregator*> parent;
@@ -134,9 +131,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 });
             });
 
-                // Figure out which variables occur on the outer scope by looking at
-                // the aggregates without agggregate parents, and minusing those from
-                // the outer scope varCtr map
+            // Figure out which variables occur on the outer scope by looking at
+            // the aggregates without agggregate parents, and minusing those from
+            // the outer scope varCtr map
             visitDepthFirst(clause, [&](const AstAggregator& agg) {
                 if (parent[&agg] == nullptr) {
                     for (auto const& pair : aggVarMap[&agg]) {
@@ -150,9 +147,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             // "counts" as the outer scope, so restore this
             if (agg.getTargetExpression() != nullptr) {
                 visitDepthFirst(
-                    *agg.getTargetExpression(), [&](const AstVariable& var) {
-                        varCtr[var.getName()]++;
-                });
+                        *agg.getTargetExpression(), [&](const AstVariable& var) { varCtr[var.getName()]++; });
             }
 
             // correct aggVarMap so that it counts which variables occurr in the aggregate,
@@ -190,24 +185,24 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             if (agg.getOperator() == AggregateOp::COUNT) {
                 int count = 0;
                 for (const auto& cur : aggClause->getBodyLiterals()) {
-                    cur->apply(
-                        makeLambdaAstMapper([&](std::unique_ptr<AstNode> node) -> std::unique_ptr<AstNode> {
-                            // check whether it is a unnamed variable
-                            auto* var = dynamic_cast<AstUnnamedVariable*>(node.get());
-                            if (var == nullptr) {
-                                return node;
-                            }
+                    cur->apply(makeLambdaAstMapper(
+                            [&](std::unique_ptr<AstNode> node) -> std::unique_ptr<AstNode> {
+                                // check whether it is a unnamed variable
+                                auto* var = dynamic_cast<AstUnnamedVariable*>(node.get());
+                                if (var == nullptr) {
+                                    return node;
+                                }
 
-                            // replace by variable
-                            auto name = " _" + toString(count++);
-                            auto res = new AstVariable(name);
+                                // replace by variable
+                                auto name = " _" + toString(count++);
+                                auto res = new AstVariable(name);
 
-                            // extend head
-                            head->addArgument(souffle::clone(res));
+                                // extend head
+                                head->addArgument(souffle::clone(res));
 
-                            // return replacement
-                            return std::unique_ptr<AstNode>(res);
-                        }));
+                                // return replacement
+                                return std::unique_ptr<AstNode>(res);
+                            }));
                 }
             }
 
@@ -219,8 +214,8 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             std::map<const AstArgument*, TypeSet> argTypes =
                     TypeAnalysis::analyseTypes(translationUnit, *aggClause);
             for (const auto& cur : head->getArguments()) {
-                rel->addAttribute(std::make_unique<AstAttribute>(
-                        toString(*cur), (isOfKind(argTypes[cur], TypeAttribute::Signed)) ? "number" : "symbol"));
+                rel->addAttribute(std::make_unique<AstAttribute>(toString(*cur),
+                        (isOfKind(argTypes[cur], TypeAttribute::Signed)) ? "number" : "symbol"));
             }
 
             program.addClause(std::unique_ptr<AstClause>(aggClause));
