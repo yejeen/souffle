@@ -22,6 +22,8 @@
 #include "ast/analysis/Analysis.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/SCCGraph.h"
+#include "ast/analysis/SumTypeBranches.h"
+#include "ast/analysis/Type.h"
 #include <map>
 #include <memory>
 #include <sstream>

@@ -19,6 +19,7 @@
 #include "SerialisationStream.h"
 #include "SymbolTable.h"
 #include "json11.h"
+#include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
 #include <cctype>
@@ -95,7 +96,7 @@ protected:
             consumeWhiteSpace(source, pos);
             switch (recordType[0]) {
                 case 's': {
-                    recordValues[i] = readStringInRecord(source, pos, &consumed);
+                    recordValues[i] = symbolTable.unsafeLookup(readUntil(source, ",]", pos, &consumed));
                     break;
                 }
                 case 'i': {
@@ -114,6 +115,10 @@ protected:
                     recordValues[i] = readRecord(source, recordType, pos, &consumed);
                     break;
                 }
+                case '+': {
+                    recordValues[i] = readADT(source, recordType, pos, &consumed);
+                    break;
+                }
                 default: fatal("Invalid type attribute");
             }
             pos += consumed;
@@ -127,17 +132,133 @@ protected:
         return recordTable.pack(recordValues.data(), recordValues.size());
     }
 
-    RamDomain readStringInRecord(const std::string& source, const size_t pos, size_t* charactersRead) {
-        size_t endOfSymbol = source.find_first_of(",]", pos);
+    RamDomain readADT(const std::string& source, const std::string& adtName, size_t pos = 0,
+            size_t* charactersRead = nullptr) {
+        const size_t initial_position = pos;
+
+        // Branch will are encoded as [branchIdx, [branchValues...]].
+        RamDomain branchIdx = -1;
+
+        auto&& adtInfo = types["ADTs"][adtName];
+        const auto& branches = adtInfo["branches"];
+
+        if (adtInfo.is_null() || !branches.is_array()) {
+            throw std::invalid_argument("Missing ADT information: " + adtName);
+        }
+
+        // Consume initial character
+        consumeChar(source, '$', pos);
+        std::string constructor = readAlphanumeric(source, pos);
+
+        json11::Json branchInfo = [&]() -> json11::Json {
+            for (auto branch : branches.array_items()) {
+                ++branchIdx;
+                if (branch["name"].string_value() == constructor) {
+                    return branch;
+                }
+            }
+
+            throw std::invalid_argument("Missing branch information: " + constructor);
+        }();
+
+        assert(branchInfo["types"].is_array());
+        auto branchTypes = branchInfo["types"].array_items();
+
+        // Handle a branch without arguments.
+        if (branchTypes.empty()) {
+            if (charactersRead != nullptr) {
+                *charactersRead = pos - initial_position;
+            }
+            RamDomain emptyArgs = recordTable.pack(toVector<RamDomain>().data(), 0);
+            return recordTable.pack(toVector<RamDomain>(branchIdx, emptyArgs).data(), 2);
+        }
+
+        consumeChar(source, '(', pos);
+
+        std::vector<RamDomain> branchArgs(branchTypes.size());
+
+        for (size_t i = 0; i < branchTypes.size(); ++i) {
+            auto argType = branchTypes[i].string_value();
+            assert(!argType.empty());
+
+            size_t consumed = 0;
+
+            if (i > 0) {
+                consumeChar(source, ',', pos);
+            }
+            consumeWhiteSpace(source, pos);
+
+            switch (argType[0]) {
+                case 's': {
+                    branchArgs[i] = symbolTable.unsafeLookup(readUntil(source, ",)", pos, &consumed));
+                    break;
+                }
+                case 'i': {
+                    branchArgs[i] = RamSignedFromString(source.substr(pos), &consumed);
+                    break;
+                }
+                case 'u': {
+                    branchArgs[i] = ramBitCast(RamUnsignedFromString(source.substr(pos), &consumed));
+                    break;
+                }
+                case 'f': {
+                    branchArgs[i] = ramBitCast(RamFloatFromString(source.substr(pos), &consumed));
+                    break;
+                }
+                case 'r': {
+                    branchArgs[i] = readRecord(source, argType, pos, &consumed);
+                    break;
+                }
+                case '+': {
+                    branchArgs[i] = readADT(source, argType, pos, &consumed);
+                    break;
+                }
+                default: fatal("Invalid type attribute");
+            }
+            pos += consumed;
+        }
+
+        consumeChar(source, ')', pos);
+
+        RamDomain branchValue = recordTable.pack(branchArgs.data(), branchArgs.size());
+
+        if (charactersRead != nullptr) {
+            *charactersRead = pos - initial_position;
+        }
+
+        return recordTable.pack(toVector<RamDomain>(branchIdx, branchValue).data(), 2);
+    }
+
+    /**
+     * Read the next alphanumeric sequence (corresponding to IDENT).
+     * Consume preceding whitespace.
+     * TODO (darth_tytus): use std::string_view?
+     */
+    std::string readAlphanumeric(const std::string& source, size_t& pos) {
+        consumeWhiteSpace(source, pos);
+        if (pos >= source.length()) {
+            throw std::invalid_argument("Unexpected end of input");
+        }
+
+        const size_t bgn = pos;
+        while (pos < source.length() && std::isalnum(static_cast<unsigned char>(source[pos]))) {
+            ++pos;
+        }
+
+        return source.substr(bgn, pos - bgn);
+    }
+
+    std::string readUntil(const std::string& source, const std::string stopChars, const size_t pos,
+            size_t* charactersRead) {
+        size_t endOfSymbol = source.find_first_of(stopChars, pos);
 
         if (endOfSymbol == std::string::npos) {
-            throw std::invalid_argument("Unexpected end of input in record");
+            throw std::invalid_argument("Unexpected end of input");
         }
 
         *charactersRead = endOfSymbol - pos;
-        std::string str = source.substr(pos, *charactersRead);
 
-        return symbolTable.unsafeLookup(str);
+        return source.substr(pos, *charactersRead);
     }
 
     /**
@@ -146,7 +267,7 @@ protected:
     void consumeChar(const std::string& str, char c, size_t& pos) {
         consumeWhiteSpace(str, pos);
         if (pos >= str.length()) {
-            throw std::invalid_argument("Unexpected end of input in record");
+            throw std::invalid_argument("Unexpected end of input");
         }
         if (str[pos] != c) {
             std::stringstream error;
