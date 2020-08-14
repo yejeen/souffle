@@ -30,6 +30,7 @@ enum class TypeAttribute {
     Unsigned,  // Unsigned number
     Float,     // Floating point number.
     Record,    // Record
+    ADT,       // ADT
 };
 
 // Printing of the TypeAttribute Enum.

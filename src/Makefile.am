@@ -103,12 +103,15 @@ souffle_sources = \
         SignalHandler.h                                    \
         TypeAttribute.h                                    \
         Util.cpp                                           \
+        ast/BranchInit.h                                   \
+        ast/AlgebraicDataType.h                            \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
         ast/Attribute.h                                    \
         ast/BinaryConstraint.h                             \
         ast/BooleanConstraint.h                            \
+        ast/BranchDeclaration.h                            \
         ast/Clause.h                                       \
         ast/Component.h                                    \
         ast/ComponentInit.h                                \
@@ -174,6 +177,8 @@ souffle_sources = \
         ast/analysis/RelationSchedule.h                    \
         ast/analysis/SCCGraph.cpp                          \
         ast/analysis/SCCGraph.h                            \
+        ast/analysis/SumTypeBranches.cpp                   \
+        ast/analysis/SumTypeBranches.h                     \
         ast/analysis/TopologicallySortedSCCGraph.cpp       \
         ast/analysis/TopologicallySortedSCCGraph.h         \
         ast/analysis/Type.cpp                              \
@@ -182,6 +187,8 @@ souffle_sources = \
         ast/analysis/TypeSystem.h                          \
         ast/analysis/TypeEnvironment.cpp                   \
         ast/analysis/TypeEnvironment.h                     \
+        ast/transform/ADTtoRecords.cpp                     \
+        ast/transform/ADTtoRecords.h                       \
         ast/transform/AddNullariesToAtomlessAggregates.cpp \
         ast/transform/AddNullariesToAtomlessAggregates.h   \
         ast/transform/ComponentChecker.cpp                 \

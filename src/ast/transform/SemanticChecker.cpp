@@ -63,6 +63,7 @@
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/SCCGraph.h"
+#include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
@@ -100,6 +101,7 @@ private:
     const RecursiveClausesAnalysis& recursiveClauses = *tu.getAnalysis<RecursiveClausesAnalysis>();
     const TypeEnvironmentAnalysis& typeEnvAnalysis = *tu.getAnalysis<TypeEnvironmentAnalysis>();
     const SCCGraphAnalysis& sccGraph = *tu.getAnalysis<SCCGraphAnalysis>();
+    const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
 
     const TypeEnvironment& typeEnv = typeEnvAnalysis.getTypeEnvironment();
     const AstProgram& program = *tu.getProgram();
@@ -117,10 +119,14 @@ private:
     void checkRelationDeclaration(const AstRelation& relation);
     void checkRelation(const AstRelation& relation);
 
-    void checkType(const AstType& type);
+    void checkTypesDeclarations();
     void checkRecordType(const AstRecordType& type);
     void checkSubsetType(const AstSubsetType& type);
     void checkUnionType(const AstUnionType& type);
+    void checkADT(const AstAlgebraicDataType& type);
+
+    /** check if all the branches refer to the existing types. */
+    void checkBranchInits();
 
     void checkNamespaces();
     void checkIO();
@@ -157,6 +163,7 @@ private:
     void visitNumericConstant(const AstNumericConstant& constant) override;
     void visitNilConstant(const AstNilConstant& constant) override;
     void visitRecordInit(const AstRecordInit& rec) override;
+    void visitBranchInit(const AstBranchInit& adt) override;
     void visitTypeCast(const AstTypeCast& cast) override;
     void visitIntrinsicFunctor(const AstIntrinsicFunctor& fun) override;
     void visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) override;
@@ -196,10 +203,9 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
         }
     }
 
-    // Check types in AST.
-    for (const auto* astType : program.getTypes()) {
-        checkType(*astType);
-    }
+    checkTypesDeclarations();
+
+    checkBranchInits();
 
     // check rules
     for (auto* rel : program.getRelations()) {
@@ -283,6 +289,14 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
     for (const AstArgument* arg : atom.getArguments()) {
         checkArgument(*arg);
     }
+}
+
+void AstSemanticCheckerImpl::checkBranchInits() {
+    visitDepthFirst(program.getClauses(), [&](const AstBranchInit& adt) {
+        if (sumTypesBranches.getType(adt.getConstructor()) == nullptr) {
+            report.addError("Undeclared branch", adt.getSrcLoc());
+        }
+    });
 }
 
 namespace {
@@ -432,7 +446,7 @@ bool isConstantArgument(const AstArgument* arg) {
     } else if (auto* typeCast = as<AstTypeCast>(arg)) {
         return isConstantArgument(typeCast->getValue());
     } else if (auto* term = as<AstTerm>(arg)) {
-        // Term covers intrinsic functor and records. User-functors are handled earlier.
+        // Term covers intrinsic functor, records and adts. User-functors are handled earlier.
         return all_of(term->getArguments(), isConstantArgument);
     } else if (isA<AstConstant>(arg)) {
         return true;
@@ -687,6 +701,19 @@ void AstSemanticCheckerImpl::checkRecordType(const AstRecordType& type) {
     }
 }
 
+void AstSemanticCheckerImpl::checkADT(const AstAlgebraicDataType& type) {
+    // check if all branches contain properly defined types.
+    for (auto* branch : type.getBranches()) {
+        for (auto* field : branch->getFields()) {
+            if (!typeEnv.isType(field->getTypeName())) {
+                report.addError(tfm::format("Undefined type %s in definition of branch %s",
+                                        field->getTypeName(), branch->getConstructor()),
+                        field->getSrcLoc());
+            }
+        }
+    }
+}
+
 void AstSemanticCheckerImpl::checkSubsetType(const AstSubsetType& astType) {
     if (typeEnvAnalysis.isCyclic(astType.getQualifiedName())) {
         report.addError(
@@ -711,20 +738,53 @@ void AstSemanticCheckerImpl::checkSubsetType(const AstSubsetType& astType) {
     }
 }
 
-void AstSemanticCheckerImpl::checkType(const AstType& type) {
-    if (typeEnv.isPrimitiveType(type.getQualifiedName())) {
-        report.addError("Redefinition of the predefined type", type.getSrcLoc());
-        return;
+void AstSemanticCheckerImpl::checkTypesDeclarations() {
+    // The redefinitions of types is checked by checkNamespaces
+
+    for (auto* type : program.getTypes()) {
+        if (typeEnv.isPrimitiveType(type->getQualifiedName())) {
+            report.addError("Redefinition of the predefined type", type->getSrcLoc());
+            continue;
+        }
+
+        if (isA<AstUnionType>(type)) {
+            checkUnionType(*as<AstUnionType>(type));
+        } else if (isA<AstRecordType>(type)) {
+            checkRecordType(*as<AstRecordType>(type));
+        } else if (isA<AstSubsetType>(type)) {
+            checkSubsetType(*as<AstSubsetType>(type));
+        } else if (isA<AstAlgebraicDataType>(type)) {
+            checkADT(*as<AstAlgebraicDataType>(type));
+        } else {
+            fatal("unsupported type construct: %s", typeid(type).name());
+        }
     }
 
-    if (isA<AstUnionType>(type)) {
-        checkUnionType(*as<AstUnionType>(type));
-    } else if (isA<AstRecordType>(type)) {
-        checkRecordType(*as<AstRecordType>(type));
-    } else if (isA<AstSubsetType>(type)) {
-        checkSubsetType(*as<AstSubsetType>(type));
-    } else {
-        fatal("unsupported type construct: %s", typeid(type).name());
+    // Check if all the branch names are unique in sum types.
+    std::map<std::string, std::vector<SrcLocation>> branchToLocation;
+    visitDepthFirst(program.getTypes(), [&](const AstAlgebraicDataType& type) {
+        for (auto* branch : type.getBranches()) {
+            branchToLocation[branch->getConstructor()].push_back(branch->getSrcLoc());
+        }
+    });
+
+    for (auto& branchLocs : branchToLocation) {
+        auto& branch = branchLocs.first;
+        auto& locs = branchLocs.second;
+
+        // If a branch is used only once, then everything is fine.
+        if (locs.size() == 1) continue;
+
+        auto primaryDiagnostic =
+                DiagnosticMessage(tfm::format("Branch %s is defined multiple times", branch));
+
+        std::vector<DiagnosticMessage> branchDeclarations;
+        for (auto& loc : locs) {
+            branchDeclarations.push_back(DiagnosticMessage(tfm::format("Branch %s defined", branch), loc));
+        }
+
+        report.addDiagnostic(Diagnostic(
+                Diagnostic::Type::ERROR, std::move(primaryDiagnostic), std::move(branchDeclarations)));
     }
 }
 
@@ -1309,6 +1369,31 @@ void TypeChecker::visitRecordInit(const AstRecordInit& rec) {
     }
 }
 
+void TypeChecker::visitBranchInit(const AstBranchInit& adt) {
+    TypeSet types = typeAnalysis.getTypes(&adt);
+
+    if (!isOfKind(types, TypeAttribute::ADT) || types.isAll() || types.size() != 1) {
+        report.addError("Ambiguous branch", adt.getSrcLoc());
+        return;
+    }
+
+    // We know now that the set "types" is a singleton
+    auto& sumType = *as<AlgebraicDataType>(*types.begin());
+
+    auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getConstructor());
+    auto args = adt.getArguments();
+
+    for (size_t i = 0; i < args.size(); ++i) {
+        auto argTypes = typeAnalysis.getTypes(args[i]);
+        bool correctType =
+                all_of(argTypes, [&](const Type& t) { return isSubtypeOf(t, *argsDeclaredTypes[i]); });
+        if (!correctType) {
+            // TODO (darth_tytus): Give better error
+            report.addError("Branch argument's type doesn't match its declared type", args[i]->getSrcLoc());
+        }
+    }
+}
+
 void TypeChecker::visitTypeCast(const AstTypeCast& cast) {
     if (!typeEnv.isType(cast.getType())) {
         report.addError(
@@ -1372,6 +1457,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                 report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
                 break;
             case TypeAttribute::Record: fatal("Invalid return type");
+            case TypeAttribute::ADT: fatal("Invalid return type");
         }
     }
 
@@ -1392,6 +1478,7 @@ void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
                     report.addError("Non-float argument for functor", arg->getSrcLoc());
                     break;
                 case TypeAttribute::Record: fatal("Invalid argument type");
+                case TypeAttribute::ADT: fatal("Invalid argument type");
             }
         }
         ++i;
@@ -1435,6 +1522,7 @@ void TypeChecker::visitBinaryConstraint(const AstBinaryConstraint& constraint) {
                               case TypeAttribute::Unsigned: out << "`unsigned`"; break;
                               case TypeAttribute::Float: out << "`float`"; break;
                               case TypeAttribute::Record: out << "a record"; break;
+                              case TypeAttribute::ADT: out << "a sum"; break;
                           }
                       });
                 report.addError(ss.str(), side.getSrcLoc());
@@ -1458,5 +1546,4 @@ void TypeChecker::visitAggregator(const AstAggregator& aggregator) {
         report.addError("Couldn't assign types to the aggregator", aggregator.getSrcLoc());
     }
 }
-
 }  // end of namespace souffle
