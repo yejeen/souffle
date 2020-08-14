@@ -329,8 +329,8 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 #define CASE(Kind)     \
     case (I_##Kind): { \
         return [&]() -> RamDomain { \
-            const auto& shadow = *static_cast<const Interpreter##Kind*>(node); \
-            const auto& cur = *static_cast<const Ram##Kind*>(node->getShadow());
+            [[maybe_unused]] const auto& shadow = *static_cast<const Interpreter##Kind*>(node); \
+            [[maybe_unused]] const auto& cur = *static_cast<const Ram##Kind*>(node->getShadow());
 #define ESAC(Kind) \
     }              \
     ();            \
