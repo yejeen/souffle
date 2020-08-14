@@ -1,3 +1,15 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2020 The Souffle Developers. All Rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+/**
+* Test that aggregates can be nested within one another
+* and that this will be correctly evaluated.
+**/
+
 .decl InitialStock(product:symbol, qty:number)
 .decl Sales(product:symbol, month:number, qty:number)
 .decl ProductHalfGoneBy(product:symbol, month:number)
@@ -84,7 +96,7 @@ Friends("Tamara", "Joseph").
 Friends(x, y) :- Friends(y, x).
 
 AverageNumberOfFriends(x) :-
-    s = sum numFriends : { 
+    s = sum numFriends : {
         Person(person),
         numFriends = count : Friends(_, person)
     },
@@ -128,7 +140,7 @@ WorksForDepartment("Jane", "HR").
 */
 AverageSalaryPerDepartment(dept, sal) :-
     WorksForDepartment(_, dept),
-    sal = mean s : { Salary(e, s), WorksForDepartment(e, dept) }. 
+    sal = mean s : { Salary(e, s), WorksForDepartment(e, dept) }.
 
 /*
 *   Find average number of workers per department
