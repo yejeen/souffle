@@ -189,6 +189,8 @@ souffle_sources = \
         ast/analysis/TypeEnvironment.h                     \
         ast/transform/ADTtoRecords.cpp                     \
         ast/transform/ADTtoRecords.h                       \
+        ast/transform/AddNullariesToAtomlessAggregates.cpp \
+        ast/transform/AddNullariesToAtomlessAggregates.h   \
         ast/transform/ComponentChecker.cpp                 \
         ast/transform/ComponentChecker.h                   \
         ast/transform/ComponentInstantiation.cpp           \
