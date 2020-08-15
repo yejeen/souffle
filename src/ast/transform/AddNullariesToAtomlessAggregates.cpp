@@ -13,34 +13,18 @@
  ***********************************************************************/
 
 #include "ast/transform/AddNullariesToAtomlessAggregates.h"
-#include "AggregateOp.h"
-#include "RamTypes.h"
 #include "ast/Aggregator.h"
-#include "ast/Argument.h"
 #include "ast/Atom.h"
-#include "ast/Attribute.h"
 #include "ast/Clause.h"
-#include "ast/LambdaNodeMapper.h"
 #include "ast/Literal.h"
-#include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
-#include "ast/Variable.h"
 #include "ast/Visitor.h"
-#include "ast/analysis/Ground.h"
-#include "ast/analysis/Type.h"
-#include "ast/analysis/TypeEnvironment.h"
-#include "ast/analysis/TypeSystem.h"
 #include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
-#include <algorithm>
-#include <map>
 #include <memory>
-#include <set>
 #include <utility>
 #include <vector>
 
