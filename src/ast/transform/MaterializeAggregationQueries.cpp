@@ -242,7 +242,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
         });
     });
     return changed;
-}  // namespace souffle
+}
 
 bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const AstAggregator& agg) {
     // everything with more than 1 atom  => materialize
