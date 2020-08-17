@@ -23,6 +23,7 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
+#include "ast/analysis/ClauseNormalisation.h"
 #include "ast/transform/MagicSet.h"
 #include "ast/transform/MinimiseProgram.h"
 #include "ast/transform/RemoveRedundantRelations.h"
@@ -287,15 +288,21 @@ TEST(AstTransformers, CheckClausalEquivalence) {
 
     // Check equivalence of these clauses
     // -- A
-    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[0], aClauses[1]));
-    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[1], aClauses[0]));
-    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[1], aClauses[2]));
-    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[0], aClauses[2]));
+    const auto normA0 = NormalisedClause(aClauses[0]);
+    const auto normA1 = NormalisedClause(aClauses[1]);
+    const auto normA2 = NormalisedClause(aClauses[2]);
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(normA0, normA1));
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(normA1, normA0));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(normA1, normA2));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(normA0, normA2));
 
     // -- C
-    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[0], cClauses[2]));
-    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[0], cClauses[1]));
-    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[2], cClauses[1]));
+    const auto normC0 = NormalisedClause(cClauses[0]);
+    const auto normC1 = NormalisedClause(cClauses[1]);
+    const auto normC2 = NormalisedClause(cClauses[2]);
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(normC0, normC2));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(normC0, normC1));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(normC2, normC1));
 
     // Make sure equivalent (and only equivalent) clauses are removed by the minimiser
     std::make_unique<MinimiseProgramTransformer>()->apply(*tu);

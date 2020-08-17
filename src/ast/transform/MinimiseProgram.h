@@ -35,8 +35,8 @@ public:
         return "MinimiseProgramTransformer";
     }
 
-    // Check whether two clauses are bijectively equivalent.
-    static bool areBijectivelyEquivalent(const AstClause* left, const AstClause* right);
+    // Check whether two normalised clause representations are equivalent.
+    static bool areBijectivelyEquivalent(const NormalisedClause& left, const NormalisedClause& right);
 
     MinimiseProgramTransformer* clone() const override {
         return new MinimiseProgramTransformer();
@@ -46,9 +46,6 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
     /** -- Bijective Equivalence Helper Methods -- */
-
-    // Check whether two normalised clause representations are equivalent.
-    static bool areBijectivelyEquivalent(const NormalisedClause& left, const NormalisedClause& right);
 
     // Check whether a valid variable mapping exists for the given permutation.
     static bool isValidPermutation(const NormalisedClause& left, const NormalisedClause& right,

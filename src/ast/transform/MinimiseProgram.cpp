@@ -245,20 +245,9 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
     return existsValidPermutation(left, right, permutationMatrix);
 }
 
-bool MinimiseProgramTransformer::areBijectivelyEquivalent(
-        const AstClause* leftClause, const AstClause* rightClause) {
-    static std::map<const AstClause*, NormalisedClause> cache;
-    if (!contains(cache, leftClause)) {
-        cache[leftClause] = NormalisedClause(leftClause);
-    }
-    if (!contains(cache, rightClause)) {
-        cache[rightClause] = NormalisedClause(rightClause);
-    }
-    return areBijectivelyEquivalent(cache.at(leftClause), cache.at(rightClause));
-}
-
 bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();
+    const auto& normalisations = *translationUnit.getAnalysis<ClauseNormalisationAnalysis>();
 
     std::vector<AstClause*> clausesToDelete;
 
@@ -271,9 +260,9 @@ bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(AstTranslationUn
             bool added = false;
 
             for (std::vector<AstClause*>& eqClass : equivalenceClasses) {
-                AstClause* rep = eqClass[0];
-
-                if (areBijectivelyEquivalent(rep, clause)) {
+                const auto& normedRep = normalisations.getNormalisation(eqClass[0]);
+                const auto& normedClause = normalisations.getNormalisation(clause);
+                if (areBijectivelyEquivalent(normedRep, normedClause)) {
                     // clause belongs to an existing equivalence class, so delete it
                     eqClass.push_back(clause);
                     clausesToDelete.push_back(clause);
@@ -303,12 +292,13 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
     // Note: This reduction is particularly useful in conjunction with the
     // body-partitioning transformation
     AstProgram& program = *translationUnit.getProgram();
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
+    const auto& normalisations = *translationUnit.getAnalysis<ClauseNormalisationAnalysis>();
 
     // Find all singleton relations to consider
     std::vector<AstClause*> singletonRelationClauses;
     for (AstRelation* rel : program.getRelations()) {
-        if (!ioTypes->isIO(rel) && getClauses(program, *rel).size() == 1) {
+        if (!ioTypes.isIO(rel) && getClauses(program, *rel).size() == 1) {
             AstClause* clause = getClauses(program, *rel)[0];
             singletonRelationClauses.push_back(clause);
         }
@@ -332,7 +322,9 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
             const auto* second = singletonRelationClauses[j];
 
             // Note: Bijective-equivalence check does not care about the head relation name
-            if (areBijectivelyEquivalent(first, second)) {
+            const auto& normedFirst = normalisations.getNormalisation(first);
+            const auto& normedSecond = normalisations.getNormalisation(second);
+            if (areBijectivelyEquivalent(normedFirst, normedSecond)) {
                 AstQualifiedName firstName = first->getHead()->getQualifiedName();
                 AstQualifiedName secondName = second->getHead()->getQualifiedName();
                 redundantClauses.insert(second);
