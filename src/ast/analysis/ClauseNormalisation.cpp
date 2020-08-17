@@ -6,70 +6,22 @@
 
 namespace souffle {
 
-class ClauseNormalisationAnalysis::NormalisedClauseRepr {
-public:
-    struct NormalisedClauseElementRepr {
-        AstQualifiedName name;
-        std::vector<std::string> params;
-    };
-
-    NormalisedClauseRepr() = default;
-
-    NormalisedClauseRepr(const AstClause* clause) {
-        // head
-        AstQualifiedName name("@min:head");
-        std::vector<std::string> headVars;
-        for (const auto* arg : clause->getHead()->getArguments()) {
-            headVars.push_back(normaliseArgument(arg));
-        }
-        clauseElements.push_back({.name = name, .params = headVars});
-
-        // body
-        for (const auto* lit : clause->getBodyLiterals()) {
-            addClauseBodyLiteral("@min:scope:0", lit);
-        }
+NormalisedClause::NormalisedClause(const AstClause* clause) {
+    // head
+    AstQualifiedName name("@min:head");
+    std::vector<std::string> headVars;
+    for (const auto* arg : clause->getHead()->getArguments()) {
+        headVars.push_back(normaliseArgument(arg));
     }
+    clauseElements.push_back({.name = name, .params = headVars});
 
-    bool isFullyNormalised() const {
-        return fullyNormalised;
+    // body
+    for (const auto* lit : clause->getBodyLiterals()) {
+        addClauseBodyLiteral("@min:scope:0", lit);
     }
+}
 
-    const std::set<std::string>& getVariables() const {
-        return variables;
-    }
-
-    const std::set<std::string>& getConstants() const {
-        return constants;
-    }
-
-    const std::vector<NormalisedClauseElementRepr>& getElements() const {
-        return clauseElements;
-    }
-
-private:
-    bool fullyNormalised{true};
-    size_t aggrScopeCount{0};
-    std::set<std::string> variables{};
-    std::set<std::string> constants{};
-    std::vector<NormalisedClauseElementRepr> clauseElements{};
-
-    /**
-     * Parse an atom with a preset name qualifier into the element list.
-     */
-    void addClauseAtom(const std::string& qualifier, const std::string& scopeID, const AstAtom* atom);
-
-    /**
-     * Parse a body literal into the element list.
-     */
-    void addClauseBodyLiteral(const std::string& scopeID, const AstLiteral* lit);
-
-    /**
-     * Return a normalised string repr of an argument.
-     */
-    std::string normaliseArgument(const AstArgument* arg);
-};
-
-void ClauseNormalisationAnalysis::NormalisedClauseRepr::addClauseAtom(
+void NormalisedClause::addClauseAtom(
         const std::string& qualifier, const std::string& scopeID, const AstAtom* atom) {
     AstQualifiedName name(atom->getQualifiedName());
     name.prepend(qualifier);
@@ -82,8 +34,7 @@ void ClauseNormalisationAnalysis::NormalisedClauseRepr::addClauseAtom(
     clauseElements.push_back({.name = name, .params = vars});
 }
 
-void ClauseNormalisationAnalysis::NormalisedClauseRepr::addClauseBodyLiteral(
-        const std::string& scopeID, const AstLiteral* lit) {
+void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const AstLiteral* lit) {
     if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
         addClauseAtom("@min:atom", scopeID, atom);
     } else if (const auto* neg = dynamic_cast<const AstNegation*>(lit)) {
@@ -107,7 +58,7 @@ void ClauseNormalisationAnalysis::NormalisedClauseRepr::addClauseBodyLiteral(
     }
 }
 
-std::string ClauseNormalisationAnalysis::NormalisedClauseRepr::normaliseArgument(const AstArgument* arg) {
+std::string NormalisedClause::normaliseArgument(const AstArgument* arg) {
     if (auto* stringCst = dynamic_cast<const AstStringConstant*>(arg)) {
         std::stringstream name;
         name << "@min:cst:str" << *stringCst;
@@ -171,11 +122,25 @@ std::string ClauseNormalisationAnalysis::NormalisedClauseRepr::normaliseArgument
 }
 
 void ClauseNormalisationAnalysis::run(const AstTranslationUnit& translationUnit) {
-    // TODO
+    const auto& program = *translationUnit.getProgram();
+    for (const auto* clause : program.getClauses()) {
+        assert(!contains(normalisations, clause) && "clause already processed");
+        normalisations[clause] = NormalisedClause(clause);
+    }
 }
 
-void print(std::ostream& os) const override {
-    // TODO
+void ClauseNormalisationAnalysis::print(std::ostream& os) const override {
+    for (const auto& [clause, norm] : normalisations) {
+        os << "Normalise(" << *clause << ") = {";
+        const auto& els = norm.getElements();
+        for (size_t i = 0; i < els.size(); i++) {
+            if (i != 0) {
+                os << ", ";
+            }
+            os << els[i].name << ":" << els[i].params;
+        }
+        os << "}" << std::endl;
+    }
 }
 
 }  // namespace souffle
