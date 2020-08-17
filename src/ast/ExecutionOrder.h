@@ -18,7 +18,7 @@
 
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <ostream>
 #include <string>
 #include <utility>

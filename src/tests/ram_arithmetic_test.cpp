@@ -20,8 +20,6 @@
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "RamTypes.h"
-#include "SymbolTable.h"
 #include "interpreter/InterpreterEngine.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"
@@ -33,6 +31,8 @@
 #include "ram/Statement.h"
 #include "ram/SubroutineReturn.h"
 #include "ram/TranslationUnit.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>

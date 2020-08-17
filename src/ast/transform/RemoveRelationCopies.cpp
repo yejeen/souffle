@@ -25,7 +25,7 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/IOType.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <map>

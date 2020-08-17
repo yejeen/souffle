@@ -16,8 +16,8 @@
 
 #include "ram/ListStatement.h"
 #include "ram/Statement.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <memory>
 #include <ostream>
 #include <utility>

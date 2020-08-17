@@ -22,7 +22,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <memory>
 

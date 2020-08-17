@@ -21,8 +21,8 @@
 #include "ram/NodeMapper.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <map>
 #include <memory>

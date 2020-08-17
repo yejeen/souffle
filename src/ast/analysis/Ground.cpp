@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/analysis/Ground.h"
-#include "BinaryConstraintOps.h"
 #include "Constraints.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
@@ -31,7 +30,8 @@
 #include "ast/TypeCast.h"
 #include "ast/analysis/Constraint.h"
 #include "ast/analysis/RelationDetailCache.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <map>
 #include <memory>

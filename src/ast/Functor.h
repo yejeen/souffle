@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
 #include "ast/Term.h"
+#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include <cstddef>
 
 namespace souffle {

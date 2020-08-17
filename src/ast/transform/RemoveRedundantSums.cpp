@@ -23,7 +23,7 @@
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>
 #include <utility>

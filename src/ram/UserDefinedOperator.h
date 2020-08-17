@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
 #include "ram/AbstractOperator.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
-#include "utility/StreamUtil.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cassert>
 #include <memory>
 #include <sstream>

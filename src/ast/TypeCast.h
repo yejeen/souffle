@@ -21,8 +21,8 @@
 #include "ast/NodeMapper.h"
 #include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <ostream>
 #include <string>

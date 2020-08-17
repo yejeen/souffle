@@ -17,8 +17,8 @@
 #pragma once
 
 #include "ast/Literal.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <iosfwd>
 #include <memory>
 #include <utility>

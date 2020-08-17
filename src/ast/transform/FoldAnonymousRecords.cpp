@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/FoldAnonymousRecords.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
@@ -23,8 +22,9 @@
 #include "ast/RecordInit.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Visitor.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

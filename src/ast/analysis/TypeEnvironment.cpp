@@ -25,8 +25,8 @@
 #include "ast/Type.h"
 #include "ast/UnionType.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/MiscUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <functional>
 #include <ostream>

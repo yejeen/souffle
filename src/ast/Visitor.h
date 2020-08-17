@@ -50,8 +50,8 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/Variable.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cstddef>
 #include <functional>
 #include <memory>

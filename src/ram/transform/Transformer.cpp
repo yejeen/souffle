@@ -22,7 +22,7 @@
 #include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <chrono>
 #include <cstdlib>
 #include <iostream>

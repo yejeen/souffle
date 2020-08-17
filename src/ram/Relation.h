@@ -17,7 +17,7 @@
 
 #include "RelationTag.h"
 #include "ram/Node.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <cstddef>
 #include <memory>

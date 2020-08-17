@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "interpreter/InterpreterIndex.h"
+#include "souffle/RamTypes.h"
 #include <cstdint>
 #include <deque>
 #include <iterator>

@@ -19,7 +19,7 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/TypeCast.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 
 namespace souffle {

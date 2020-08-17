@@ -16,7 +16,6 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "RelationTag.h"
 #include "ram/Break.h"
@@ -51,6 +50,7 @@
 #include "ram/Swap.h"
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
+#include "souffle/BinaryConstraintOps.h"
 #include <algorithm>
 #include <map>
 #include <memory>

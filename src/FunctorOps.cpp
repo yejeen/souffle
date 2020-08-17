@@ -1,7 +1,7 @@
 
 #include "FunctorOps.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <cctype>
 #include <map>

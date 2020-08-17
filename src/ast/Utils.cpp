@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/Utils.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -37,10 +36,11 @@
 #include "ast/Visitor.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 

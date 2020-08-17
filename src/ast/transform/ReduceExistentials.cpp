@@ -31,7 +31,7 @@
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/IOType.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <functional>
 #include <memory>
 #include <ostream>

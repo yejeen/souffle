@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
+#include "souffle/RamTypes.h"
 
 namespace souffle {
 

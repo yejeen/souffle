@@ -20,10 +20,10 @@
 #include "ast/NodeMapper.h"
 #include "ast/Term.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <cassert>
 #include <memory>
 

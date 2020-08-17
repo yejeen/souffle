@@ -20,7 +20,7 @@
 #include "ram/Node.h"
 #include "ram/Operation.h"
 #include "ram/Visitor.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <utility>

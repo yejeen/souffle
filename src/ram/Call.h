@@ -16,7 +16,7 @@
 
 #include "ram/Node.h"
 #include "ram/Statement.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <ostream>
 #include <string>
 #include <utility>
