@@ -1,8 +1,19 @@
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/Atom.h"
+#include "ast/Aggregator.h"
+#include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Literal.h"
+#include "ast/Negation.h"
+#include "ast/NilConstant.h"
+#include "ast/NumericConstant.h"
 #include "ast/QualifiedName.h"
+#include "ast/StringConstant.h"
+#include "ast/TranslationUnit.h"
+#include "ast/UnnamedVariable.h"
+#include "ast/Variable.h"
+#include "utility/ContainerUtil.h"
+#include "utility/StringUtil.h"
 
 namespace souffle {
 
@@ -129,7 +140,7 @@ void ClauseNormalisationAnalysis::run(const AstTranslationUnit& translationUnit)
     }
 }
 
-void ClauseNormalisationAnalysis::print(std::ostream& os) const override {
+void ClauseNormalisationAnalysis::print(std::ostream& os) const {
     for (const auto& [clause, norm] : normalisations) {
         os << "Normalise(" << *clause << ") = {";
         const auto& els = norm.getElements();
@@ -141,6 +152,11 @@ void ClauseNormalisationAnalysis::print(std::ostream& os) const override {
         }
         os << "}" << std::endl;
     }
+}
+
+const NormalisedClause& ClauseNormalisationAnalysis::getNormalisation(const AstClause* clause) const {
+    assert(contains(normalisations, clause) && "clause not normalised");
+    return normalisations.at(clause);
 }
 
 }  // namespace souffle

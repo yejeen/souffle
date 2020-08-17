@@ -24,7 +24,7 @@ namespace souffle {
 
 class AstClause;
 class AstTranslationUnit;
-class NormalisedClauseRepr;
+class NormalisedClause;
 
 /**
  * Transformation pass to remove equivalent rules.
@@ -48,14 +48,14 @@ private:
     /** -- Bijective Equivalence Helper Methods -- */
 
     // Check whether two normalised clause representations are equivalent.
-    static bool areBijectivelyEquivalent(const NormalisedClauseRepr& left, const NormalisedClauseRepr& right);
+    static bool areBijectivelyEquivalent(const NormalisedClause& left, const NormalisedClause& right);
 
     // Check whether a valid variable mapping exists for the given permutation.
-    static bool isValidPermutation(const NormalisedClauseRepr& left, const NormalisedClauseRepr& right,
+    static bool isValidPermutation(const NormalisedClause& left, const NormalisedClause& right,
             const std::vector<unsigned int>& permutation);
 
     // Checks whether a permutation encoded in the given matrix has a valid corresponding variable mapping.
-    static bool existsValidPermutation(const NormalisedClauseRepr& left, const NormalisedClauseRepr& right,
+    static bool existsValidPermutation(const NormalisedClause& left, const NormalisedClause& right,
             const std::vector<std::vector<unsigned int>>& permutationMatrix);
 
     /** -- Sub-Transformations -- */

@@ -55,8 +55,8 @@ namespace souffle {
 
 class AstRelation;
 
-bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClauseRepr& left,
-        const NormalisedClauseRepr& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
+bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& left,
+        const NormalisedClause& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
     size_t clauseSize = permutationMatrix.size();
     // keep track of the possible end-positions of each atom in the first clause
     std::vector<std::vector<unsigned int>> validMoves;
@@ -149,8 +149,8 @@ bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClauseRe
     return false;
 }
 
-bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClauseRepr& left,
-        const NormalisedClauseRepr& right, const std::vector<unsigned int>& permutation) {
+bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClause& left,
+        const NormalisedClause& right, const std::vector<unsigned int>& permutation) {
     const auto& leftElements = left.getElements();
     const auto& rightElements = right.getElements();
 
@@ -193,7 +193,7 @@ bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClauseRepr& 
 }
 
 bool MinimiseProgramTransformer::areBijectivelyEquivalent(
-        const NormalisedClauseRepr& left, const NormalisedClauseRepr& right) {
+        const NormalisedClause& left, const NormalisedClause& right) {
     const auto& leftElements = left.getElements();
     const auto& rightElements = right.getElements();
 
@@ -247,12 +247,12 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
 
 bool MinimiseProgramTransformer::areBijectivelyEquivalent(
         const AstClause* leftClause, const AstClause* rightClause) {
-    static std::map<const AstClause*, NormalisedClauseRepr> cache;
+    static std::map<const AstClause*, NormalisedClause> cache;
     if (!contains(cache, leftClause)) {
-        cache[leftClause] = NormalisedClauseRepr(leftClause);
+        cache[leftClause] = NormalisedClause(leftClause);
     }
     if (!contains(cache, rightClause)) {
-        cache[rightClause] = NormalisedClauseRepr(rightClause);
+        cache[rightClause] = NormalisedClause(rightClause);
     }
     return areBijectivelyEquivalent(cache.at(leftClause), cache.at(rightClause));
 }

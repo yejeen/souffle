@@ -1,6 +1,19 @@
 #pragma once
 
+#include "ast/QualifiedName.h"
+#include "ast/analysis/Analysis.h"
+#include <map>
+#include <string>
+#include <vector>
+
 namespace souffle {
+
+class AstArgument;
+class AstAtom;
+class AstClause;
+class AstLiteral;
+class AstQualifiedName;
+class AstTranslationUnit;
 
 class NormalisedClause {
 public:
@@ -62,13 +75,10 @@ public:
 
     void print(std::ostream& os) const override;
 
-    const ClauseNormalisation& getNormalisation(const AstClause* clause) const {
-        assert(contains(normalisations, clause) && "clause not normalised");
-        return normalisations.at(clause);
-    }
+    const NormalisedClause& getNormalisation(const AstClause* clause) const;
 
 private:
-    std::map<const AstClause*, const NormalisedClause&> normalisations;
+    std::map<const AstClause*, NormalisedClause> normalisations;
 };
 
 }  // namespace souffle
