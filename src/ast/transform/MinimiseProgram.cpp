@@ -61,6 +61,8 @@ public:
         std::vector<std::string> params;
     };
 
+    NormalisedClauseRepr() = default;
+
     NormalisedClauseRepr(const AstClause* clause) {
         // head
         AstQualifiedName name("@min:head");
@@ -408,9 +410,14 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
 
 bool MinimiseProgramTransformer::areBijectivelyEquivalent(
         const AstClause* leftClause, const AstClause* rightClause) {
-    auto normalisedLeft = NormalisedClauseRepr(leftClause);
-    auto normalisedRight = NormalisedClauseRepr(rightClause);
-    return areBijectivelyEquivalent(normalisedLeft, normalisedRight);
+    static std::map<const AstClause*, NormalisedClauseRepr> cache;
+    if (!contains(cache, leftClause)) {
+        cache[leftClause] = NormalisedClauseRepr(leftClause);
+    }
+    if (!contains(cache, rightClause)) {
+        cache[rightClause] = NormalisedClauseRepr(rightClause);
+    }
+    return areBijectivelyEquivalent(cache.at(leftClause), cache.at(rightClause));
 }
 
 bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(AstTranslationUnit& translationUnit) {
@@ -471,21 +478,21 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
     }
 
     // Keep track of clauses found to be redundant
-    std::set<AstClause*> redundantClauses;
+    std::set<const AstClause*> redundantClauses;
 
     // Keep track of canonical relation name for each redundant clause
     std::map<AstQualifiedName, AstQualifiedName> canonicalName;
 
     // Check pairwise equivalence of each singleton relation
     for (size_t i = 0; i < singletonRelationClauses.size(); i++) {
-        AstClause* first = singletonRelationClauses[i];
+        const auto* first = singletonRelationClauses[i];
         if (redundantClauses.find(first) != redundantClauses.end()) {
             // Already found to be redundant, no need to check
             continue;
         }
 
         for (size_t j = i + 1; j < singletonRelationClauses.size(); j++) {
-            AstClause* second = singletonRelationClauses[j];
+            const auto* second = singletonRelationClauses[j];
 
             // Note: Bijective-equivalence check does not care about the head relation name
             if (areBijectivelyEquivalent(first, second)) {
@@ -498,7 +505,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
     }
 
     // Remove redundant relation definitions
-    for (AstClause* clause : redundantClauses) {
+    for (const auto* clause : redundantClauses) {
         auto relName = clause->getHead()->getQualifiedName();
         AstRelation* rel = getRelation(program, relName);
         assert(rel != nullptr && "relation does not exist in program");
