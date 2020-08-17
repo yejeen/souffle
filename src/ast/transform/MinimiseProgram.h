@@ -24,6 +24,7 @@ namespace souffle {
 
 class AstClause;
 class AstTranslationUnit;
+class NormalisedClauseRepr;
 
 /**
  * Transformation pass to remove equivalent rules.
@@ -42,8 +43,6 @@ public:
     }
 
 private:
-    class NormalisedClauseRepr;
-
     bool transform(AstTranslationUnit& translationUnit) override;
 
     /** -- Bijective Equivalence Helper Methods -- */
