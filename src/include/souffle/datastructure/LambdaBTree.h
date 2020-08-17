@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "souffle/BTree.h"
+#include "souffle/datastructure/BTree.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #include <atomic>

@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "souffle/Table.h"
+#include "souffle/datastructure/Table.h"
 #include <cstddef>
 #include <string>
 
