@@ -23,6 +23,7 @@
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
+#include "ast/analysis/RelationDetailCache.h"
 #include <set>
 #include <string>
 #include <vector>
@@ -31,12 +32,13 @@ namespace souffle {
 
 void PrecedenceGraphAnalysis::run(const AstTranslationUnit& translationUnit) {
     /* Get relations */
-    const AstProgram& program = *translationUnit.getProgram();
+    const auto& program = *translationUnit.getProgram();
+    const auto& relationDetail = *translationUnit.getAnalysis<RelationDetailCacheAnalysis>();
     std::vector<AstRelation*> relations = program.getRelations();
 
     for (AstRelation* r : relations) {
         backingGraph.insert(r);
-        for (const auto& c : getClauses(program, *r)) {
+        for (const auto& c : relationDetail.getClauses(r)) {
             const std::set<const AstRelation*>& dependencies =
                     getBodyRelations(c, translationUnit.getProgram());
             for (auto source : dependencies) {
