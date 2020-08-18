@@ -255,6 +255,11 @@ souffle_sources = \
         interpreter/InterpreterEngine.cpp                  \
         interpreter/InterpreterEngine.h                    \
         interpreter/InterpreterGenerator.h                 \
+        interpreter/InterpreterBrieIndex.cpp               \
+        interpreter/InterpreterBTreeIndex.cpp              \
+        interpreter/InterpreterEqrelIndex.cpp              \
+        interpreter/InterpreterIndirectIndex.cpp           \
+        interpreter/InterpreterProvenanceIndex.cpp         \
         interpreter/InterpreterIndex.cpp                   \
         interpreter/InterpreterIndex.h                     \
         interpreter/InterpreterNode.h                      \

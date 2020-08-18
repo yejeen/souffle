@@ -17,7 +17,8 @@
 #pragma once
 
 #include "interpreter/InterpreterIndex.h"
-#include "souffle/RamTypes.h"
+#include "ram/analysis/IndexAnalysis.h"
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <iterator>
@@ -28,7 +29,6 @@
 #include <vector>
 
 namespace souffle {
-class MinIndexSelection;
 
 /**
  * A relation, composed of a collection of indexes.
