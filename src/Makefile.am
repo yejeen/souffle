@@ -143,6 +143,8 @@ souffle_sources = \
         ast/analysis/Analysis.h                            \
         ast/analysis/AuxArity.cpp                          \
         ast/analysis/AuxArity.h                            \
+        ast/analysis/ClauseNormalisation.h                 \
+        ast/analysis/ClauseNormalisation.cpp               \
         ast/analysis/ComponentLookup.cpp                   \
         ast/analysis/ComponentLookup.h                     \
         ast/analysis/Constraint.h                          \
