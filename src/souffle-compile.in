@@ -55,10 +55,7 @@ WARNINGS=""
 SWIGLANG=""
 
 # find header files of souffle
-TEST_HEADER="souffle/CompiledSouffle.h"
-HEADER_DIR=$(dirname $0)/../include
-test -e "$HEADER_DIR/$TEST_HEADER"
-error "installation error: souffle header files cannot be found" $?
+HEADER_DIR=$(dirname $0)/include
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
 # default getopt is an old BSD getopt, so need this for portability
