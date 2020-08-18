@@ -18,9 +18,9 @@
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Statement.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <memory>
 #include <ostream>
 #include <string>

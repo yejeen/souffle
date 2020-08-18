@@ -1,6 +1,6 @@
 #include "ast/analysis/ClauseNormalisation.h"
-#include "ast/Atom.h"
 #include "ast/Aggregator.h"
+#include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Literal.h"
@@ -12,8 +12,8 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StringUtil.h"
 
 namespace souffle {
 

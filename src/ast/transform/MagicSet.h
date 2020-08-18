@@ -27,8 +27,8 @@
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/Transformer.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cstddef>
 #include <map>
 #include <memory>

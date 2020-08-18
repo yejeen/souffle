@@ -19,8 +19,8 @@
 
 #include "ram/Relation.h"
 #include "ram/RelationStatement.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <memory>
 #include <ostream>
 #include <string>

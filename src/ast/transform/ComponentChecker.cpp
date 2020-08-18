@@ -27,7 +27,7 @@
 #include "ast/Type.h"
 #include "ast/analysis/ComponentLookup.h"
 #include "parser/SrcLocation.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <functional>
 #include <map>
 #include <set>

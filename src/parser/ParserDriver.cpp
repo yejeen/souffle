@@ -30,11 +30,11 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
 #include "ast/Utils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <memory>
 #include <utility>

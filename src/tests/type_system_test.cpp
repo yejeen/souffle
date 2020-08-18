@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "RamTypes.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/StringUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/StringUtil.h"
 #include <string>
 #include <vector>
 
@@ -262,6 +262,15 @@ TEST(TypeSystem, EquivTypes) {
     auto& U = env.createType<UnionType>("U", toVector(dynamic_cast<const Type*>(&A)));
 
     EXPECT_TRUE(areEquivalentTypes(A, U));
+}
+
+TEST(TypeSystem, AlgebraicDataType) {
+    TypeEnvironment env;
+
+    auto& A = env.createType<AlgebraicDataType>("A");
+
+    EXPECT_TRUE(isSubtypeOf(A, A));
+    EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, A)));
 }
 
 }  // namespace souffle::test

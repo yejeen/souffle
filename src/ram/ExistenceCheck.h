@@ -20,7 +20,7 @@
 #include "ram/AbstractExistenceCheck.h"
 #include "ram/Expression.h"
 #include "ram/Relation.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <utility>
 #include <vector>

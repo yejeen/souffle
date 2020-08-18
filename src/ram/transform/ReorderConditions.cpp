@@ -21,7 +21,7 @@
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
 #include "ram/analysis/ComplexityAnalysis.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <functional>
 #include <memory>

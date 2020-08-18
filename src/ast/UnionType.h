@@ -20,7 +20,7 @@
 #include "ast/QualifiedName.h"
 #include "ast/Type.h"
 #include "parser/SrcLocation.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>

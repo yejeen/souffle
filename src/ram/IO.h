@@ -17,9 +17,9 @@
 #include "ram/Node.h"
 #include "ram/Relation.h"
 #include "ram/RelationStatement.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <map>
 #include <memory>

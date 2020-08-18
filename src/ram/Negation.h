@@ -20,8 +20,8 @@
 #include "ram/Condition.h"
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <memory>
 #include <sstream>

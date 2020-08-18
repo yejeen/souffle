@@ -20,8 +20,8 @@
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "parser/ParserUtils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <memory>
 #include <string>
 #include <utility>

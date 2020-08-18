@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/MinimiseProgram.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -36,9 +35,10 @@
 #include "ast/Variable.h"
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/analysis/IOType.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

@@ -19,7 +19,7 @@
 #include "ram/Operation.h"
 #include "ram/Relation.h"
 #include "ram/TupleOperation.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <memory>
 #include <string>

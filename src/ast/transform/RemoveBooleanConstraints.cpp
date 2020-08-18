@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/RemoveBooleanConstraints.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Aggregator.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
@@ -26,7 +25,8 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>
 #include <utility>

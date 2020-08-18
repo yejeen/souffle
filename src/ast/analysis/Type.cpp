@@ -19,7 +19,6 @@
 #include "Constraints.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -45,12 +44,14 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Constraint.h"
+#include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -557,12 +558,13 @@ std::unique_ptr<AstClause> createAnnotatedClause(
  */
 class TypeConstraintsAnalysis : public AstConstraintAnalysis<TypeVar> {
 public:
-    TypeConstraintsAnalysis(const TypeEnvironment& typeEnv, const AstProgram& program)
-            : typeEnv(typeEnv), program(program) {}
+    TypeConstraintsAnalysis(const AstTranslationUnit& tu) : tu(tu) {}
 
 private:
-    const TypeEnvironment& typeEnv;
-    const AstProgram& program;
+    const AstTranslationUnit& tu;
+    const TypeEnvironment& typeEnv = tu.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
+    const AstProgram& program = *tu.getProgram();
+    const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
 
     // Sinks = {head} ∪ {negated atoms}
     std::set<const AstAtom*> sinks;
@@ -720,6 +722,34 @@ private:
         }
     }
 
+    void visitBranchInit(const AstBranchInit& adt) override {
+        auto* correspondingType = sumTypesBranches.getType(adt.getConstructor());
+
+        if (correspondingType == nullptr) {
+            return;  // malformed program.
+        }
+
+        // Sanity check
+        assert(isA<AlgebraicDataType>(correspondingType));
+
+        // Constraint on the whole branch. $Branch(...) <: ADTtype
+        addConstraint(isSubtypeOf(getVar(adt), *correspondingType));
+
+        // Constraints on arguments
+        try {
+            auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+            auto branchArgs = adt.getArguments();
+
+            // Add constraints for each of the branch arguments.
+            for (size_t i = 0; i < branchArgs.size(); ++i) {
+                auto argVar = getVar(branchArgs[i]);
+                addConstraint(isSubtypeOf(argVar, *branchTypes[i]));
+            }
+        } catch (...) {
+            return;  // Invalid program.
+        }
+    }
+
     void visitAggregator(const AstAggregator& agg) override {
         if (agg.getOperator() == AggregateOp::COUNT) {
             addConstraint(isSubtypeOf(getVar(agg), typeEnv.getConstantType(TypeAttribute::Signed)));
@@ -763,16 +793,16 @@ private:
     }
 };
 
-std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvironment& typeEnv,
-        const AstClause& clause, const AstProgram& program, std::ostream* logs) {
-    return TypeConstraintsAnalysis(typeEnv, program).analyse(clause, logs);
+std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
+        const AstTranslationUnit& tu, const AstClause& clause, std::ostream* logs) {
+    return TypeConstraintsAnalysis(tu).analyse(clause, logs);
 }
 
 void TypeAnalysis::print(std::ostream& os) const {
     os << "-- Analysis logs --" << std::endl;
     os << analysisLogs.str() << std::endl;
     os << "-- Result --" << std::endl;
-    for (const auto& cur : annotatedClauses) {
+    for (auto& cur : annotatedClauses) {
         os << *cur << std::endl;
     }
 }
@@ -783,12 +813,10 @@ void TypeAnalysis::run(const AstTranslationUnit& translationUnit) {
     if (Global::config().has("debug-report") || Global::config().has("show", "type-analysis")) {
         debugStream = &analysisLogs;
     }
-    const auto& program = *translationUnit.getProgram();
-    auto& typeEnv = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
     // Analyse types, clause by clause.
-    for (const AstClause* clause : program.getClauses()) {
-        auto clauseArgumentTypes = analyseTypes(typeEnv, *clause, program, debugStream);
+    for (const AstClause* clause : translationUnit.getProgram()->getClauses()) {
+        auto clauseArgumentTypes = analyseTypes(translationUnit, *clause, debugStream);
         argumentTypes.insert(clauseArgumentTypes.begin(), clauseArgumentTypes.end());
 
         if (debugStream != nullptr) {

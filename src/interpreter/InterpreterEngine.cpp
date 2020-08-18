@@ -15,24 +15,14 @@
 
 #include "interpreter/InterpreterEngine.h"
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
-#include "Logger.h"
-#include "ProfileEvent.h"
-#include "RamTypes.h"
-#include "RecordTable.h"
-#include "SignalHandler.h"
-#include "SymbolTable.h"
-#include "TypeAttribute.h"
+#include "Global.h"
 #include "interpreter/InterpreterContext.h"
 #include "interpreter/InterpreterGenerator.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
 #include "interpreter/InterpreterPreamble.h"
 #include "interpreter/InterpreterRelation.h"
-#include "io/IOSystem.h"
-#include "io/ReadStream.h"
-#include "io/WriteStream.h"
 #include "ram/Aggregate.h"
 #include "ram/AutoIncrement.h"
 #include "ram/Break.h"
@@ -86,10 +76,21 @@
 #include "ram/UnpackRecord.h"
 #include "ram/UserDefinedOperator.h"
 #include "ram/Visitor.h"
-#include "utility/EvaluatorUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/ParallelUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/Logger.h"
+#include "souffle/ProfileEvent.h"
+#include "souffle/RamTypes.h"
+#include "souffle/RecordTable.h"
+#include "souffle/SignalHandler.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/io/IOSystem.h"
+#include "souffle/io/ReadStream.h"
+#include "souffle/io/WriteStream.h"
+#include "souffle/utility/EvaluatorUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/ParallelUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -329,8 +330,8 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 #define CASE(Kind)     \
     case (I_##Kind): { \
         return [&]() -> RamDomain { \
-            const auto& shadow = *static_cast<const Interpreter##Kind*>(node); \
-            const auto& cur = *static_cast<const Ram##Kind*>(node->getShadow());
+            [[maybe_unused]] const auto& shadow = *static_cast<const Interpreter##Kind*>(node); \
+            [[maybe_unused]] const auto& cur = *static_cast<const Ram##Kind*>(node->getShadow());
 #define ESAC(Kind) \
     }              \
     ();            \
@@ -626,6 +627,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                         floatVal[i] = ramBitCast<RamFloat>(arg);
                         values[i] = &floatVal[i];
                         break;
+                    case TypeAttribute::ADT: fatal("ADT support is not implemented");
                     case TypeAttribute::Record: fatal("Record support is not implemented");
                 }
             }
@@ -638,6 +640,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                 case TypeAttribute::Signed: codomain = &FFI_RamSigned; break;
                 case TypeAttribute::Unsigned: codomain = &FFI_RamUnsigned; break;
                 case TypeAttribute::Float: codomain = &FFI_RamFloat; break;
+                case TypeAttribute::ADT: fatal("Not implemented");
                 case TypeAttribute::Record: fatal("Not implemented");
             }
 
@@ -655,6 +658,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
                 case TypeAttribute::Unsigned: return ramBitCast(static_cast<RamUnsigned>(rc));
                 case TypeAttribute::Float: return ramBitCast(static_cast<RamFloat>(rc));
+                case TypeAttribute::ADT: fatal("Not implemented");
                 case TypeAttribute::Record: fatal("Not implemented");
             }
             fatal("Unsupported user defined operator");

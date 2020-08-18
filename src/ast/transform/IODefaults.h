@@ -21,7 +21,7 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <string>
 
 namespace souffle {

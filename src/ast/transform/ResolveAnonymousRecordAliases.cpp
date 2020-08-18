@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ResolveAnonymousRecordAliases.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
@@ -29,7 +28,8 @@
 #include "ast/analysis/Ground.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
 #include <map>
 #include <memory>
 #include <utility>

@@ -16,13 +16,9 @@
 
 #include "synthesiser/Synthesiser.h"
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
-#include "SymbolTable.h"
-#include "json11.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
@@ -34,12 +30,16 @@
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
 #include "ram/analysis/IndexAnalysis.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/json11.h"
+#include "souffle/utility/FileUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include "synthesiser/SynthesiserRelation.h"
-#include "utility/FileUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
-#include "utility/tinyformat.h"
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -958,6 +958,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case TypeAttribute::Float: type = "RamFloat"; break;
 
                 case TypeAttribute::Symbol:
+                case TypeAttribute::ADT:
                 case TypeAttribute::Record: type = "RamDomain"; break;
             }
             out << type << " res0 = " << init << ";\n";
@@ -1123,6 +1124,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case TypeAttribute::Float: type = "RamFloat"; break;
 
                 case TypeAttribute::Symbol:
+                case TypeAttribute::ADT:
                 case TypeAttribute::Record: type = "RamDomain"; break;
             }
             out << type << " res0 = " << init << ";\n";
@@ -1302,6 +1304,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case TypeAttribute::Float: type = "RamFloat"; break;
 
                 case TypeAttribute::Symbol:
+                case TypeAttribute::ADT:
                 case TypeAttribute::Record: type = "RamDomain"; break;
             }
             out << type << " res0 = " << init << ";\n";
@@ -1442,6 +1445,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case TypeAttribute::Float: type = "RamFloat"; break;
 
                 case TypeAttribute::Symbol:
+                case TypeAttribute::ADT:
                 case TypeAttribute::Record: type = "RamDomain"; break;
             }
             out << type << " res0 = " << init << ";\n";
@@ -2080,6 +2084,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         visit(args[i], out);
                         out << ").c_str()";
                         break;
+                    case TypeAttribute::ADT:
                     case TypeAttribute::Record: fatal("unhandled type");
                 }
             }
@@ -2197,6 +2202,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
                 case TypeAttribute::Unsigned: return "souffle::RamUnsigned";
                 case TypeAttribute::Float: return "souffle::RamFloat";
                 case TypeAttribute::Symbol: return "const char *";
+                case TypeAttribute::ADT: fatal("adts cannot be used by user-defined functors");
                 case TypeAttribute::Record: fatal("records cannot be used by user-defined functors");
             }
 

@@ -19,8 +19,8 @@
 #include "ast/Node.h"
 #include "ast/Term.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <ostream>
 #include <string>
 #include <utility>

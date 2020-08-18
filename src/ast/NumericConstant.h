@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "ast/Constant.h"
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
+#include "souffle/RamTypes.h"
 #include <optional>
 #include <string>
 #include <utility>

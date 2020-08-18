@@ -18,8 +18,8 @@
 #include "ram/IndexOperation.h"
 #include "ram/Operation.h"
 #include "ram/Relation.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <iosfwd>
 #include <memory>
 #include <ostream>

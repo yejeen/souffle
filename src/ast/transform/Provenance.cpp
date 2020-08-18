@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/Provenance.h"
-#include "BinaryConstraintOps.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
@@ -40,11 +39,12 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

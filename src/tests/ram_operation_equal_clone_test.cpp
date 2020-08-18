@@ -17,7 +17,6 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "RelationTag.h"
 #include "ram/Aggregate.h"
 #include "ram/Break.h"
@@ -48,6 +47,7 @@
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "ram/UnpackRecord.h"
+#include "souffle/BinaryConstraintOps.h"
 #include <memory>
 #include <string>
 #include <utility>

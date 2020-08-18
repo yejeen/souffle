@@ -17,7 +17,6 @@
 #include "tests/test.h"
 
 #include "FunctorOps.h"
-#include "TypeAttribute.h"
 #include "ram/AutoIncrement.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"
@@ -27,6 +26,8 @@
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "ram/UserDefinedOperator.h"
+#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include <memory>
 #include <string>
 #include <utility>

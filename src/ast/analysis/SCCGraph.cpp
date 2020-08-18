@@ -24,7 +24,7 @@
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/IOType.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <memory>

@@ -17,11 +17,13 @@
 #pragma once
 
 #include "ast/Aggregator.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
@@ -48,8 +50,8 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/Variable.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -99,6 +101,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(SubsetType);
         FORWARD(UnionType);
         FORWARD(RecordType);
+        FORWARD(AlgebraicDataType);
 
         // arguments
         FORWARD(Variable)
@@ -111,6 +114,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(NilConstant)
         FORWARD(TypeCast)
         FORWARD(RecordInit)
+        FORWARD(BranchInit)
         FORWARD(Aggregator)
         FORWARD(SubroutineArgument)
 
@@ -149,6 +153,7 @@ protected:
     // -- types --
     LINK(SubsetType, Type);
     LINK(RecordType, Type);
+    LINK(AlgebraicDataType, Type);
     LINK(UnionType, Type);
     LINK(Type, Node);
 
@@ -158,6 +163,7 @@ protected:
     LINK(Counter, Argument)
     LINK(TypeCast, Argument)
     LINK(SubroutineArgument, Argument)
+    LINK(BranchInit, Argument)
 
     LINK(NumericConstant, Constant)
     LINK(StringConstant, Constant)

@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "RamTypes.h"
-#include "SymbolTable.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
@@ -36,7 +34,6 @@
 #include "ast/analysis/AuxArity.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/TypeSystem.h"
-#include "json11.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Operation.h"
@@ -44,10 +41,13 @@
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
 #include "ram/TupleElement.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/json11.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <cassert>
 #include <cstddef>
 #include <map>
@@ -382,12 +382,6 @@ private:
     public:
         ProvenanceClauseTranslator(AstToRamTranslator& translator) : ClauseTranslator(translator) {}
     };
-
-    /**
-     * Get ram records types.
-     * If they don't exists - create them.
-     */
-    const json11::Json getRecordsTypes();
 
     /** Return a symbol table **/
     SymbolTable& getSymbolTable() {

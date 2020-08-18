@@ -18,7 +18,6 @@
 #pragma once
 
 #include "Global.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
@@ -33,7 +32,8 @@
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
 #include "ram/analysis/IndexAnalysis.h"
-#include "utility/MiscUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <memory>

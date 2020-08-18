@@ -10,7 +10,7 @@
 #include "Global.h"
 #include "RelationTag.h"
 #include "ram/analysis/IndexAnalysis.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -233,7 +233,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> gencmp = [&](size_t i) {
                 size_t attrib = ind[i];
-                const auto& typecast = typecasts[i];
+                const auto& typecast = typecasts[attrib];
 
                 out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib
                     << "])) ? -1 : (" << typecast << "(a[" << attrib << "]) > " << typecast << "(b[" << attrib
@@ -251,7 +251,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> genless = [&](size_t i) {
                 size_t attrib = ind[i];
-                const auto& typecast = typecasts[i];
+                const auto& typecast = typecasts[attrib];
 
                 out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
@@ -267,7 +267,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "return ";
             std::function<void(size_t)> geneq = [&](size_t i) {
                 size_t attrib = ind[i];
-                const auto& typecast = typecasts[i];
+                const auto& typecast = typecasts[attrib];
 
                 out << "(" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {

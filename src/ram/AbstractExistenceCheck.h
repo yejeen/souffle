@@ -22,8 +22,8 @@
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Relation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cassert>
 #include <memory>
 #include <sstream>

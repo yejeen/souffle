@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ram/transform/IndexedInequality.h"
-#include "BinaryConstraintOps.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
@@ -23,7 +22,8 @@
 #include "ram/Statement.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <functional>

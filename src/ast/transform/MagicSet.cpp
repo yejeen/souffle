@@ -15,9 +15,7 @@
  ***********************************************************************/
 
 #include "ast/transform/MagicSet.h"
-#include "BinaryConstraintOps.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "ast/Aggregator.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
@@ -39,9 +37,11 @@
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/SCCGraph.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <optional>
 #include <utility>

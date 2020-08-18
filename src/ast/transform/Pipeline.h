@@ -18,8 +18,8 @@
 
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <set>
 #include <string>

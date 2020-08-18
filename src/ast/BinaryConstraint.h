@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/Constraint.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "parser/SrcLocation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <iostream>

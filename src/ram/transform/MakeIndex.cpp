@@ -13,9 +13,7 @@
  ***********************************************************************/
 
 #include "ram/transform/MakeIndex.h"
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "ram/Condition.h"
 #include "ram/Constraint.h"
@@ -27,8 +25,10 @@
 #include "ram/Statement.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <functional>

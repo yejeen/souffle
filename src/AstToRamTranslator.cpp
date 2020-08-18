@@ -15,14 +15,12 @@
  ***********************************************************************/
 
 #include "AstToRamTranslator.h"
-#include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "RelationTag.h"
-#include "TypeAttribute.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -112,8 +110,10 @@
 #include "ram/UnsignedConstant.h"
 #include "ram/UserDefinedOperator.h"
 #include "ram/Utils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
