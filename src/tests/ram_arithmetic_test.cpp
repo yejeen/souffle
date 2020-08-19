@@ -16,8 +16,6 @@
 
 #include "tests/test.h"
 
-#include "DebugReport.h"
-#include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "interpreter/InterpreterEngine.h"
@@ -31,6 +29,8 @@
 #include "ram/Statement.h"
 #include "ram/SubroutineReturn.h"
 #include "ram/TranslationUnit.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
 #include <algorithm>
