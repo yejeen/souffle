@@ -76,12 +76,6 @@ nodist_souffle_SOURCES = $(BUILT_SOURCES)
 
 souffle_sources = \
         AggregateOp.h                                      \
-        AstToRamTranslator.cpp                             \
-        AstToRamTranslator.h                               \
-        Constraints.h                                      \
-        DebugReport.cpp                                    \
-        DebugReport.h                                      \
-        ErrorReport.h                                      \
         FunctorOps.cpp                                     \
         FunctorOps.h                                       \
         Global.cpp                                         \
@@ -89,7 +83,7 @@ souffle_sources = \
         GraphUtils.h                                       \
         LogStatement.h                                     \
         RelationTag.h                                      \
-        Util.cpp                                           \
+        TypeAttribute.cpp                                  \
         ast/Aggregator.h                                   \
         ast/AlgebraicDataType.h                            \
         ast/Argument.h                                     \
@@ -148,6 +142,7 @@ souffle_sources = \
         ast/analysis/ComponentLookup.cpp                   \
         ast/analysis/ComponentLookup.h                     \
         ast/analysis/Constraint.h                          \
+        ast/analysis/ConstraintSystem.h                    \
         ast/analysis/Ground.cpp                            \
         ast/analysis/Ground.h                              \
         ast/analysis/IOType.cpp                            \
@@ -253,6 +248,8 @@ souffle_sources = \
         ast/transform/UserDefinedFunctors.cpp              \
         ast/transform/UserDefinedFunctors.h                \
         ast/transform/While.h                              \
+        ast2ram/AstToRamTranslator.cpp                     \
+        ast2ram/AstToRamTranslator.h                       \
         interpreter/InterpreterContext.h                   \
         interpreter/InterpreterEngine.cpp                  \
         interpreter/InterpreterEngine.h                    \
@@ -397,6 +394,9 @@ souffle_sources = \
         ram/transform/Transformer.h                        \
         ram/transform/TupleId.cpp                          \
         ram/transform/TupleId.h                            \
+        reports/DebugReport.cpp                            \
+        reports/DebugReport.h                              \
+        reports/ErrorReport.h                              \
         synthesiser/Synthesiser.cpp                        \
         synthesiser/Synthesiser.h                          \
         synthesiser/SynthesiserRelation.cpp                \

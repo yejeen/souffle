@@ -17,8 +17,6 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
-#include "DebugReport.h"
-#include "ErrorReport.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
@@ -31,6 +29,8 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "parser/ParserDriver.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>

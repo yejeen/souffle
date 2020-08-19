@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Constraints.h"
+#include "ConstraintSystem.h"
 #include "ast/Argument.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"

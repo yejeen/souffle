@@ -16,8 +16,6 @@
 
 #include "tests/test.h"
 
-#include "DebugReport.h"
-#include "ErrorReport.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -30,6 +28,8 @@
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"
 #include "parser/ParserDriver.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include "souffle/utility/StringUtil.h"
 #include <map>
 #include <memory>

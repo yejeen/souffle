@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ExecutionPlanChecker.h"
-#include "ErrorReport.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
 #include "ast/ExecutionOrder.h"
@@ -24,6 +23,7 @@
 #include "ast/Utils.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
+#include "reports/ErrorReport.h"
 #include <algorithm>
 #include <map>
 #include <set>

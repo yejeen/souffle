@@ -15,10 +15,10 @@
  ***********************************************************************/
 
 #include "ast/transform/DebugReporter.h"
-#include "DebugReport.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
+#include "reports/DebugReport.h"
 #include <chrono>
 
 namespace souffle {

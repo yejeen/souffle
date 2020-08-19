@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ErrorReport.h
+ * @file reports/ErrorReport.h
  *
  * Defines a class for error reporting.
  *

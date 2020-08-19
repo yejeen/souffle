@@ -6,10 +6,18 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-#include "souffle/RamTypes.h"
 #include "souffle/TypeAttribute.h"
+#include "souffle/RamTypes.h"
 #include "souffle/utility/MiscUtil.h"
 #include <ostream>
+
+/************************************************************************
+ *
+ * @file TypeAttribute.cpp
+ *
+ * Utility for TypeAttribute
+ *
+ ***********************************************************************/
 
 namespace souffle {
 

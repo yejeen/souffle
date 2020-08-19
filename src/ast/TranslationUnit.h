@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "DebugReport.h"
 #include "Global.h"
 #include "ast/Program.h"
 #include "ast/analysis/Analysis.h"
@@ -24,6 +23,7 @@
 #include "ast/analysis/SCCGraph.h"
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/Type.h"
+#include "reports/DebugReport.h"
 #include <map>
 #include <memory>
 #include <sstream>

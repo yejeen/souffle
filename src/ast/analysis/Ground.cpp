@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "ast/analysis/Ground.h"
-#include "Constraints.h"
+#include "ConstraintSystem.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Atom.h"
