@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "Constraints.h"
+#include "ast/analysis/ConstraintSystem.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <iosfwd>

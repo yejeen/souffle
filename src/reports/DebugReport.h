@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file DebugReport.h
+ * @file reports/DebugReport.h
  *
  * Defines classes for creating HTML reports of debugging information.
  *

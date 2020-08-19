@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "DebugReport.h"
+#include "reports/DebugReport.h"
 #include "Global.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/tinyformat.h"
