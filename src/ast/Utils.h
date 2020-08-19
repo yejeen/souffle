@@ -36,6 +36,7 @@ class AstNode;
 class AstProgram;
 class AstQualifiedName;
 class AstRelation;
+class AstTranslationUnit;
 class AstType;
 class AstVariable;
 class AstRecordInit;
@@ -131,20 +132,28 @@ const AstType* getType(const AstProgram& program, const AstQualifiedName& name);
 const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, const std::string& name);
 
 /**
+ * Remove relation and all its clauses from the program.
+ *
+ * @param tu the translation unit
+ * @param name the name of the relation to delete
+ */
+void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name);
+
+/**
  * Removes the set of clauses with the given relation name.
  *
- * @param program the program
+ * @param tu the translation unit
  * @param name the name of the relation to search for
  */
-void removeRelationClauses(AstProgram& program, const AstQualifiedName& name);
+void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name);
 
 /**
  * Removes the set of IOs with the given relation name.
  *
- * @param program the program
+ * @param tu the translation unit
  * @param name the name of the relation to search for
  */
-void removeRelationIOs(AstProgram& program, const AstQualifiedName& name);
+void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name);
 
 /**
  * Returns the relation referenced by the given atom.

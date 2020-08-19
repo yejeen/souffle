@@ -91,12 +91,10 @@ public:
     }
 
     /** Remove relation */
-    bool removeRelation(const AstQualifiedName& name) {
+    bool removeRelationDecl(const AstQualifiedName& name) {
         for (auto it = relations.begin(); it != relations.end(); it++) {
             const auto& rel = *it;
             if (rel->getQualifiedName() == name) {
-                removeRelationClauses(*this, name);
-                removeRelationIOs(*this, name);
                 relations.erase(it);
                 return true;
             }

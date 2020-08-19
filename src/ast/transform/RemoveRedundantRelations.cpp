@@ -28,7 +28,7 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
             redundantRelationsAnalysis->getRedundantRelations();
     if (!redundantRelations.empty()) {
         for (auto rel : redundantRelations) {
-            translationUnit.getProgram()->removeRelation(rel->getQualifiedName());
+            removeRelation(translationUnit, rel->getQualifiedName());
             changed = true;
         }
     }

@@ -141,7 +141,7 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstTranslationUnit& t
     // remove unused relations
     for (const auto& cur : isAliasOf) {
         if (cycle_reps.count(cur.first) == 0u) {
-            program.removeRelation(getRelation(program, cur.first)->getQualifiedName());
+            removeRelation(translationUnit, getRelation(program, cur.first)->getQualifiedName());
         }
     }
 
