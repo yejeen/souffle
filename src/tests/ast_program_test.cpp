@@ -223,7 +223,6 @@ TEST(AstProgram, AppendAstRelation) {
 
 TEST(AstProgram, RemoveAstRelation) {
     auto tu1 = makeATU(".decl A,B,C(x:number)");
-    auto* prog1 = tu1->getProgram();
     removeRelation(*tu1, "B");
     auto tu2 = makeATU(".decl A,C(x:number)");
     EXPECT_EQ(*tu1->getProgram(), *tu2->getProgram());
