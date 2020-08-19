@@ -33,6 +33,7 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
+#include "ast/analysis/ClauseNormalisation.h"
 #include "ast/analysis/IOType.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -54,170 +55,8 @@ namespace souffle {
 
 class AstRelation;
 
-class MinimiseProgramTransformer::NormalisedClauseRepr {
-public:
-    struct NormalisedClauseElementRepr {
-        AstQualifiedName name;
-        std::vector<std::string> params;
-    };
-
-    NormalisedClauseRepr(const AstClause* clause) {
-        // head
-        AstQualifiedName name("@min:head");
-        std::vector<std::string> headVars;
-        for (const auto* arg : clause->getHead()->getArguments()) {
-            headVars.push_back(normaliseArgument(arg));
-        }
-        clauseElements.push_back({.name = name, .params = headVars});
-
-        // body
-        for (const auto* lit : clause->getBodyLiterals()) {
-            addClauseBodyLiteral("@min:scope:0", lit);
-        }
-    }
-
-    bool isFullyNormalised() const {
-        return fullyNormalised;
-    }
-
-    const std::set<std::string>& getVariables() const {
-        return variables;
-    }
-
-    const std::set<std::string>& getConstants() const {
-        return constants;
-    }
-
-    const std::vector<NormalisedClauseElementRepr>& getElements() const {
-        return clauseElements;
-    }
-
-private:
-    bool fullyNormalised{true};
-    size_t aggrScopeCount{0};
-    std::set<std::string> variables{};
-    std::set<std::string> constants{};
-    std::vector<NormalisedClauseElementRepr> clauseElements{};
-
-    /**
-     * Parse an atom with a preset name qualifier into the element list.
-     */
-    void addClauseAtom(const std::string& qualifier, const std::string& scopeID, const AstAtom* atom);
-
-    /**
-     * Parse a body literal into the element list.
-     */
-    void addClauseBodyLiteral(const std::string& scopeID, const AstLiteral* lit);
-
-    /**
-     * Return a normalised string repr of an argument.
-     */
-    std::string normaliseArgument(const AstArgument* arg);
-};
-
-void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseAtom(
-        const std::string& qualifier, const std::string& scopeID, const AstAtom* atom) {
-    AstQualifiedName name(atom->getQualifiedName());
-    name.prepend(qualifier);
-
-    std::vector<std::string> vars;
-    vars.push_back(scopeID);
-    for (const auto* arg : atom->getArguments()) {
-        vars.push_back(normaliseArgument(arg));
-    }
-    clauseElements.push_back({.name = name, .params = vars});
-}
-
-void MinimiseProgramTransformer::NormalisedClauseRepr::addClauseBodyLiteral(
-        const std::string& scopeID, const AstLiteral* lit) {
-    if (const auto* atom = dynamic_cast<const AstAtom*>(lit)) {
-        addClauseAtom("@min:atom", scopeID, atom);
-    } else if (const auto* neg = dynamic_cast<const AstNegation*>(lit)) {
-        addClauseAtom("@min:neg", scopeID, neg->getAtom());
-    } else if (const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit)) {
-        AstQualifiedName name(toBinaryConstraintSymbol(bc->getOperator()));
-        name.prepend("@min:operator");
-        std::vector<std::string> vars;
-        vars.push_back(scopeID);
-        vars.push_back(normaliseArgument(bc->getLHS()));
-        vars.push_back(normaliseArgument(bc->getRHS()));
-        clauseElements.push_back({.name = name, .params = vars});
-    } else {
-        assert(lit != nullptr && "unexpected nullptr lit");
-        fullyNormalised = false;
-        std::stringstream qualifier;
-        qualifier << "@min:unhandled:lit:" << scopeID;
-        AstQualifiedName name(toString(*lit));
-        name.prepend(qualifier.str());
-        clauseElements.push_back({.name = name, .params = std::vector<std::string>()});
-    }
-}
-
-std::string MinimiseProgramTransformer::NormalisedClauseRepr::normaliseArgument(const AstArgument* arg) {
-    if (auto* stringCst = dynamic_cast<const AstStringConstant*>(arg)) {
-        std::stringstream name;
-        name << "@min:cst:str" << *stringCst;
-        constants.insert(name.str());
-        return name.str();
-    } else if (auto* numericCst = dynamic_cast<const AstNumericConstant*>(arg)) {
-        std::stringstream name;
-        name << "@min:cst:num:" << *numericCst;
-        constants.insert(name.str());
-        return name.str();
-    } else if (dynamic_cast<const AstNilConstant*>(arg) != nullptr) {
-        constants.insert("@min:cst:nil");
-        return "@min:cst:nil";
-    } else if (auto* var = dynamic_cast<const AstVariable*>(arg)) {
-        auto name = var->getName();
-        variables.insert(name);
-        return name;
-    } else if (dynamic_cast<const AstUnnamedVariable*>(arg)) {
-        static size_t countUnnamed = 0;
-        std::stringstream name;
-        name << "@min:unnamed:" << countUnnamed++;
-        variables.insert(name.str());
-        return name.str();
-    } else if (auto* aggr = dynamic_cast<const AstAggregator*>(arg)) {
-        // Set the scope to uniquely identify the aggregator
-        std::stringstream scopeID;
-        scopeID << "@min:scope:" << ++aggrScopeCount;
-        variables.insert(scopeID.str());
-
-        // Set the type signature of this aggregator
-        std::stringstream aggrTypeSignature;
-        aggrTypeSignature << "@min:aggrtype";
-        std::vector<std::string> aggrTypeSignatureComponents;
-
-        // - the operator is fixed and cannot be changed
-        aggrTypeSignature << ":" << aggr->getOperator();
-
-        // - the scope can be remapped as a variable
-        aggrTypeSignatureComponents.push_back(scopeID.str());
-
-        // - the normalised target expression can be remapped as a variable
-        if (aggr->getTargetExpression() != nullptr) {
-            std::string normalisedExpr = normaliseArgument(aggr->getTargetExpression());
-            aggrTypeSignatureComponents.push_back(normalisedExpr);
-        }
-
-        // Type signature is its own special atom
-        clauseElements.push_back({.name = aggrTypeSignature.str(), .params = aggrTypeSignatureComponents});
-
-        // Add each contained normalised clause literal, tying it with the new scope ID
-        for (const auto* literal : aggr->getBodyLiterals()) {
-            addClauseBodyLiteral(scopeID.str(), literal);
-        }
-
-        // Aggregator identified by the scope ID
-        return scopeID.str();
-    } else {
-        fullyNormalised = false;
-        return "@min:unhandled:arg";
-    }
-}
-
-bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClauseRepr& left,
-        const NormalisedClauseRepr& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
+bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& left,
+        const NormalisedClause& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
     size_t clauseSize = permutationMatrix.size();
     // keep track of the possible end-positions of each atom in the first clause
     std::vector<std::vector<unsigned int>> validMoves;
@@ -310,8 +149,8 @@ bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClauseRe
     return false;
 }
 
-bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClauseRepr& left,
-        const NormalisedClauseRepr& right, const std::vector<unsigned int>& permutation) {
+bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClause& left,
+        const NormalisedClause& right, const std::vector<unsigned int>& permutation) {
     const auto& leftElements = left.getElements();
     const auto& rightElements = right.getElements();
 
@@ -354,7 +193,7 @@ bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClauseRepr& 
 }
 
 bool MinimiseProgramTransformer::areBijectivelyEquivalent(
-        const NormalisedClauseRepr& left, const NormalisedClauseRepr& right) {
+        const NormalisedClause& left, const NormalisedClause& right) {
     const auto& leftElements = left.getElements();
     const auto& rightElements = right.getElements();
 
@@ -406,15 +245,9 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
     return existsValidPermutation(left, right, permutationMatrix);
 }
 
-bool MinimiseProgramTransformer::areBijectivelyEquivalent(
-        const AstClause* leftClause, const AstClause* rightClause) {
-    auto normalisedLeft = NormalisedClauseRepr(leftClause);
-    auto normalisedRight = NormalisedClauseRepr(rightClause);
-    return areBijectivelyEquivalent(normalisedLeft, normalisedRight);
-}
-
 bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();
+    const auto& normalisations = *translationUnit.getAnalysis<ClauseNormalisationAnalysis>();
 
     std::vector<AstClause*> clausesToDelete;
 
@@ -427,9 +260,9 @@ bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(AstTranslationUn
             bool added = false;
 
             for (std::vector<AstClause*>& eqClass : equivalenceClasses) {
-                AstClause* rep = eqClass[0];
-
-                if (areBijectivelyEquivalent(rep, clause)) {
+                const auto& normedRep = normalisations.getNormalisation(eqClass[0]);
+                const auto& normedClause = normalisations.getNormalisation(clause);
+                if (areBijectivelyEquivalent(normedRep, normedClause)) {
                     // clause belongs to an existing equivalence class, so delete it
                     eqClass.push_back(clause);
                     clausesToDelete.push_back(clause);
@@ -459,36 +292,39 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
     // Note: This reduction is particularly useful in conjunction with the
     // body-partitioning transformation
     AstProgram& program = *translationUnit.getProgram();
-    auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<IOType>();
+    const auto& normalisations = *translationUnit.getAnalysis<ClauseNormalisationAnalysis>();
 
     // Find all singleton relations to consider
     std::vector<AstClause*> singletonRelationClauses;
     for (AstRelation* rel : program.getRelations()) {
-        if (!ioTypes->isIO(rel) && getClauses(program, *rel).size() == 1) {
+        if (!ioTypes.isIO(rel) && getClauses(program, *rel).size() == 1) {
             AstClause* clause = getClauses(program, *rel)[0];
             singletonRelationClauses.push_back(clause);
         }
     }
 
     // Keep track of clauses found to be redundant
-    std::set<AstClause*> redundantClauses;
+    std::set<const AstClause*> redundantClauses;
 
     // Keep track of canonical relation name for each redundant clause
     std::map<AstQualifiedName, AstQualifiedName> canonicalName;
 
     // Check pairwise equivalence of each singleton relation
     for (size_t i = 0; i < singletonRelationClauses.size(); i++) {
-        AstClause* first = singletonRelationClauses[i];
+        const auto* first = singletonRelationClauses[i];
         if (redundantClauses.find(first) != redundantClauses.end()) {
             // Already found to be redundant, no need to check
             continue;
         }
 
         for (size_t j = i + 1; j < singletonRelationClauses.size(); j++) {
-            AstClause* second = singletonRelationClauses[j];
+            const auto* second = singletonRelationClauses[j];
 
             // Note: Bijective-equivalence check does not care about the head relation name
-            if (areBijectivelyEquivalent(first, second)) {
+            const auto& normedFirst = normalisations.getNormalisation(first);
+            const auto& normedSecond = normalisations.getNormalisation(second);
+            if (areBijectivelyEquivalent(normedFirst, normedSecond)) {
                 AstQualifiedName firstName = first->getHead()->getQualifiedName();
                 AstQualifiedName secondName = second->getHead()->getQualifiedName();
                 redundantClauses.insert(second);
@@ -498,7 +334,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
     }
 
     // Remove redundant relation definitions
-    for (AstClause* clause : redundantClauses) {
+    for (const auto* clause : redundantClauses) {
         auto relName = clause->getHead()->getQualifiedName();
         AstRelation* rel = getRelation(program, relName);
         assert(rel != nullptr && "relation does not exist in program");
