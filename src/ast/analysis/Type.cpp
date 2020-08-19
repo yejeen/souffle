@@ -16,7 +16,7 @@
 
 #include "ast/analysis/Type.h"
 #include "AggregateOp.h"
-#include "Constraints.h"
+#include "ConstraintSystem.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "ast/Aggregator.h"

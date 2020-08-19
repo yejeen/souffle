@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ComponentInstantiation.h"
-#include "ErrorReport.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/Clause.h"
@@ -33,6 +32,7 @@
 #include "ast/UnionType.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/ComponentLookup.h"
+#include "reports/ErrorReport.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cstddef>

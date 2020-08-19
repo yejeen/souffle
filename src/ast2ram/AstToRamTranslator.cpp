@@ -14,9 +14,7 @@
  *
  ***********************************************************************/
 
-#include "AstToRamTranslator.h"
-#include "DebugReport.h"
-#include "ErrorReport.h"
+#include "ast2ram/AstToRamTranslator.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "LogStatement.h"
@@ -110,6 +108,8 @@
 #include "ram/UnsignedConstant.h"
 #include "ram/UserDefinedOperator.h"
 #include "ram/Utils.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
