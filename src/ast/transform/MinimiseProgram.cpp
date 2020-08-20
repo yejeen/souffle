@@ -338,8 +338,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
         auto relName = clause->getHead()->getQualifiedName();
         AstRelation* rel = getRelation(program, relName);
         assert(rel != nullptr && "relation does not exist in program");
-        program.removeClause(clause);
-        program.removeRelation(relName);
+        removeRelation(translationUnit, relName);
     }
 
     // Replace each redundant relation appearance with its canonical name
@@ -440,8 +439,11 @@ bool MinimiseProgramTransformer::reduceClauseBodies(AstTranslationUnit& translat
 bool MinimiseProgramTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
     changed |= reduceClauseBodies(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
     changed |= removeRedundantClauses(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
     changed |= reduceLocallyEquivalentClauses(translationUnit);
+    if (changed) translationUnit.invalidateAnalyses();
     changed |= reduceSingletonRelations(translationUnit);
     return changed;
 }

@@ -32,8 +32,10 @@
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
 #include "ast/Type.h"
 #include "ast/Visitor.h"
+#include "ast/analysis/RelationDetailCache.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
 #include "souffle/BinaryConstraintOps.h"
@@ -101,13 +103,23 @@ const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, co
             [&](const AstFunctorDeclaration* f) { return f->getName() == name; });
 }
 
-void removeRelationClauses(AstProgram& program, const AstQualifiedName& name) {
-    for (const auto* clause : getClauses(program, name)) {
-        program.removeClause(clause);
+void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name) {
+    if (auto* rel = getRelation(*tu.getProgram(), name)) {
+        removeRelationClauses(tu, name);
+        removeRelationIOs(tu, name);
+        tu.getProgram()->removeRelationDecl(name);
     }
 }
 
-void removeRelationIOs(AstProgram& program, const AstQualifiedName& name) {
+void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name) {
+    const auto& relDetail = *tu.getAnalysis<RelationDetailCacheAnalysis>();
+    for (const auto* clause : relDetail.getClauses(name)) {
+        tu.getProgram()->removeClause(clause);
+    }
+}
+
+void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
+    auto& program = *tu.getProgram();
     for (const auto* io : getIOs(program, name)) {
         program.removeIO(io);
     }
