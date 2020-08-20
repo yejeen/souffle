@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "souffle/BTree.h"
+#include "souffle/datastructure/BTree.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>

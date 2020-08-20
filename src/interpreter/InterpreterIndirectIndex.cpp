@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "interpreter/InterpreterIndex.h"
-#include "souffle/BTree.h"
+#include "souffle/datastructure/BTree.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <array>

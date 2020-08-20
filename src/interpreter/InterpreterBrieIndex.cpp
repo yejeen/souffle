@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "interpreter/InterpreterIndex.h"
-#include "souffle/Brie.h"
+#include "souffle/datastructure/Brie.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
