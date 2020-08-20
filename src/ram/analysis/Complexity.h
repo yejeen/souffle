@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ComplexityAnalysis.h
+ * @file Complexity.h
  *
  * Get the complexity of an expression/condition in terms of
  * database operations. The complexity of an expression/condition is a

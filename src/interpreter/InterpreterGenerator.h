@@ -31,7 +31,7 @@
 #include "ram/Statement.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
-#include "ram/analysis/IndexAnalysis.h"
+#include "ram/analysis/Index.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>

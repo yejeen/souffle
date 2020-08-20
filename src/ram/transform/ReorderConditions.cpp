@@ -20,7 +20,7 @@
 #include "ram/Statement.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
-#include "ram/analysis/ComplexityAnalysis.h"
+#include "ram/analysis/Complexity.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <functional>

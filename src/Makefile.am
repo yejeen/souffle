@@ -355,12 +355,12 @@ souffle_sources = \
         ram/Utils.h                                        \
         ram/Visitor.h                                      \
         ram/analysis/Analysis.h                            \
-        ram/analysis/ComplexityAnalysis.cpp                \
-        ram/analysis/ComplexityAnalysis.h                  \
-        ram/analysis/IndexAnalysis.cpp                     \
-        ram/analysis/IndexAnalysis.h                       \
-        ram/analysis/LevelAnalysis.cpp                     \
-        ram/analysis/LevelAnalysis.h                       \
+        ram/analysis/Complexity.cpp                        \
+        ram/analysis/Complexity.h                          \
+        ram/analysis/Index.cpp                             \
+        ram/analysis/Index.h                               \
+        ram/analysis/Level.cpp                             \
+        ram/analysis/Level.h                               \
         ram/transform/ChoiceConversion.cpp                 \
         ram/transform/ChoiceConversion.h                   \
         ram/transform/CollapseFilters.cpp                  \
