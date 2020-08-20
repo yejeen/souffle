@@ -409,7 +409,7 @@ inline std::vector<TypeAttribute> getBinaryConstraintTypes(const BinaryConstrain
     case BinaryConstraintOp::F##op: return { TypeAttribute::Float };                   \
     case BinaryConstraintOp::   op:                                                    \
         return { TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float, \
-                 TypeAttribute::Symbol, TypeAttribute::Record };
+                 TypeAttribute::Symbol, TypeAttribute::Record, TypeAttribute::ADT};
 #define COMPARE_OP(op)                                                  \
     case BinaryConstraintOp::   op: return { TypeAttribute::Signed   }; \
     case BinaryConstraintOp::U##op: return { TypeAttribute::Unsigned }; \
