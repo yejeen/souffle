@@ -8,13 +8,13 @@
 
 /************************************************************************
  *
- * @file LevelAnalysis.cpp
+ * @file Level.cpp
  *
  * Implementation of RAM Level Analysis
  *
  ***********************************************************************/
 
-#include "ram/analysis/LevelAnalysis.h"
+#include "ram/analysis/Level.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
