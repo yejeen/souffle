@@ -8,13 +8,13 @@
 
 /************************************************************************
  *
- * @file IndexAnalysis.cpp
+ * @file Index.cpp
  *
  * Computes indexes for relations in a translation unit
  *
  ***********************************************************************/
 
-#include "ram/analysis/IndexAnalysis.h"
+#include "ram/analysis/Index.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

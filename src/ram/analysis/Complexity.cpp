@@ -8,13 +8,13 @@
 
 /************************************************************************
  *
- * @file ComplexityAnalysis.cpp
+ * @file Complexity.cpp
  *
  * Implementation of RAM Complexity Analysis
  *
  ***********************************************************************/
 
-#include "ram/analysis/ComplexityAnalysis.h"
+#include "ram/analysis/Complexity.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

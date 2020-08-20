@@ -54,7 +54,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
         });
 
         if (!usedInAggregate && !ioTypes->isOutput(rel)) {
-            program.removeRelation(rel->getQualifiedName());
+            removeRelation(translationUnit, rel->getQualifiedName());
             changed = true;
         }
     }
