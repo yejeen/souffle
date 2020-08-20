@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ComponentChecker.h"
-#include "ErrorReport.h"
 #include "RelationTag.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
@@ -27,6 +26,7 @@
 #include "ast/Type.h"
 #include "ast/analysis/ComponentLookup.h"
 #include "parser/SrcLocation.h"
+#include "reports/ErrorReport.h"
 #include "souffle/utility/StringUtil.h"
 #include <functional>
 #include <map>

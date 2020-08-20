@@ -14,9 +14,6 @@
  *
  ***********************************************************************/
 
-#include "AstToRamTranslator.h"
-#include "DebugReport.h"
-#include "ErrorReport.h"
 #include "Global.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
@@ -61,6 +58,7 @@
 #include "ast/transform/SemanticChecker.h"
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast/transform/UserDefinedFunctors.h"
+#include "ast2ram/AstToRamTranslator.h"
 #include "config.h"
 #include "interpreter/InterpreterEngine.h"
 #include "interpreter/InterpreterProgInterface.h"
@@ -85,6 +83,8 @@
 #include "ram/transform/ReportIndex.h"
 #include "ram/transform/Sequence.h"
 #include "ram/transform/TupleId.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include "souffle/Explain.h"
 #include "souffle/RamTypes.h"
 #include "souffle/profile/Tui.h"

@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "parser/ParserDriver.h"
-#include "ErrorReport.h"
 #include "Global.h"
 #include "ast/Clause.h"
 #include "ast/Component.h"
@@ -30,6 +29,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
 #include "ast/Utils.h"
+#include "reports/ErrorReport.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/StreamUtil.h"

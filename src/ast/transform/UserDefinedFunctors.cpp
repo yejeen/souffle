@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/UserDefinedFunctors.h"
-#include "ErrorReport.h"
 #include "ast/FunctorDeclaration.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
@@ -21,6 +20,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/Utils.h"
+#include "reports/ErrorReport.h"
 #include "souffle/RamTypes.h"
 #include <memory>
 #include <vector>

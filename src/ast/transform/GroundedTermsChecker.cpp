@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/GroundedTermsChecker.h"
-#include "ErrorReport.h"
 #include "ast/Clause.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
@@ -24,6 +23,7 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Ground.h"
+#include "reports/ErrorReport.h"
 #include <map>
 #include <set>
 #include <utility>

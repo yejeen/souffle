@@ -15,13 +15,13 @@
  ***********************************************************************/
 
 #include "ram/transform/Transformer.h"
-#include "DebugReport.h"
-#include "ErrorReport.h"
 #include "Global.h"
 #include "ram/Node.h"
 #include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
+#include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include "souffle/utility/StringUtil.h"
 #include <chrono>
 #include <cstdlib>

@@ -16,7 +16,6 @@
 
 #include "ast/transform/SemanticChecker.h"
 #include "AggregateOp.h"
-#include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "GraphUtils.h"
@@ -67,6 +66,7 @@
 #include "ast/analysis/TypeSystem.h"
 #include "ast/transform/GroundedTermsChecker.h"
 #include "parser/SrcLocation.h"
+#include "reports/ErrorReport.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
