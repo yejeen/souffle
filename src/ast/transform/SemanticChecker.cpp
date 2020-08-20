@@ -293,8 +293,19 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
 
 void AstSemanticCheckerImpl::checkBranchInits() {
     visitDepthFirst(program.getClauses(), [&](const AstBranchInit& adt) {
-        if (sumTypesBranches.getType(adt.getConstructor()) == nullptr) {
+        auto* type = sumTypesBranches.getType(adt.getConstructor());
+        if (type == nullptr) {
             report.addError("Undeclared branch", adt.getSrcLoc());
+            return;
+        }
+
+        size_t declaredArity = as<AlgebraicDataType>(type)->getBranchTypes(adt.getConstructor()).size();
+        size_t branchArity = adt.getArguments().size();
+        if (declaredArity != branchArity) {
+            report.addError(tfm::format("Invalid arity, the declared arity of %s is %s", adt.getConstructor(),
+                                    declaredArity),
+                    adt.getSrcLoc());
+            return;
         }
     });
 }
@@ -1382,6 +1393,11 @@ void TypeChecker::visitBranchInit(const AstBranchInit& adt) {
 
     auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getConstructor());
     auto args = adt.getArguments();
+
+    if (argsDeclaredTypes.size() != args.size()) {
+        // Invalid branchInit arity, handled by checkBranchInits.
+        return;
+    }
 
     for (size_t i = 0; i < args.size(); ++i) {
         auto argTypes = typeAnalysis.getTypes(args[i]);
