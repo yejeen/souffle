@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "souffle/Brie.h"
 #include "souffle/CompiledTuple.h"
 #include "souffle/RamTypes.h"
+#include "souffle/datastructure/Brie.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"

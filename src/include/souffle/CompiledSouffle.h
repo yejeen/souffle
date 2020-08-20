@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include "souffle/Brie.h"
 #include "souffle/CompiledTuple.h"
-#include "souffle/EquivalenceRelation.h"
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
 #include "souffle/SignalHandler.h"
 #include "souffle/SouffleInterface.h"
 #include "souffle/SymbolTable.h"
-#include "souffle/Table.h"
+#include "souffle/datastructure/Brie.h"
+#include "souffle/datastructure/EquivalenceRelation.h"
+#include "souffle/datastructure/Table.h"
 #include "souffle/io/IOSystem.h"
 #include "souffle/io/WriteStream.h"
 #include "souffle/utility/CacheUtil.h"
