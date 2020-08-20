@@ -9,7 +9,7 @@
 #include "synthesiser/SynthesiserRelation.h"
 #include "Global.h"
 #include "RelationTag.h"
-#include "ram/analysis/IndexAnalysis.h"
+#include "ram/analysis/Index.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>

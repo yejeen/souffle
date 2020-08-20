@@ -23,7 +23,7 @@
 #include "interpreter/InterpreterNode.h"
 #include "interpreter/InterpreterRelation.h"
 #include "ram/TranslationUnit.h"
-#include "ram/analysis/IndexAnalysis.h"
+#include "ram/analysis/Index.h"
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
 #include "souffle/SymbolTable.h"
