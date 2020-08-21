@@ -244,6 +244,7 @@
 %token INPUT_DECL                "input directives declaration"
 %token OUTPUT_DECL               "output directives declaration"
 %token PRINTSIZE_DECL            "printsize directives declaration"
+%token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
 %token TYPE                      "type declaration"
 %token COMPONENT                 "component declaration"
@@ -884,6 +885,7 @@ io_head_decl
   : INPUT_DECL      { $$ = AstIoType::input;      }
   | OUTPUT_DECL     { $$ = AstIoType::output;     }
   | PRINTSIZE_DECL  { $$ = AstIoType::printsize;  }
+  | LIMITSIZE_DECL  { $$ = AstIoType::limitsize;  }
   ;
 
 /* IO directive list */
@@ -915,6 +917,7 @@ non_empty_key_value_pairs
 kvp_value
   : STRING  { $$ = $STRING; }
   | IDENT   { $$ = $IDENT; }
+  | NUMBER  { $$ = $NUMBER; } 
   | TRUE    { $$ = "true"; }
   | FALSE   { $$ = "false"; }
   ;

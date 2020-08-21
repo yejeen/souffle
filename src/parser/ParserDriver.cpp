@@ -137,6 +137,18 @@ void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
                 return;
             }
         }
+    } else if (d->getType() == AstIoType::limitsize) {
+        for (const auto& cur : translationUnit->getProgram()->getIOs()) {
+            if (cur->getQualifiedName() == d->getQualifiedName() && cur->getType() == AstIoType::limitsize) {
+                Diagnostic err(Diagnostic::Type::ERROR,
+                        DiagnosticMessage("Redefinition of limitsize directives for relation " +
+                                                  toString(d->getQualifiedName()),
+                                d->getSrcLoc()),
+                        {DiagnosticMessage("Previous definition", cur->getSrcLoc())});
+                translationUnit->getErrorReport().addDiagnostic(err);
+                return;
+            }
+        }
     }
     translationUnit->getProgram()->addIO(std::move(d));
 }
