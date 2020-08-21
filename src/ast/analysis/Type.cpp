@@ -740,6 +740,11 @@ private:
             auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
             auto branchArgs = adt.getArguments();
 
+            if (branchTypes.size() != branchArgs.size()) {
+                // handled by semantic checker later.
+                throw std::invalid_argument("Invalid arity");
+            }
+
             // Add constraints for each of the branch arguments.
             for (size_t i = 0; i < branchArgs.size(); ++i) {
                 auto argVar = getVar(branchArgs[i]);

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "souffle/LambdaBTree.h"
-#include "souffle/PiggyList.h"
+#include "souffle/datastructure/LambdaBTree.h"
+#include "souffle/datastructure/PiggyList.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>

@@ -12,6 +12,15 @@ bin_PROGRAMS = souffle souffle-profile
 
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
+souffle_datastructure_sources = \
+        include/souffle/datastructure/BTree.h              \
+        include/souffle/datastructure/Brie.h               \
+        include/souffle/datastructure/EquivalenceRelation.h\
+        include/souffle/datastructure/LambdaBTree.h        \
+        include/souffle/datastructure/PiggyList.h          \
+        include/souffle/datastructure/Table.h              \
+        include/souffle/datastructure/UnionFind.h
+
 souffle_profile_sources = \
         include/souffle/ProfileDatabase.h                  \
         include/souffle/json11.h                           \
@@ -355,12 +364,12 @@ souffle_sources = \
         ram/Utils.h                                        \
         ram/Visitor.h                                      \
         ram/analysis/Analysis.h                            \
-        ram/analysis/ComplexityAnalysis.cpp                \
-        ram/analysis/ComplexityAnalysis.h                  \
-        ram/analysis/IndexAnalysis.cpp                     \
-        ram/analysis/IndexAnalysis.h                       \
-        ram/analysis/LevelAnalysis.cpp                     \
-        ram/analysis/LevelAnalysis.h                       \
+        ram/analysis/Complexity.cpp                        \
+        ram/analysis/Complexity.h                          \
+        ram/analysis/Index.cpp                             \
+        ram/analysis/Index.h                               \
+        ram/analysis/Level.cpp                             \
+        ram/analysis/Level.h                               \
         ram/transform/ChoiceConversion.cpp                 \
         ram/transform/ChoiceConversion.h                   \
         ram/transform/CollapseFilters.cpp                  \
@@ -424,21 +433,16 @@ EXTRA_DIST = parser/parser.yy parser/scanner.ll
 soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = \
-        include/souffle/BTree.h                            \
         include/souffle/BinaryConstraintOps.h              \
-        include/souffle/Brie.h                             \
         include/souffle/CompiledOptions.h                  \
         include/souffle/CompiledSouffle.h                  \
         include/souffle/CompiledTuple.h                    \
-        include/souffle/EquivalenceRelation.h              \
         include/souffle/EventProcessor.h                   \
         include/souffle/Explain.h                          \
         include/souffle/ExplainProvenance.h                \
         include/souffle/ExplainProvenanceImpl.h            \
         include/souffle/ExplainTree.h                      \
-        include/souffle/LambdaBTree.h                      \
         include/souffle/Logger.h                           \
-        include/souffle/PiggyList.h                        \
         include/souffle/ProfileDatabase.h                  \
         include/souffle/ProfileEvent.h                     \
         include/souffle/RamTypes.h                         \
@@ -446,14 +450,12 @@ soufflepublic_HEADERS = \
         include/souffle/SignalHandler.h                    \
         include/souffle/SouffleInterface.h                 \
         include/souffle/SymbolTable.h                      \
-        include/souffle/Table.h                            \
         include/souffle/TypeAttribute.h                    \
-        include/souffle/UnionFind.h                        \
-        include/souffle/json11.h                           \
-        $(souffle_utility_sources)                         \
-        $(souffle_io_sources)                              \
-        $(libz_sources)                                    \
-        $(sqlite_sources)
+        include/souffle/json11.h
+
+souffledatastructuredir = $(soufflepublicdir)/datastructure
+
+souffledatastructure_HEADERS = $(souffle_datastructure_sources)
 
 souffleprofiledir = $(soufflepublicdir)/profile
 

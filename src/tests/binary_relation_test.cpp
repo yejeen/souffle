@@ -32,7 +32,7 @@
 #endif
 
 #include "souffle/CompiledTuple.h"
-#include "souffle/EquivalenceRelation.h"
+#include "souffle/datastructure/EquivalenceRelation.h"
 
 namespace souffle {
 namespace test {

@@ -16,9 +16,9 @@
 
 #include "interpreter/InterpreterIndex.h"
 #include "souffle/CompiledTuple.h"
-#include "souffle/EquivalenceRelation.h"
-#include "souffle/PiggyList.h"
 #include "souffle/RamTypes.h"
+#include "souffle/datastructure/EquivalenceRelation.h"
+#include "souffle/datastructure/PiggyList.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

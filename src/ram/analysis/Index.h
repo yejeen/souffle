@@ -8,7 +8,7 @@
 
 /***************************************************************************
  *
- * @file IndexAnalysis.h
+ * @file Index.h
  *
  * Computes indexes for relations in a translation unit
  *
@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
  * @class MaxMatching
  * @Brief Computes a maximum matching with Hopcroft-Karp algorithm
  *
- * This class is a helper class for RamIndexAnalysis.
+ * This class is a helper class for RamIndex.
  *
  * This implements a standard maximum matching algorithm for a bi-partite graph
  * also known as a marriage problem. Given a set of edges in a bi-partite graph

@@ -29,7 +29,7 @@
 #include "ram/TranslationUnit.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
-#include "ram/analysis/IndexAnalysis.h"
+#include "ram/analysis/Index.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"

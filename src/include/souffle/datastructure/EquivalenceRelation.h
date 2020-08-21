@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include "souffle/LambdaBTree.h"
-#include "souffle/PiggyList.h"
 #include "souffle/RamTypes.h"
-#include "souffle/UnionFind.h"
+#include "souffle/datastructure/LambdaBTree.h"
+#include "souffle/datastructure/PiggyList.h"
+#include "souffle/datastructure/UnionFind.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #include <atomic>
