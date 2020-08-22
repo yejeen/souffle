@@ -55,7 +55,8 @@ private:
      * @param emptyRelation relation that is empty
      * @return whether the program was modified
      */
-    static bool removeEmptyRelationUses(AstTranslationUnit& translationUnit, const AstQualifiedName& emptyRelation);
+    static bool removeEmptyRelationUses(
+            AstTranslationUnit& translationUnit, const AstQualifiedName& emptyRelation);
 };
 
 }  // end of namespace souffle
