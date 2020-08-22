@@ -35,12 +35,13 @@ namespace souffle {
 bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
+    std::set<AstQualifiedName> emptyRelations;
     bool changed = false;
     for (auto rel : program.getRelations()) {
         if (!getClauses(program, *rel).empty() || ioTypes->isInput(rel)) {
             continue;
         }
-        changed |= removeEmptyRelationUses(translationUnit, rel);
+        emptyRelations.insert(rel->getQualifiedName());
 
         bool usedInAggregate = false;
         visitDepthFirst(program, [&](const AstAggregator& agg) {
@@ -58,11 +59,16 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
             changed = true;
         }
     }
+
+    for (const auto& relName : emptyRelations) {
+        changed |= removeEmptyRelationUses(translationUnit, relName);
+    }
+
     return changed;
 }
 
 bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
-        AstTranslationUnit& translationUnit, AstRelation* emptyRelation) {
+        AstTranslationUnit& translationUnit, const AstQualifiedName& emptyRelationName) {
     AstProgram& program = *translationUnit.getProgram();
     bool changed = false;
 
@@ -81,7 +87,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
         bool removed = false;
         for (AstLiteral* lit : cl->getBodyLiterals()) {
             if (auto* arg = dynamic_cast<AstAtom*>(lit)) {
-                if (getAtomRelation(arg, &program) == emptyRelation) {
+                if (arg->getQualifiedName() == emptyRelationName) {
                     program.removeClause(cl);
                     removed = true;
                     changed = true;
@@ -96,7 +102,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
             bool rewrite = false;
             for (AstLiteral* lit : cl->getBodyLiterals()) {
                 if (auto* neg = dynamic_cast<AstNegation*>(lit)) {
-                    if (getAtomRelation(neg->getAtom(), &program) == emptyRelation) {
+                    if (neg->getAtom()->getQualifiedName() == emptyRelationName) {
                         rewrite = true;
                         break;
                     }
@@ -110,7 +116,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
 
                 for (AstLiteral* lit : cl->getBodyLiterals()) {
                     if (auto* neg = dynamic_cast<AstNegation*>(lit)) {
-                        if (getAtomRelation(neg->getAtom(), &program) != emptyRelation) {
+                        if (neg->getAtom()->getQualifiedName() != emptyRelationName) {
                             res->addToBody(souffle::clone(lit));
                         }
                     } else {
