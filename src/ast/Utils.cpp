@@ -104,7 +104,7 @@ const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, co
 }
 
 void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name) {
-    if (auto* rel = getRelation(*tu.getProgram(), name)) {
+    if (getRelation(*tu.getProgram(), name) != nullptr) {
         removeRelationClauses(tu, name);
         removeRelationIOs(tu, name);
         tu.getProgram()->removeRelationDecl(name);
