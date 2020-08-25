@@ -54,7 +54,10 @@ public:
     }
 
     std::size_t getLimitSize(const AstRelation* relation) const { 
-        return limitSize[relation];
+        auto iter= limitSize.find(relation); 
+        if (iter != limitSize.end()) { 
+            return (*iter).second; 
+        } else return 0; 
     } 
 
     bool isIO(const AstRelation* relation) const {
