@@ -344,6 +344,7 @@ souffle_sources = \
         ram/Relation.h                                     \
         ram/RelationOperation.h                            \
         ram/RelationStatement.h                            \
+        ram/RelationSize.h                                 \
         ram/ParallelScan.h                                 \
         ram/Scan.h                                         \
         ram/Sequence.h                                     \
