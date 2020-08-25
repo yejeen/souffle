@@ -1188,15 +1188,16 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     };
 
     std::unique_ptr<RamCondition> exitCond;
+    std::vector<std::unique_ptr<RamStatement>> exitStmts;
     for (const AstRelation* rel : scc) {
         addCondition(exitCond, std::make_unique<RamEmptinessCheck>(translateNewRelation(rel)));
         if(ioType->isLimitSize(rel)) { 
            std::unique_ptr<RamCondition> limit =
                         std::make_unique<RamConstraint>(
-                                BinaryConstraintOp::LE, 
+                                BinaryConstraintOp::GE, 
                                 std::make_unique<RamRelationSize>(translateRelation(rel)), 
                                 std::make_unique<RamSignedConstant>(ioType->getLimitSize(rel))); 
-           addCondition(exitCond, std::move(limit));  
+           appendStmt(exitStmts, std::make_unique<RamExit>(std::move(limit)));
         } 
     }
 
@@ -1208,6 +1209,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     if (!loop->getStatements().empty() && exitCond && updateTable.size() > 0) {
         appendStmt(res, std::make_unique<RamLoop>(std::make_unique<RamSequence>(std::move(loop),
                                 std::make_unique<RamExit>(std::move(exitCond)),
+                                std::make_unique<RamSequence>(std::move(exitStmts)), 
                                 std::make_unique<RamSequence>(std::move(updateTable)))));
     }
     if (postamble.size() > 0) {
