@@ -35,6 +35,7 @@
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
+#include "ram/RelationSize.h"
 #include "ram/Exit.h"
 #include "ram/Extend.h"
 #include "ram/False.h"
@@ -698,6 +699,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         CASE(EmptinessCheck)
             return node->getRelation()->empty();
         ESAC(EmptinessCheck)
+
+        CASE(RelationSize)
+            return node->getRelation()->size();
+        ESAC(RelationSize)
 
         CASE(ExistenceCheck)
             // construct the pattern tuple

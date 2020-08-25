@@ -162,6 +162,12 @@ public:
         return std::make_unique<InterpreterEmptinessCheck>(I_EmptinessCheck, &emptiness, rel);
     }
 
+    NodePtr visitRelationSize(const RamRelationSize& size) override {
+        size_t relId = encodeRelation(size.getRelation());
+        auto rel = relations[relId].get();
+        return std::make_unique<InterpreterRelationSize>(I_RelationSize, &size, rel);
+    }
+
     NodePtr visitExistenceCheck(const RamExistenceCheck& exists) override {
         InterpreterSuperInstruction superOp = getExistenceSuperInstInfo(exists);
         // Check if the search signature is a total signature
