@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast2ram/AstToRamTranslator.h"
-#include "ast/analysis/IOType.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "LogStatement.h"
@@ -54,6 +53,7 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/AuxArity.h"
+#include "ast/analysis/IOType.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
 #include "ast/analysis/SCCGraph.h"
@@ -183,8 +183,8 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
     for (const auto* store : program->getIOs()) {
-        if (store->getQualifiedName() != rel->getQualifiedName() || 
-             (store->getType() != AstIoType::printsize && store->getType() != AstIoType::output)) {
+        if (store->getQualifiedName() != rel->getQualifiedName() ||
+                (store->getType() != AstIoType::printsize && store->getType() != AstIoType::output)) {
             continue;
         }
 
@@ -1191,14 +1191,12 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     std::vector<std::unique_ptr<RamStatement>> exitStmts;
     for (const AstRelation* rel : scc) {
         addCondition(exitCond, std::make_unique<RamEmptinessCheck>(translateNewRelation(rel)));
-        if(ioType->isLimitSize(rel)) { 
-           std::unique_ptr<RamCondition> limit =
-                        std::make_unique<RamConstraint>(
-                                BinaryConstraintOp::GE, 
-                                std::make_unique<RamRelationSize>(translateRelation(rel)), 
-                                std::make_unique<RamSignedConstant>(ioType->getLimitSize(rel))); 
-           appendStmt(exitStmts, std::make_unique<RamExit>(std::move(limit)));
-        } 
+        if (ioType->isLimitSize(rel)) {
+            std::unique_ptr<RamCondition> limit = std::make_unique<RamConstraint>(BinaryConstraintOp::GE,
+                    std::make_unique<RamRelationSize>(translateRelation(rel)),
+                    std::make_unique<RamSignedConstant>(ioType->getLimitSize(rel)));
+            appendStmt(exitStmts, std::make_unique<RamExit>(std::move(limit)));
+        }
     }
 
     /* construct fixpoint loop  */
@@ -1209,7 +1207,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     if (!loop->getStatements().empty() && exitCond && updateTable.size() > 0) {
         appendStmt(res, std::make_unique<RamLoop>(std::make_unique<RamSequence>(std::move(loop),
                                 std::make_unique<RamExit>(std::move(exitCond)),
-                                std::make_unique<RamSequence>(std::move(exitStmts)), 
+                                std::make_unique<RamSequence>(std::move(exitStmts)),
                                 std::make_unique<RamSequence>(std::move(updateTable)))));
     }
     if (postamble.size() > 0) {

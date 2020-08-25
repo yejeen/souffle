@@ -18,9 +18,9 @@
 
 #include "ast/analysis/Analysis.h"
 #include <iosfwd>
+#include <map>
 #include <set>
 #include <string>
-#include <map>
 
 namespace souffle {
 
@@ -48,17 +48,18 @@ public:
     bool isPrintSize(const AstRelation* relation) const {
         return printSizeRelations.count(relation) != 0;
     }
-    
+
     bool isLimitSize(const AstRelation* relation) const {
         return limitSizeRelations.count(relation) != 0;
     }
 
-    std::size_t getLimitSize(const AstRelation* relation) const { 
-        auto iter= limitSize.find(relation); 
-        if (iter != limitSize.end()) { 
-            return (*iter).second; 
-        } else return 0; 
-    } 
+    std::size_t getLimitSize(const AstRelation* relation) const {
+        auto iter = limitSize.find(relation);
+        if (iter != limitSize.end()) {
+            return (*iter).second;
+        } else
+            return 0;
+    }
 
     bool isIO(const AstRelation* relation) const {
         return isInput(relation) || isOutput(relation) || isPrintSize(relation);

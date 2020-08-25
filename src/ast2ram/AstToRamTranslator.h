@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "ast/analysis/IOType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
@@ -33,6 +32,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/analysis/AuxArity.h"
+#include "ast/analysis/IOType.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/TypeSystem.h"
 #include "ram/Condition.h"
@@ -79,8 +79,8 @@ private:
     /** Type environment */
     const TypeEnvironment* typeEnv = nullptr;
 
-    /** IO Type */ 
-    const IOType* ioType = nullptr;      
+    /** IO Type */
+    const IOType* ioType = nullptr;
 
     /** RAM program */
     std::unique_ptr<RamStatement> ramMain;
