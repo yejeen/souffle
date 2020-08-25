@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ast2ram/AstToRamTranslator.h"
+#include "ast/analysis/IOType.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "LogStatement.h"
@@ -93,6 +94,7 @@
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Query.h"
 #include "ram/Relation.h"
+#include "ram/RelationSize.h"
 #include "ram/Scan.h"
 #include "ram/Sequence.h"
 #include "ram/SignedConstant.h"
@@ -1188,6 +1190,14 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     std::unique_ptr<RamCondition> exitCond;
     for (const AstRelation* rel : scc) {
         addCondition(exitCond, std::make_unique<RamEmptinessCheck>(translateNewRelation(rel)));
+        if(ioType->isLimitSize(rel)) { 
+           std::unique_ptr<RamCondition> limit =
+                        std::make_unique<RamConstraint>(
+                                BinaryConstraintOp::LE, 
+                                std::make_unique<RamRelationSize>(translateRelation(rel)), 
+                                std::make_unique<RamSignedConstant>(ioType->getLimitSize(rel))); 
+           addCondition(exitCond, std::move(limit));  
+        } 
     }
 
     /* construct fixpoint loop  */
@@ -1497,6 +1507,9 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
 
 /** translates the given datalog program into an equivalent RAM program  */
 void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
+    // obtain IO Type of relations
+    ioType = translationUnit.getAnalysis<IOType>();
+
     // obtain type environment from analysis
     typeEnv = &translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 

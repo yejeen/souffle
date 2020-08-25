@@ -42,7 +42,10 @@ void IOType::run(const AstTranslationUnit& translationUnit) {
                 printSizeRelations.insert(relation);
                 outputRelations.insert(relation);
                 break;
-            case AstIoType::limitsize: limitSizeRelations.insert(relation); break;
+            case AstIoType::limitsize: limitSizeRelations.insert(relation);
+                 assert(io.hasDirective("n") && "limitsize has no n directive"); 
+                 limitSize[relation] = stoi(io.getDirective("n"));  
+            break;
         }
     });
 }

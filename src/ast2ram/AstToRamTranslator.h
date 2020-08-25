@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ast/analysis/IOType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
@@ -77,6 +78,9 @@ private:
 
     /** Type environment */
     const TypeEnvironment* typeEnv = nullptr;
+
+    /** IO Type */ 
+    const IOType* ioType = nullptr;      
 
     /** RAM program */
     std::unique_ptr<RamStatement> ramMain;
