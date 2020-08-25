@@ -42,6 +42,7 @@ void IOType::run(const AstTranslationUnit& translationUnit) {
                 printSizeRelations.insert(relation);
                 outputRelations.insert(relation);
                 break;
+            case AstIoType::limitsize: limitSizeRelations.insert(relation); break;
         }
     });
 }
@@ -51,6 +52,7 @@ void IOType::print(std::ostream& os) const {
     os << "input relations: {" << join(inputRelations, ", ", show) << "}\n";
     os << "output relations: {" << join(outputRelations, ", ", show) << "}\n";
     os << "printsize relations: {" << join(printSizeRelations, ", ", show) << "}\n";
+    os << "limitsize relations: {" << join(limitSizeRelations, ", ", show) << "}\n";
 }
 
 }  // end of namespace souffle

@@ -47,6 +47,10 @@ public:
     bool isPrintSize(const AstRelation* relation) const {
         return printSizeRelations.count(relation) != 0;
     }
+    
+    bool isLimitSize(const AstRelation* relation) const {
+        return limitSizeRelations.count(relation) != 0;
+    }
 
     bool isIO(const AstRelation* relation) const {
         return isInput(relation) || isOutput(relation) || isPrintSize(relation);
@@ -56,5 +60,6 @@ private:
     std::set<const AstRelation*> inputRelations;
     std::set<const AstRelation*> outputRelations;
     std::set<const AstRelation*> printSizeRelations;
+    std::set<const AstRelation*> limitSizeRelations;
 };
 }  // end of namespace souffle

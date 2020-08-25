@@ -181,7 +181,8 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
     for (const auto* store : program->getIOs()) {
-        if (store->getQualifiedName() != rel->getQualifiedName() || store->getType() == AstIoType::input) {
+        if (store->getQualifiedName() != rel->getQualifiedName() || 
+             (store->getType() != AstIoType::printsize && store->getType() != AstIoType::output)) {
             continue;
         }
 
