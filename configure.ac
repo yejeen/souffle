@@ -15,6 +15,9 @@ AC_CONFIG_AUX_DIR([auxfiles])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 
+DEBDATE=$(date -R)
+AC_SUBST([DEBDATE])
+
 ISODATE=$(date +%Y-%m-%d)
 AC_SUBST([ISODATE])
 
@@ -288,6 +291,6 @@ AC_SUBST(SOUFFLE_CXXFLAGS)
 CXXFLAGS="-Wall -Wextra $CXXFLAGS $ENV_CXXFLAGS"
 
 AC_OUTPUT(
-  [ src/souffle-compile src/souffle-config debian/changelog man/souffle.1 man/souffle-compile.1 man/souffle-config.1 man/souffle-profile.1],
+  [ src/souffle-compile src/souffle-config debian/changelog ],
   [ chmod +x src/souffle-compile src/souffle-config ]
 )
