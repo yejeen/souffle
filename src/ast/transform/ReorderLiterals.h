@@ -47,6 +47,9 @@ public:
         return new ReorderLiteralsTransformer();
     }
 
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
     /** Returns a SIPS function based on the SIPS option provided. */
     static sips_t getSipsFunction(const std::string& sipsChosen);
 
@@ -58,8 +61,11 @@ public:
      */
     static AstClause* reorderClauseWithSips(sips_t sipsFunction, const AstClause* clause);
 
-private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    /** Determines the new ordering of a vector of atoms after the given SIPS is applied. */
+    static std::vector<unsigned int> applySips(sips_t sipsFunction, std::vector<AstAtom*> atoms);
+
+    /** Count the number of bound arguments in a given atom */
+    static unsigned int numBoundArguments(const AstAtom* atom, const std::set<std::string>& boundVariables);
 };
 
 }  // end of namespace souffle

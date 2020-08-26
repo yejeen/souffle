@@ -35,23 +35,17 @@
 #include <vector>
 
 namespace souffle {
-/**
- * Counts the number of bound arguments in a given atom.
- */
-unsigned int numBoundArguments(const AstAtom* atom, const std::set<std::string>& boundVariables) {
+
+unsigned int ReorderLiteralsTransformer::numBoundArguments(
+        const AstAtom* atom, const std::set<std::string>& boundVariables) {
+    // TODO (azreika): should actually be chucking in the binding store from MST
     int count = 0;
 
     for (const AstArgument* arg : atom->getArguments()) {
         // argument is bound iff all contained variables are bound
         bool isBound = true;
-
-        visitDepthFirst(*arg, [&](const AstVariable& var) {
-            if (boundVariables.find(var.getName()) == boundVariables.end()) {
-                // found an unbound variable, so argument is unbound
-                isBound = false;
-            }
-        });
-
+        visitDepthFirst(
+                *arg, [&](const AstVariable& var) { isBound &= contains(boundVariables, var.getName()); });
         if (isBound) {
             count++;
         }
@@ -286,10 +280,8 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
     return getNextAtomSips;
 }
 
-/**
- * Finds the new ordering of a vector of atoms after the given SIPS is applied.
- */
-std::vector<unsigned int> applySips(sips_t sipsFunction, std::vector<AstAtom*> atoms) {
+std::vector<unsigned int> ReorderLiteralsTransformer::applySips(
+        sips_t sipsFunction, std::vector<AstAtom*> atoms) {
     std::set<std::string> boundVariables;
     std::vector<unsigned int> newOrder(atoms.size());
 
