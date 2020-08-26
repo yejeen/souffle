@@ -35,12 +35,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
-
-inline bool isProposition(const AstAtom* atom) {
-    return atom->getArguments().empty();
-}
-
 /**
  * Counts the number of bound arguments in a given atom.
  */
@@ -359,14 +353,12 @@ bool ReorderLiteralsTransformer::transform(AstTranslationUnit& translationUnit) 
     // literal reordering is a rule-local transformation
     std::vector<AstClause*> clausesToRemove;
 
-    for (const AstRelation* rel : program.getRelations()) {
-        for (AstClause* clause : getClauses(program, *rel)) {
-            AstClause* newClause = reorderClauseWithSips(sipsFunction, clause);
-            if (newClause != nullptr) {
-                // reordering needed - swap around
-                clausesToRemove.push_back(clause);
-                program.addClause(std::unique_ptr<AstClause>(newClause));
-            }
+    for (AstClause* clause : program.getClauses()) {
+        AstClause* newClause = reorderClauseWithSips(sipsFunction, clause);
+        if (newClause != nullptr) {
+            // reordering needed - swap around
+            clausesToRemove.push_back(clause);
+            program.addClause(std::unique_ptr<AstClause>(newClause));
         }
     }
 
@@ -422,14 +414,12 @@ bool ReorderLiteralsTransformer::transform(AstTranslationUnit& translationUnit) 
         // change the ordering of literals within clauses
         std::vector<AstClause*> clausesToRemove;
 
-        for (const AstRelation* rel : program.getRelations()) {
-            for (AstClause* clause : getClauses(program, *rel)) {
-                AstClause* newClause = reorderClauseWithSips(profilerSips, clause);
-                if (newClause != nullptr) {
-                    // reordering needed - swap around
-                    clausesToRemove.push_back(clause);
-                    program.addClause(std::unique_ptr<AstClause>(newClause));
-                }
+        for (AstClause* clause : program.getClauses()) {
+            AstClause* newClause = reorderClauseWithSips(profilerSips, clause);
+            if (newClause != nullptr) {
+                // reordering needed - swap around
+                clausesToRemove.push_back(clause);
+                program.addClause(std::unique_ptr<AstClause>(newClause));
             }
         }
 
