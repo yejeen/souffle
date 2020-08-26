@@ -28,10 +28,10 @@
 #include "ast/Constant.h"
 #include "ast/Constraint.h"
 #include "ast/Counter.h"
+#include "ast/Directive.h"
 #include "ast/ExecutionOrder.h"
 #include "ast/ExecutionPlan.h"
 #include "ast/Functor.h"
-#include "ast/IO.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -159,8 +159,9 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDire
         const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> inputDirectives;
 
-    for (const auto* load : program->getIOs()) {
-        if (load->getQualifiedName() != rel->getQualifiedName() || load->getType() != AstIoType::input) {
+    for (const auto* load : program->getDirectives()) {
+        if (load->getQualifiedName() != rel->getQualifiedName() ||
+                load->getType() != AstDirectiveType::input) {
             continue;
         }
 
@@ -182,9 +183,10 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
         const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
-    for (const auto* store : program->getIOs()) {
+    for (const auto* store : program->getDirectives()) {
         if (store->getQualifiedName() != rel->getQualifiedName() ||
-                (store->getType() != AstIoType::printsize && store->getType() != AstIoType::output)) {
+                (store->getType() != AstDirectiveType::printsize &&
+                        store->getType() != AstDirectiveType::output)) {
             continue;
         }
 

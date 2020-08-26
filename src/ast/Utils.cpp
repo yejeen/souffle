@@ -22,9 +22,9 @@
 #include "ast/BooleanConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"
+#include "ast/Directive.h"
 #include "ast/ExecutionPlan.h"
 #include "ast/FunctorDeclaration.h"
-#include "ast/IO.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -80,9 +80,9 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation&
     return getClauses(program, rel.getQualifiedName());
 }
 
-std::vector<AstIO*> getIOs(const AstProgram& program, const AstQualifiedName& relationName) {
-    std::vector<AstIO*> ios;
-    for (AstIO* io : program.getIOs()) {
+std::vector<AstDirective*> getDirectives(const AstProgram& program, const AstQualifiedName& relationName) {
+    std::vector<AstDirective*> ios;
+    for (AstDirective* io : program.getDirectives()) {
         if (io->getQualifiedName() == relationName) {
             ios.push_back(io);
         }
@@ -120,7 +120,7 @@ void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name)
 
 void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
     auto& program = *tu.getProgram();
-    for (const auto* io : getIOs(program, name)) {
+    for (const auto* io : getDirectives(program, name)) {
         program.removeIO(io);
     }
 }

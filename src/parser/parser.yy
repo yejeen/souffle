@@ -52,7 +52,7 @@
     #include "ast/ExecutionOrder.h"
     #include "ast/ExecutionPlan.h"
     #include "ast/FunctorDeclaration.h"
-    #include "ast/IO.h"
+    #include "ast/Directive.h"
     #include "ast/IntrinsicFunctor.h"
     #include "ast/Literal.h"
     #include "ast/NilConstant.h"
@@ -329,10 +329,10 @@
 %type <Mov<Own<AstFunctorDeclaration>>>      functor_decl
 %type <Mov<VecOwn<AstAtom>>>                 head
 %type <Mov<AstQualifiedName>>                identifier
-%type <Mov<VecOwn<AstIO>>>                   io_directive_list
-%type <Mov<VecOwn<AstIO>>>                   io_head
-%type <AstIoType>                            io_head_decl
-%type <Mov<VecOwn<AstIO>>>                   io_relation_list
+%type <Mov<VecOwn<AstDirective>>>                   directive_list
+%type <Mov<VecOwn<AstDirective>>>                   directive_head
+%type <AstDirectiveType>                            directive_head_decl
+%type <Mov<VecOwn<AstDirective>>>                   relation_directive_list
 %type <Mov<std::string>>                     kvp_value
 %type <Mov<VecOwn<AstArgument>>>             non_empty_arg_list
 %type <Mov<Own<AstAttribute>>>               attribute
@@ -383,7 +383,7 @@ program
 /* Top-level statement */
 unit
   : %empty              { }
-  | unit io_head        { for (auto&& cur : $io_head) driver.addIO(std::move(cur)); }
+  | unit directive_head { for (auto&& cur : $directive_head) driver.addDirective(std::move(cur)); }
   | unit rule           { for (auto&& cur : $rule   ) driver.addClause(std::move(cur)); }
   | unit fact           { driver.addClause            ($fact); }
   | unit component      { driver.addComponent         ($component); }
@@ -807,7 +807,7 @@ type_param_list
 /* Component body */
 component_body
   : %empty                        { $$ = mk<AstComponent>(); }
-  | component_body io_head        { $$ = $1; for (auto&& x : $2) $$->addIO    (std::move(x)); }
+  | component_body directive_head { $$ = $1; for (auto&& x : $2) $$->addDirective(std::move(x)); }
   | component_body rule           { $$ = $1; for (auto&& x : $2) $$->addClause(std::move(x)); }
   | component_body fact           { $$ = $1; $$->addClause       ($2); }
   | component_body OVERRIDE IDENT { $$ = $1; $$->addOverride     ($3); }
@@ -871,29 +871,29 @@ pragma
   ;
 
 /* io directives */
-io_head
-  : io_head_decl io_directive_list {
-        auto io_head_decl = $io_head_decl;
-        for (auto&& io : $io_directive_list) {
-            io->setType(io_head_decl);
+directive_head
+  : directive_head_decl directive_list {
+        auto directive_head_decl = $directive_head_decl;
+        for (auto&& io : $directive_list) {
+            io->setType(directive_head_decl);
             $$.push_back(std::move(io));
         }
     }
   ;
 
-io_head_decl
-  : INPUT_DECL      { $$ = AstIoType::input;      }
-  | OUTPUT_DECL     { $$ = AstIoType::output;     }
-  | PRINTSIZE_DECL  { $$ = AstIoType::printsize;  }
-  | LIMITSIZE_DECL  { $$ = AstIoType::limitsize;  }
+directive_head_decl
+  : INPUT_DECL      { $$ = AstDirectiveType::input;      }
+  | OUTPUT_DECL     { $$ = AstDirectiveType::output;     }
+  | PRINTSIZE_DECL  { $$ = AstDirectiveType::printsize;  }
+  | LIMITSIZE_DECL  { $$ = AstDirectiveType::limitsize;  }
   ;
 
 /* IO directive list */
-io_directive_list
-  : io_relation_list                { $$ = $io_relation_list; }
-  | io_relation_list LPAREN RPAREN  { $$ = $io_relation_list; }
-  | io_relation_list LPAREN non_empty_key_value_pairs RPAREN {
-        $$ = $io_relation_list;
+directive_list
+  : relation_directive_list                { $$ = $relation_directive_list; }
+  | relation_directive_list LPAREN RPAREN  { $$ = $relation_directive_list; }
+  | relation_directive_list LPAREN non_empty_key_value_pairs RPAREN {
+        $$ = $relation_directive_list;
         for (auto&& kvp : $non_empty_key_value_pairs) {
             for (auto&& io : $$) {
                 io->addDirective(kvp.first, kvp.second);
@@ -903,10 +903,10 @@ io_directive_list
   ;
 
 /* IO relation list */
-/* use a dummy `AstIoType` for now. `io_head` will replace it */
-io_relation_list
-  :                         identifier {          $$.push_back(mk<AstIO>(AstIoType::input, $1, @1)); }
-  | io_relation_list COMMA  identifier { $$ = $1; $$.push_back(mk<AstIO>(AstIoType::input, $3, @3)); }
+/* use a dummy `AstDirectiveType` for now. `directive_head` will replace it */
+relation_directive_list
+  :                         identifier {          $$.push_back(mk<AstDirective>(AstDirectiveType::input, $1, @1)); }
+  | relation_directive_list COMMA  identifier { $$ = $1; $$.push_back(mk<AstDirective>(AstDirectiveType::input, $3, @3)); }
   ;
 
 /* Key-value pairs */

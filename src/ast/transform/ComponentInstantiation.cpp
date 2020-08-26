@@ -21,7 +21,7 @@
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
-#include "ast/IO.h"
+#include "ast/Directive.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/RecordType.h"
@@ -56,7 +56,7 @@ static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
 struct ComponentContent {
     std::vector<std::unique_ptr<AstType>> types;
     std::vector<std::unique_ptr<AstRelation>> relations;
-    std::vector<std::unique_ptr<AstIO>> ios;
+    std::vector<std::unique_ptr<AstDirective>> ios;
     std::vector<std::unique_ptr<AstClause>> clauses;
 
     void add(std::unique_ptr<AstType>& type, ErrorReport& report) {
@@ -95,15 +95,15 @@ struct ComponentContent {
         clauses.push_back(std::move(clause));
     }
 
-    void add(std::unique_ptr<AstIO>& newIO, ErrorReport& report) {
+    void add(std::unique_ptr<AstDirective>& newIO, ErrorReport& report) {
         // Check if i/o directive already exists
-        auto foundItem = std::find_if(ios.begin(), ios.end(), [&](const std::unique_ptr<AstIO>& io) {
+        auto foundItem = std::find_if(ios.begin(), ios.end(), [&](const std::unique_ptr<AstDirective>& io) {
             return io->getQualifiedName() == newIO->getQualifiedName();
         });
         // if yes, add error
         if (foundItem != ios.end()) {
             auto type = (*foundItem)->getType();
-            if (type == newIO->getType() && newIO->getType() != AstIoType::output) {
+            if (type == newIO->getType() && newIO->getType() != AstDirectiveType::output) {
                 Diagnostic err(Diagnostic::Type::ERROR,
                         DiagnosticMessage("Redefinition I/O operation " + toString(newIO->getQualifiedName()),
                                 newIO->getSrcLoc()),
@@ -225,9 +225,9 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
     }
 
     // and the local io directives
-    for (const auto& io : component.getIOs()) {
+    for (const auto& io : component.getDirectives()) {
         // create a clone
-        std::unique_ptr<AstIO> instantiatedIO(io->clone());
+        std::unique_ptr<AstDirective> instantiatedIO(io->clone());
 
         res.add(instantiatedIO, report);
     }
@@ -359,10 +359,10 @@ ComponentContent getInstantiatedContent(AstProgram& program, const AstComponentI
         });
 
         // rename IO directives
-        visitDepthFirst(node, [&](const AstIO& io) {
+        visitDepthFirst(node, [&](const AstDirective& io) {
             auto pos = relationNameMapping.find(io.getQualifiedName());
             if (pos != relationNameMapping.end()) {
-                const_cast<AstIO&>(io).setQualifiedName(pos->second);
+                const_cast<AstDirective&>(io).setQualifiedName(pos->second);
             }
         });
 

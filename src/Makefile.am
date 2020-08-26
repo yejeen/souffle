@@ -113,7 +113,7 @@ souffle_sources = \
         ast/ExecutionPlan.h                                \
         ast/Functor.h                                      \
         ast/FunctorDeclaration.h                           \
-        ast/IO.h                                           \
+        ast/Directive.h                                    \
         ast/IntrinsicFunctor.h                             \
         ast/LambdaNodeMapper.h                             \
         ast/Literal.h                                      \

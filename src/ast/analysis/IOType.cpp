@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "ast/analysis/IOType.h"
-#include "ast/IO.h"
+#include "ast/Directive.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
@@ -30,22 +30,22 @@ namespace souffle {
 
 void IOType::run(const AstTranslationUnit& translationUnit) {
     const AstProgram& program = *translationUnit.getProgram();
-    visitDepthFirst(program, [&](const AstIO& io) {
-        auto* relation = getRelation(program, io.getQualifiedName());
+    visitDepthFirst(program, [&](const AstDirective& directive) {
+        auto* relation = getRelation(program, directive.getQualifiedName());
         if (relation == nullptr) {
             return;
         }
-        switch (io.getType()) {
-            case AstIoType::input: inputRelations.insert(relation); break;
-            case AstIoType::output: outputRelations.insert(relation); break;
-            case AstIoType::printsize:
+        switch (directive.getType()) {
+            case AstDirectiveType::input: inputRelations.insert(relation); break;
+            case AstDirectiveType::output: outputRelations.insert(relation); break;
+            case AstDirectiveType::printsize:
                 printSizeRelations.insert(relation);
                 outputRelations.insert(relation);
                 break;
-            case AstIoType::limitsize:
+            case AstDirectiveType::limitsize:
                 limitSizeRelations.insert(relation);
-                assert(io.hasDirective("n") && "limitsize has no n directive");
-                limitSize[relation] = stoi(io.getDirective("n"));
+                assert(directive.hasDirective("n") && "limitsize has no n directive");
+                limitSize[relation] = stoi(directive.getDirective("n"));
                 break;
         }
     });

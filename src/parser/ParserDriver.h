@@ -35,7 +35,7 @@ class AstComponentInit;
 class AstFunctorDeclaration;
 class AstPragma;
 class AstRelation;
-class AstIO;
+class AstDirective;
 class AstSubsetType;
 class AstType;
 class DebugReport;
@@ -58,7 +58,7 @@ public:
 
     void addRelation(std::unique_ptr<AstRelation> r);
     void addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> f);
-    void addIO(std::unique_ptr<AstIO> d);
+    void addDirective(std::unique_ptr<AstDirective> d);
     void addType(std::unique_ptr<AstType> type);
     void addClause(std::unique_ptr<AstClause> c);
     void addComponent(std::unique_ptr<AstComponent> c);

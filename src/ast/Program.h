@@ -21,8 +21,8 @@
 #include "ast/Clause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
+#include "ast/Directive.h"
 #include "ast/FunctorDeclaration.h"
-#include "ast/IO.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/Pragma.h"
@@ -68,13 +68,13 @@ public:
         return toPtrVector(functors);
     }
 
-    /** Retrun I/O directives */
-    std::vector<AstIO*> getIOs() const {
+    /** Return relation directives */
+    std::vector<AstDirective*> getDirectives() const {
         return toPtrVector(ios);
     }
 
-    /** Add I/O directive */
-    void addIO(Own<AstIO> directive) {
+    /** Add relation directive */
+    void addDirective(Own<AstDirective> directive) {
         assert(directive && "NULL IO directive");
         ios.push_back(std::move(directive));
     }
@@ -126,7 +126,7 @@ public:
     }
 
     /** Remove an I/O directive */
-    bool removeIO(const AstIO* io) {
+    bool removeIO(const AstDirective* io) {
         for (auto it = ios.begin(); it != ios.end(); it++) {
             if (**it == *io) {
                 ios.erase(it);
@@ -305,7 +305,7 @@ protected:
     VecOwn<AstClause> clauses;
 
     /** I/O directives */
-    VecOwn<AstIO> ios;
+    VecOwn<AstDirective> ios;
 
     /** Component definitions */
     VecOwn<AstComponent> components;
