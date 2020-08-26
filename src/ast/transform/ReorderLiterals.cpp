@@ -28,7 +28,6 @@
 #include "ast/analysis/ProfileUse.h"
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -37,11 +36,6 @@
 
 namespace souffle {
 class AstRelation;
-
-// Type for SIPS functions
-// - Take in a vector of atoms to choose from and a set of bound variables
-// - Return the best atom based on a SIPS-specific cost metric
-using sips_t = std::function<unsigned int(std::vector<AstAtom*>, const std::set<std::string>&)>;
 
 inline bool isProposition(const AstAtom* atom) {
     return atom->getArguments().empty();
@@ -72,15 +66,7 @@ unsigned int numBoundArguments(const AstAtom* atom, const std::set<std::string>&
     return count;
 }
 
-/**
- * Returns a SIPS function based on the SIPS option provided.
- * The SIPS function will return the index of the appropriate atom in a clause
- * given a goal.
- *
- * E.g. the 'max-bound' SIPS function will return the atom in the clause with
- * the maximum number of bound arguments.
- */
-sips_t getSipsFunction(const std::string& sipsChosen) {
+sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen) {
     // --- Create the appropriate SIPS function ---
 
     // Each SIPS function has a priority metric (e.g. max-bound atoms).
@@ -335,7 +321,7 @@ std::vector<unsigned int> applySips(sips_t sipsFunction, std::vector<AstAtom*> a
     return newOrder;
 }
 
-AstClause* reorderClauseWithSips(sips_t sipsFunction, AstClause* clause) {
+AstClause* ReorderLiteralsTransformer::reorderClauseWithSips(sips_t sipsFunction, const AstClause* clause) {
     // ignore clauses with fixed execution plans
     if (clause->getExecutionPlan() != nullptr) {
         return nullptr;
