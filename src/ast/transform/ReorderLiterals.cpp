@@ -41,8 +41,7 @@ unsigned int ReorderLiteralsTransformer::numBoundArguments(
         const AstAtom* atom, const BindingStore& bindingStore) {
     unsigned int count = 0;
     for (const AstArgument* arg : atom->getArguments()) {
-        const auto* var = dynamic_cast<const AstVariable*>(arg);
-        if (var != nullptr && bindingStore.isBound(var->getName())) {
+        if (bindingStore.isBound(arg)) {
             count++;
         }
     }

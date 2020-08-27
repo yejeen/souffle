@@ -46,6 +46,9 @@ public:
         return contains(stronglyBoundVariables, varName) || contains(weaklyBoundVariables, varName);
     }
 
+    /** Check if an argument is bound */
+    bool isBound(const AstArgument* arg) const;
+
 private:
     // Helper types to represent a disjunction of several dependency sets
     using ConjBindingSet = std::set<std::string>;

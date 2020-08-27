@@ -114,4 +114,21 @@ bool BindingStore::reduceDependencies() {
     return false;
 }
 
+bool BindingStore::isBound(const AstArgument* arg) const {
+    if (const auto* var = dynamic_cast<const AstVariable*>(arg)) {
+        return isBound(var->getName());
+    } else if (const auto* term = dynamic_cast<const AstTerm*>(arg)) {
+        for (const auto* subArg : term->getArguments()) {
+            if (!isBound(subArg)) {
+                return false;
+            }
+        }
+        return true;
+    } else if (dynamic_cast<const AstConstant*>(arg) != nullptr) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 }  // namespace souffle
