@@ -63,7 +63,7 @@ private:
         auto auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
 
         for (AstDirective* io : program->getDirectives()) {
-            if (io->hasDirective("attributeNames")) {
+            if (io->getType() == AstDirectiveType::limitsize) {
                 continue;
             }
             AstRelation* rel = getRelation(*translationUnit.getProgram(), io->getQualifiedName());
@@ -94,6 +94,9 @@ private:
         bool changed = false;
         AstProgram* program = translationUnit.getProgram();
         for (AstDirective* io : program->getDirectives()) {
+            if (io->getType() == AstDirectiveType::limitsize) {
+                continue;
+            }
             if (io->hasDirective("attributeNames")) {
                 continue;
             }
