@@ -19,6 +19,7 @@
 #include "Global.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
+#include "ast/BindingStore.h"
 #include "ast/Clause.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
@@ -37,9 +38,21 @@
 namespace souffle {
 
 unsigned int ReorderLiteralsTransformer::numBoundArguments(
+        const AstAtom* atom, const BindingStore& bindingStore) {
+    unsigned int count = 0;
+    for (const AstArgument* arg : atom->getArguments()) {
+        const auto* var = dynamic_cast<const AstVariable*>(arg);
+        if (bindingStore.isBound(var->getName())) {
+            count++;
+        }
+    }
+    return count;
+}
+
+unsigned int ReorderLiteralsTransformer::numBoundArguments(
         const AstAtom* atom, const std::set<std::string>& boundVariables) {
-    // TODO (azreika): should actually be chucking in the binding store from MST
-    int count = 0;
+    // TODO (azreika): should actually be using BindingStore here
+    unsigned int count = 0;
 
     for (const AstArgument* arg : atom->getArguments()) {
         // argument is bound iff all contained variables are bound
@@ -54,7 +67,7 @@ unsigned int ReorderLiteralsTransformer::numBoundArguments(
     return count;
 }
 
-sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen) {
+old_sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen) {
     // --- Create the appropriate SIPS function ---
 
     // Each SIPS function has a priority metric (e.g. max-bound atoms).
@@ -62,7 +75,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
     //      - a vector of atoms to choose from (nullpointers in the vector will be ignored)
     //      - the set of variables bound so far
     // Returns: the index of the atom maximising the priority metric
-    sips_t getNextAtomSips;
+    old_sips_t getNextAtomSips;
 
     if (sipsChosen == "naive") {
         // Goal: choose the first atom with at least one bound argument, or with no arguments
@@ -281,7 +294,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
 }
 
 std::vector<unsigned int> ReorderLiteralsTransformer::applySips(
-        sips_t sipsFunction, std::vector<AstAtom*> atoms) {
+        old_sips_t sipsFunction, std::vector<AstAtom*> atoms) {
     std::set<std::string> boundVariables;
     std::vector<unsigned int> newOrder(atoms.size());
 
@@ -307,7 +320,7 @@ std::vector<unsigned int> ReorderLiteralsTransformer::applySips(
     return newOrder;
 }
 
-AstClause* ReorderLiteralsTransformer::reorderClauseWithSips(sips_t sipsFunction, const AstClause* clause) {
+AstClause* ReorderLiteralsTransformer::reorderClauseWithSips(old_sips_t sipsFunction, const AstClause* clause) {
     // ignore clauses with fixed execution plans
     if (clause->getExecutionPlan() != nullptr) {
         return nullptr;

@@ -25,6 +25,7 @@ namespace souffle {
 class AstAtom;
 class AstClause;
 class AstTranslationUnit;
+class BindingStore;
 
 /**
  * Type for SIPS functions
@@ -32,7 +33,8 @@ class AstTranslationUnit;
  * @param boundVariables a set of all already arguments already bound to a value
  * @return the index of the best atom to choose based on some SIPS-specific cost metric
  */
-using sips_t = std::function<unsigned int(std::vector<AstAtom*>, const std::set<std::string>&)>;
+using old_sips_t = std::function<unsigned int(std::vector<AstAtom*>, const std::set<std::string>&)>;
+using sips_t = std::function<unsigned int(std::vector<AstAtom*>, const BindingStore&)>;
 
 /**
  * Transformation pass to reorder body literals.
@@ -51,7 +53,7 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
     /** Returns a SIPS function based on the SIPS option provided. */
-    static sips_t getSipsFunction(const std::string& sipsChosen);
+    static old_sips_t getSipsFunction(const std::string& sipsChosen);
 
     /**
      * Reorder the clause based on a given SIPS function.
@@ -59,13 +61,16 @@ private:
      * @param clause clause to reorder
      * @return nullptr if no change, otherwise a new reordered clause
      */
-    static AstClause* reorderClauseWithSips(sips_t sipsFunction, const AstClause* clause);
+    static AstClause* reorderClauseWithSips(old_sips_t sipsFunction, const AstClause* clause);
 
     /** Determines the new ordering of a vector of atoms after the given SIPS is applied. */
-    static std::vector<unsigned int> applySips(sips_t sipsFunction, std::vector<AstAtom*> atoms);
+    static std::vector<unsigned int> applySips(old_sips_t sipsFunction, std::vector<AstAtom*> atoms);
 
     /** Count the number of bound arguments in a given atom */
     static unsigned int numBoundArguments(const AstAtom* atom, const std::set<std::string>& boundVariables);
+
+    /** Count the number of bound arguments in a given atom */
+    static unsigned int numBoundArguments(const AstAtom* atom, const BindingStore& bindingStore);
 };
 
 }  // end of namespace souffle

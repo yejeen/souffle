@@ -9,6 +9,7 @@ namespace souffle {
 
 BindingStore::BindingStore(const AstClause* clause) {
     // Check through for variables bound in the body by a '<var> = <const>' term
+    // TODO (azreika): can probably get rid of this one
     visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
         if (constr.getOperator() == BinaryConstraintOp::EQ && dynamic_cast<AstVariable*>(constr.getLHS()) &&
                 dynamic_cast<AstConstant*>(constr.getRHS())) {
