@@ -126,7 +126,7 @@ public:
     }
 
     /** Remove an I/O directive */
-    bool removeIO(const AstDirective* io) {
+    bool removeDirective(const AstDirective* io) {
         for (auto it = ios.begin(); it != ios.end(); it++) {
             if (**it == *io) {
                 ios.erase(it);

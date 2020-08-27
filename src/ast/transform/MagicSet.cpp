@@ -251,7 +251,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
             }
         }
         for (const auto* io : iosToDelete) {
-            program.removeIO(io);
+            program.removeDirective(io);
         }
         for (auto& io : iosToAdd) {
             program.addDirective(souffle::clone(io));

@@ -121,7 +121,7 @@ void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name)
 void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
     auto& program = *tu.getProgram();
     for (const auto* io : getDirectives(program, name)) {
-        program.removeIO(io);
+        program.removeDirective(io);
     }
 }
 
