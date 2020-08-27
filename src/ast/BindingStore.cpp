@@ -7,33 +7,7 @@
 
 namespace souffle {
 
-BindingStore::BindingStore(const AstClause* clause, const std::string& adornmentMarker) {
-    /* Note that variables can be bound through:
-     *  (1) an appearance in a body atom
-     *  (2) an appearance in a bound field of the head atom
-     *  (3) equality with a fully bound functor (via this class)
-     *
-     * When computing (3), appearances (1) and (2) must be separated to maintain the termination semantics of
-     * the original program. Functor variables are not considered bound if they are only bound via the head.
-     *
-     * Justification: Suppose a new variable Y is marked as bound because of its appearance in a functor
-     * Y=X+1, and X was already found to be bound:
-     *  (1) If X was bound through a body atom, then the behaviour of typical magic-set is exhibited, where
-     * the magic-set of Y is bounded by the values that X can take, which is bounded by induction.
-     *  (2) If X was bound only through the head atom, then Y is only fixed to an appearance in a magic-atom.
-     * In the presence of recursion, this can potentially lead to an infinitely-sized magic-set for an atom.
-     */
-
-    // Bind variables in the head that are marked as bound args
-    const auto& headArgs = clause->getHead()->getArguments();
-    for (size_t i = 0; i < adornmentMarker.length(); i++) {
-        const auto* var = dynamic_cast<AstVariable*>(headArgs[i]);
-        assert(var != nullptr && "expected only variables in head");
-        if (adornmentMarker[i] == 'b') {
-            looselyBoundVariables.insert(var->getName());
-        }
-    }
-
+BindingStore::BindingStore(const AstClause* clause) {
     // Check through for variables bound in the body by a '<var> = <const>' term
     visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
         if (constr.getOperator() == BinaryConstraintOp::EQ && dynamic_cast<AstVariable*>(constr.getLHS()) &&

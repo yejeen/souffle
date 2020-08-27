@@ -17,7 +17,7 @@ class AstClause;
  */
 class BindingStore {
 public:
-    BindingStore(const AstClause* clause, const std::string& adornmentMarker);
+    BindingStore(const AstClause* clause);
 
     /**
      * Mark the given variable as strongly bound.
@@ -33,17 +33,17 @@ public:
     }
 
     /**
-     * Mark the given variable as loosely bound.
-     * Loosely bound variables cannot be used to bind functor arguments.
+     * Mark the given variable as weakly bound.
+     * Weakly bound variables cannot be used to bind functor arguments.
      * E.g. bound head arguments in MST adorned relations
      */
-    void bindVariableLoosely(std::string varName) {
-        looselyBoundVariables.insert(varName);
+    void bindVariableWeakly(std::string varName) {
+        weaklyBoundVariables.insert(varName);
     }
 
     /** Check if a variable is bound */
     bool isBound(std::string varName) const {
-        return contains(stronglyBoundVariables, varName) || contains(looselyBoundVariables, varName);
+        return contains(stronglyBoundVariables, varName) || contains(weaklyBoundVariables, varName);
     }
 
 private:
@@ -52,7 +52,7 @@ private:
     using DisjBindingSet = std::set<ConjBindingSet>;
 
     std::set<std::string> stronglyBoundVariables{};
-    std::set<std::string> looselyBoundVariables{};
+    std::set<std::string> weaklyBoundVariables{};
     std::map<std::string, DisjBindingSet> variableDependencies{};
 
     /**
