@@ -584,7 +584,7 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
         for (const auto* arg : atom->getArguments()) {
             const auto* var = dynamic_cast<const AstVariable*>(arg);
             assert(var != nullptr && "expected only variables in atom");
-            variableBindings.bindVariable(var->getName());
+            variableBindings.bindVariableStrongly(var->getName());
         }
     }
     adornedClause->setBodyLiterals(std::move(adornedBodyLiterals));

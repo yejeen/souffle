@@ -19,13 +19,31 @@ class BindingStore {
 public:
     BindingStore(const AstClause* clause, const std::string& adornmentMarker);
 
-    void bindVariable(std::string varName) {
-        boundVariables.insert(varName);
+    /**
+     * Mark the given variable as strongly bound.
+     * Strongly bound variables can be used to bind functor arguments.
+     * This is the usual case.
+     * E.g. body atom appearances
+     */
+    void bindVariableStrongly(std::string varName) {
+        stronglyBoundVariables.insert(varName);
+
+        // Some functor dependencies may be reduced
         reduceDependencies();
     }
 
+    /**
+     * Mark the given variable as loosely bound.
+     * Loosely bound variables cannot be used to bind functor arguments.
+     * E.g. bound head arguments in MST adorned relations
+     */
+    void bindVariableLoosely(std::string varName) {
+        looselyBoundVariables.insert(varName);
+    }
+
+    /** Check if a variable is bound */
     bool isBound(std::string varName) const {
-        return contains(boundVariables, varName) || contains(boundHeadVariables, varName);
+        return contains(stronglyBoundVariables, varName) || contains(looselyBoundVariables, varName);
     }
 
 private:
@@ -33,8 +51,8 @@ private:
     using ConjBindingSet = std::set<std::string>;
     using DisjBindingSet = std::set<ConjBindingSet>;
 
-    std::set<std::string> boundVariables{};
-    std::set<std::string> boundHeadVariables{};
+    std::set<std::string> stronglyBoundVariables{};
+    std::set<std::string> looselyBoundVariables{};
     std::map<std::string, DisjBindingSet> variableDependencies{};
 
     /**

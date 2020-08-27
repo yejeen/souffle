@@ -30,7 +30,7 @@ BindingStore::BindingStore(const AstClause* clause, const std::string& adornment
         const auto* var = dynamic_cast<AstVariable*>(headArgs[i]);
         assert(var != nullptr && "expected only variables in head");
         if (adornmentMarker[i] == 'b') {
-            boundHeadVariables.insert(var->getName());
+            looselyBoundVariables.insert(var->getName());
         }
     }
 
@@ -39,7 +39,7 @@ BindingStore::BindingStore(const AstClause* clause, const std::string& adornment
         if (constr.getOperator() == BinaryConstraintOp::EQ && dynamic_cast<AstVariable*>(constr.getLHS()) &&
                 dynamic_cast<AstConstant*>(constr.getRHS())) {
             const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
-            bindVariable(var->getName());
+            bindVariableStrongly(var->getName());
         }
     });
 
@@ -90,7 +90,7 @@ BindingStore::ConjBindingSet BindingStore::reduceDependency(
     BindingStore::ConjBindingSet newDependency;
     for (const auto& var : origDependency) {
         // Only keep unbound variables in the dependency
-        if (!contains(boundVariables, var)) {
+        if (!contains(stronglyBoundVariables, var)) {
             newDependency.insert(var);
         }
     }
@@ -117,7 +117,7 @@ bool BindingStore::reduceDependencies() {
     // Reduce each variable's set of dependencies one by one
     for (const auto& [headVar, dependencies] : variableDependencies) {
         // No need to track the dependencies of already-bound variables
-        if (contains(boundVariables, headVar)) {
+        if (contains(stronglyBoundVariables, headVar)) {
             changed = true;
             continue;
         }
@@ -136,7 +136,7 @@ bool BindingStore::reduceDependencies() {
 
     // Bind variables that need to be bound
     for (auto var : variablesToBind) {
-        boundVariables.insert(var);
+        stronglyBoundVariables.insert(var);
     }
 
     // Repeat it recursively if any changes happened, until we reach a fixpoint
