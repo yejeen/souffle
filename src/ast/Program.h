@@ -70,13 +70,13 @@ public:
 
     /** Return relation directives */
     std::vector<AstDirective*> getDirectives() const {
-        return toPtrVector(ios);
+        return toPtrVector(directives);
     }
 
     /** Add relation directive */
     void addDirective(Own<AstDirective> directive) {
-        assert(directive && "NULL IO directive");
-        ios.push_back(std::move(directive));
+        assert(directive && "NULL directive");
+        directives.push_back(std::move(directive));
     }
 
     /** Return pragma directives */
@@ -125,11 +125,11 @@ public:
         return false;
     }
 
-    /** Remove an I/O directive */
-    bool removeDirective(const AstDirective* io) {
-        for (auto it = ios.begin(); it != ios.end(); it++) {
-            if (**it == *io) {
-                ios.erase(it);
+    /** Remove a directive */
+    bool removeDirective(const AstDirective* directive) {
+        for (auto it = directives.begin(); it != directives.end(); it++) {
+            if (**it == *directive) {
+                directives.erase(it);
                 return true;
             }
         }
@@ -155,7 +155,7 @@ public:
         res->functors = souffle::clone(functors);
         res->relations = souffle::clone(relations);
         res->clauses = souffle::clone(clauses);
-        res->ios = souffle::clone(ios);
+        res->directives = souffle::clone(directives);
         return res;
     }
 
@@ -181,7 +181,7 @@ public:
         for (auto& cur : clauses) {
             cur = map(std::move(cur));
         }
-        for (auto& cur : ios) {
+        for (auto& cur : directives) {
             cur = map(std::move(cur));
         }
     }
@@ -209,7 +209,7 @@ public:
         for (const auto& cur : clauses) {
             res.push_back(cur.get());
         }
-        for (const auto& cur : ios) {
+        for (const auto& cur : directives) {
             res.push_back(cur.get());
         }
         return res;
@@ -228,7 +228,7 @@ protected:
         show(functors);
         show(relations);
         show(clauses, "\n\n");
-        show(ios, "\n\n");
+        show(directives, "\n\n");
     }
 
     bool equal(const AstNode& node) const override {
@@ -254,7 +254,7 @@ protected:
         if (!equal_targets(clauses, other.clauses)) {
             return false;
         }
-        if (!equal_targets(ios, other.ios)) {
+        if (!equal_targets(directives, other.directives)) {
             return false;
         }
         return true;
@@ -272,7 +272,7 @@ protected:
 
     /** Add a pragma */
     void addPragma(Own<AstPragma> pragma) {
-        assert(pragma && "NULL IO directive");
+        assert(pragma && "NULL pragma");
         pragmaDirectives.push_back(std::move(pragma));
     }
 
@@ -305,7 +305,7 @@ protected:
     VecOwn<AstClause> clauses;
 
     /** I/O directives */
-    VecOwn<AstDirective> ios;
+    VecOwn<AstDirective> directives;
 
     /** Component definitions */
     VecOwn<AstComponent> components;

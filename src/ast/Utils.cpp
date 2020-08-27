@@ -81,13 +81,13 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation&
 }
 
 std::vector<AstDirective*> getDirectives(const AstProgram& program, const AstQualifiedName& relationName) {
-    std::vector<AstDirective*> ios;
-    for (AstDirective* io : program.getDirectives()) {
-        if (io->getQualifiedName() == relationName) {
-            ios.push_back(io);
+    std::vector<AstDirective*> directives;
+    for (AstDirective* dir : program.getDirectives()) {
+        if (dir->getQualifiedName() == relationName) {
+            directives.push_back(dir);
         }
     }
-    return ios;
+    return directives;
 }
 
 AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name) {
@@ -120,8 +120,8 @@ void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name)
 
 void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
     auto& program = *tu.getProgram();
-    for (const auto* io : getDirectives(program, name)) {
-        program.removeDirective(io);
+    for (const auto* directive : getDirectives(program, name)) {
+        program.removeDirective(directive);
     }
 }
 

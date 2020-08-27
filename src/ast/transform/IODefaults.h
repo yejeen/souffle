@@ -66,7 +66,8 @@ private:
         bool changed = false;
         AstProgram* program = translationUnit.getProgram();
         for (AstDirective* io : program->getDirectives()) {
-            // Don't do anything for limitsize
+            // Don't do anything for a directive which
+            // is not an I/O directive
             if (io->getType() == AstDirectiveType::limitsize) continue;
 
             // Set a default IO of file

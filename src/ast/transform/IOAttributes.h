@@ -63,6 +63,9 @@ private:
         auto auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
 
         for (AstDirective* io : program->getDirectives()) {
+            if (io->hasDirective("attributeNames")) {
+                continue;
+            }
             AstRelation* rel = getRelation(*translationUnit.getProgram(), io->getQualifiedName());
             // Prepare type system information.
             std::vector<std::string> attributesParams;
