@@ -1,4 +1,5 @@
 #include "ast/BindingStore.h"
+#include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constant.h"
@@ -129,6 +130,16 @@ bool BindingStore::isBound(const AstArgument* arg) const {
     } else {
         return false;
     }
+}
+
+unsigned int BindingStore::numBoundArguments(const AstAtom* atom) const {
+    unsigned int count = 0;
+    for (const auto* arg : atom->getArguments()) {
+        if (isBound(arg)) {
+            count++;
+        }
+    }
+    return count;
 }
 
 }  // namespace souffle

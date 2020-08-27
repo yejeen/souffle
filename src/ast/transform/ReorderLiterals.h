@@ -69,9 +69,6 @@ private:
      * @return the vector of new positions; v[i] = j iff atom j moves to pos i
      */
     static std::vector<unsigned int> getOrderingAfterSIPS(sips_t sipsFunction, const AstClause* clause);
-
-    /** Count the number of bound arguments in a given atom */
-    static unsigned int numBoundArguments(const AstAtom* atom, const BindingStore& bindingStore);
 };
 
 }  // end of namespace souffle

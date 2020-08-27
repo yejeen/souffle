@@ -37,17 +37,6 @@
 
 namespace souffle {
 
-unsigned int ReorderLiteralsTransformer::numBoundArguments(
-        const AstAtom* atom, const BindingStore& bindingStore) {
-    unsigned int count = 0;
-    for (const AstArgument* arg : atom->getArguments()) {
-        if (bindingStore.isBound(arg)) {
-            count++;
-        }
-    }
-    return count;
-}
-
 sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen) {
     // --- Create the appropriate SIPS function ---
 
@@ -74,7 +63,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
                     return i;
                 }
 
-                if (numBoundArguments(currAtom, bindingStore) >= 1) {
+                if (bindingStore.numBoundArguments(currAtom) >= 1) {
                     // at least one bound argument
                     return i;
                 }
@@ -107,7 +96,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
                 }
 
                 int arity = currAtom->getArity();
-                int numBound = numBoundArguments(currAtom, bindingStore);
+                int numBound = bindingStore.numBoundArguments(currAtom);
                 if (numBound == arity) {
                     // all arguments are bound!
                     return i;
@@ -144,7 +133,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
                     return i;
                 }
 
-                int numBound = numBoundArguments(currAtom, bindingStore);
+                int numBound = bindingStore.numBoundArguments(currAtom);
                 if (numBound > currMaxBound) {
                     currMaxBound = numBound;
                     currMaxIdx = i;
@@ -176,7 +165,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
                     return i;
                 }
 
-                int numBound = numBoundArguments(currAtom, bindingStore);
+                int numBound = bindingStore.numBoundArguments(currAtom);
                 int numArgs = currAtom->getArity();
                 auto currRatio = std::pair<int, int>(numBound, numArgs);
                 if (isLargerRatio(currRatio, currMaxRatio)) {
@@ -206,7 +195,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
                     return i;
                 }
 
-                int numBound = numBoundArguments(currAtom, bindingStore);
+                int numBound = bindingStore.numBoundArguments(currAtom);
                 int numFree = currAtom->getArity() - numBound;
                 if (currLeastFree == -1 || numFree < currLeastFree) {
                     currLeastFree = numFree;
@@ -381,7 +370,7 @@ bool ReorderLiteralsTransformer::transform(AstTranslationUnit& translationUnit) 
                 }
 
                 // calculate log(|R|) * #free/#args
-                int numBound = numBoundArguments(currAtom, bindingStore);
+                int numBound = bindingStore.numBoundArguments(currAtom);
                 int numArgs = currAtom->getArity();
                 int numFree = numArgs - numBound;
                 double value = log(profileUse->getRelationSize(currAtom->getQualifiedName()));
