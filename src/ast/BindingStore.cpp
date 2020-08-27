@@ -8,18 +8,26 @@
 namespace souffle {
 
 BindingStore::BindingStore(const AstClause* clause) {
-    // Check through for variables bound in the body by a '<var> = <const>' term
-    // TODO (azreika): can probably get rid of this one
-    visitDepthFirst(*clause, [&](const AstBinaryConstraint& constr) {
-        if (constr.getOperator() == BinaryConstraintOp::EQ && dynamic_cast<AstVariable*>(constr.getLHS()) &&
-                dynamic_cast<AstConstant*>(constr.getRHS())) {
-            const auto* var = dynamic_cast<AstVariable*>(constr.getLHS());
-            bindVariableStrongly(var->getName());
+    generateBindingDependencies(clause);
+    reduceDependencies();
+}
+
+void BindingStore::generateBindingDependencies(const AstClause* clause) {
+    // Grab all relevant constraints (i.e. eq. constrs not involving aggregators)
+    std::set<const AstBinaryConstraint*> constraints;
+    visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
+        bool containsAggregators = false;
+        visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) { containsAggregators = true; });
+        if (!containsAggregators && bc.getOperator() == BinaryConstraintOp::EQ) {
+            constraints.insert(&bc);
         }
     });
 
-    generateBindingDependencies(clause);
-    reduceDependencies();
+    // Add variable binding dependencies implied by the constraint
+    for (const auto* bc : constraints) {
+        processEqualityBindings(bc->getLHS(), bc->getRHS());
+        processEqualityBindings(bc->getRHS(), bc->getLHS());
+    }
 }
 
 void BindingStore::processEqualityBindings(const AstArgument* lhs, const AstArgument* rhs) {
@@ -39,24 +47,6 @@ void BindingStore::processEqualityBindings(const AstArgument* lhs, const AstArgu
             assert(subVar != nullptr && "expected args to be variables");
             addBindingDependency(subVar->getName(), BindingStore::ConjBindingSet({var->getName()}));
         }
-    }
-}
-
-void BindingStore::generateBindingDependencies(const AstClause* clause) {
-    // Grab all relevant constraints (i.e. eq. constrs not involving aggregators)
-    std::set<const AstBinaryConstraint*> constraints;
-    visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
-        bool containsAggregators = false;
-        visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) { containsAggregators = true; });
-        if (!containsAggregators && bc.getOperator() == BinaryConstraintOp::EQ) {
-            constraints.insert(&bc);
-        }
-    });
-
-    // Add variable binding dependencies implied by the constraint
-    for (const auto* bc : constraints) {
-        processEqualityBindings(bc->getLHS(), bc->getRHS());
-        processEqualityBindings(bc->getRHS(), bc->getLHS());
     }
 }
 

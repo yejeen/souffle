@@ -8,6 +8,7 @@
 namespace souffle {
 
 class AstArgument;
+class AstAtom;
 class AstClause;
 
 // Helper class for determining variable binding involving functors
@@ -22,8 +23,7 @@ public:
     /**
      * Mark the given variable as strongly bound.
      * Strongly bound variables can be used to bind functor arguments.
-     * This is the usual case.
-     * E.g. body atom appearances
+     * This is the usual case, e.g. body atom appearances
      */
     void bindVariableStrongly(std::string varName) {
         stronglyBoundVariables.insert(varName);
