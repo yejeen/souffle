@@ -48,9 +48,6 @@ public:
         return new ReorderLiteralsTransformer();
     }
 
-private:
-    bool transform(AstTranslationUnit& translationUnit) override;
-
     /** Returns a SIPS function based on the SIPS option provided. */
     static sips_t getSipsFunction(const std::string& sipsChosen);
 
@@ -62,8 +59,16 @@ private:
      */
     static AstClause* reorderClauseWithSips(sips_t sipsFunction, const AstClause* clause);
 
-    /** Determines the new ordering of a clause after the given SIPS is applied. */
-    static std::vector<unsigned int> applySips(sips_t sipsFunction, const AstClause* clause);
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+    /**
+     * Determines the new ordering of a clause after the given SIPS is applied.
+     * @param sipsFunction SIPS metric to use
+     * @param clause clause to reorder
+     * @return the vector of new positions; v[i] = j iff atom j moves to pos i
+     */
+    static std::vector<unsigned int> getOrderingAfterSIPS(sips_t sipsFunction, const AstClause* clause);
 
     /** Count the number of bound arguments in a given atom */
     static unsigned int numBoundArguments(const AstAtom* atom, const BindingStore& bindingStore);

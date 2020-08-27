@@ -273,7 +273,7 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
     return getNextAtomSips;
 }
 
-std::vector<unsigned int> ReorderLiteralsTransformer::applySips(
+std::vector<unsigned int> ReorderLiteralsTransformer::getOrderingAfterSIPS(
         sips_t sipsFunction, const AstClause* clause) {
     BindingStore bindingStore(clause);
     auto atoms = getBodyLiterals<AstAtom>(*clause);
@@ -308,7 +308,7 @@ AstClause* ReorderLiteralsTransformer::reorderClauseWithSips(sips_t sipsFunction
     }
 
     // get the ordering corresponding to the SIPS
-    std::vector<unsigned int> newOrdering = applySips(sipsFunction, clause);
+    std::vector<unsigned int> newOrdering = getOrderingAfterSIPS(sipsFunction, clause);
 
     // check if we need a change
     bool changeNeeded = false;
