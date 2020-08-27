@@ -99,6 +99,8 @@ souffle_sources = \
         ast/Atom.h                                         \
         ast/Attribute.h                                    \
         ast/BinaryConstraint.h                             \
+        ast/BindingStore.h                                 \
+        ast/BindingStore.cpp                               \
         ast/BooleanConstraint.h                            \
         ast/BranchDeclaration.h                            \
         ast/BranchInit.h                                   \
