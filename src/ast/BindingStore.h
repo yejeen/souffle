@@ -1,3 +1,20 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2020, The Souffle Developers. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+/************************************************************************
+ *
+ * @file BindingStore.h
+ *
+ * Defines the BindingStore class, which can be used to dynamically
+ * determine the set of bound variables within a given clause.
+ *
+ ***********************************************************************/
+
 #pragma once
 
 #include "souffle/utility/ContainerUtil.h"
@@ -11,11 +28,6 @@ class AstArgument;
 class AstAtom;
 class AstClause;
 
-// Helper class for determining variable binding involving functors
-/**
- * A storage of bound variables that dynamically determines the set of bound variables
- * within a clause.
- */
 class BindingStore {
 public:
     BindingStore(const AstClause* clause);
