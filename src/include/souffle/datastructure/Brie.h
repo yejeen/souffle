@@ -2267,7 +2267,7 @@ struct fix_upper_bound {
  * Trie storing tuples of arity > 1.
  */
 template <unsigned Dim>
-class Trie : public detail::TrieBase<Dim, Trie<Dim>> {
+class Trie : public souffle::detail::TrieBase<Dim, Trie<Dim>> {
     template <unsigned D>
     friend class Trie;
 
@@ -2275,7 +2275,7 @@ class Trie : public detail::TrieBase<Dim, Trie<Dim>> {
     friend class TrieBase;
 
     // a shortcut for the common base class type
-    using base = typename detail::TrieBase<Dim, Trie<Dim>>;
+    using base = typename souffle::detail::TrieBase<Dim, Trie<Dim>>;
 
     // the type of the nested tries (1 dimension less)
     using nested_trie_type = Trie<Dim - 1>;
@@ -2608,7 +2608,7 @@ public:
         iterator end{};
 
         // adapt them level by level
-        auto found = detail::fix_binding<levels, 0, Dim>()(store, begin, end, entry);
+        auto found = souffle::detail::fix_binding<levels, 0, Dim>()(store, begin, end, entry);
         if (!found) return make_range(iterator(), iterator());
 
         // update context
