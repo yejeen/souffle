@@ -34,11 +34,11 @@
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
-#include "souffle/json11.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include "souffle/utility/json11.h"
 #include "souffle/utility/tinyformat.h"
 #include "synthesiser/SynthesiserRelation.h"
 #include <algorithm>
