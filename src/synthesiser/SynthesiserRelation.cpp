@@ -392,14 +392,14 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
     // empty lowerUpperRange method
     out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
-        << "(const t_tuple& lower, const t_tuple& upper, context& h) const "
+        << "(const t_tuple& /* lower */, const t_tuple& /* upper */, context& /* h */) const "
            "{\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
     out << "}\n";
 
     out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
-        << "(const t_tuple& lower, const t_tuple& upper) const {\n";
+        << "(const t_tuple& /* lower */, const t_tuple& /* upper */) const {\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
     out << "}\n";
