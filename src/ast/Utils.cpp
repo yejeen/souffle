@@ -22,9 +22,9 @@
 #include "ast/BooleanConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"
+#include "ast/Directive.h"
 #include "ast/ExecutionPlan.h"
 #include "ast/FunctorDeclaration.h"
-#include "ast/IO.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -80,14 +80,14 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation&
     return getClauses(program, rel.getQualifiedName());
 }
 
-std::vector<AstIO*> getIOs(const AstProgram& program, const AstQualifiedName& relationName) {
-    std::vector<AstIO*> ios;
-    for (AstIO* io : program.getIOs()) {
-        if (io->getQualifiedName() == relationName) {
-            ios.push_back(io);
+std::vector<AstDirective*> getDirectives(const AstProgram& program, const AstQualifiedName& relationName) {
+    std::vector<AstDirective*> directives;
+    for (AstDirective* dir : program.getDirectives()) {
+        if (dir->getQualifiedName() == relationName) {
+            directives.push_back(dir);
         }
     }
-    return ios;
+    return directives;
 }
 
 AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name) {
@@ -120,8 +120,8 @@ void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name)
 
 void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
     auto& program = *tu.getProgram();
-    for (const auto* io : getIOs(program, name)) {
-        program.removeIO(io);
+    for (const auto* directive : getDirectives(program, name)) {
+        program.removeDirective(directive);
     }
 }
 

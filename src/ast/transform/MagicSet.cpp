@@ -20,8 +20,8 @@
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Constant.h"
+#include "ast/Directive.h"
 #include "ast/Functor.h"
-#include "ast/IO.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/NumericConstant.h"
@@ -237,10 +237,10 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         newClause->addToBody(std::move(newBodyAtom));
 
         // New relation I' should be input, original should not
-        std::set<const AstIO*> iosToDelete;
-        std::set<std::unique_ptr<AstIO>> iosToAdd;
-        for (const auto* io : program.getIOs()) {
-            if (io->getQualifiedName() == relName && io->getType() == AstIoType::input) {
+        std::set<const AstDirective*> iosToDelete;
+        std::set<std::unique_ptr<AstDirective>> iosToAdd;
+        for (const auto* io : program.getDirectives()) {
+            if (io->getQualifiedName() == relName && io->getType() == AstDirectiveType::input) {
                 // New relation inherits the old input rules
                 auto newIO = souffle::clone(io);
                 newIO->setQualifiedName(newRelName);
@@ -251,10 +251,10 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
             }
         }
         for (const auto* io : iosToDelete) {
-            program.removeIO(io);
+            program.removeDirective(io);
         }
         for (auto& io : iosToAdd) {
-            program.addIO(souffle::clone(io));
+            program.addDirective(souffle::clone(io));
         }
 
         // Add in the new relation and the copy clause

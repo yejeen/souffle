@@ -28,10 +28,10 @@
 #include "ast/Constant.h"
 #include "ast/Constraint.h"
 #include "ast/Counter.h"
+#include "ast/Directive.h"
 #include "ast/ExecutionOrder.h"
 #include "ast/ExecutionPlan.h"
 #include "ast/Functor.h"
-#include "ast/IO.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -53,6 +53,7 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/AuxArity.h"
+#include "ast/analysis/IOType.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
 #include "ast/analysis/SCCGraph.h"
@@ -93,6 +94,7 @@
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Query.h"
 #include "ram/Relation.h"
+#include "ram/RelationSize.h"
 #include "ram/Scan.h"
 #include "ram/Sequence.h"
 #include "ram/SignedConstant.h"
@@ -157,8 +159,9 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDire
         const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> inputDirectives;
 
-    for (const auto* load : program->getIOs()) {
-        if (load->getQualifiedName() != rel->getQualifiedName() || load->getType() != AstIoType::input) {
+    for (const auto* load : program->getDirectives()) {
+        if (load->getQualifiedName() != rel->getQualifiedName() ||
+                load->getType() != AstDirectiveType::input) {
             continue;
         }
 
@@ -180,8 +183,10 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
         const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
-    for (const auto* store : program->getIOs()) {
-        if (store->getQualifiedName() != rel->getQualifiedName() || store->getType() == AstIoType::input) {
+    for (const auto* store : program->getDirectives()) {
+        if (store->getQualifiedName() != rel->getQualifiedName() ||
+                (store->getType() != AstDirectiveType::printsize &&
+                        store->getType() != AstDirectiveType::output)) {
             continue;
         }
 
@@ -1185,8 +1190,15 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     };
 
     std::unique_ptr<RamCondition> exitCond;
+    std::vector<std::unique_ptr<RamStatement>> exitStmts;
     for (const AstRelation* rel : scc) {
         addCondition(exitCond, std::make_unique<RamEmptinessCheck>(translateNewRelation(rel)));
+        if (ioType->isLimitSize(rel)) {
+            std::unique_ptr<RamCondition> limit = std::make_unique<RamConstraint>(BinaryConstraintOp::GE,
+                    std::make_unique<RamRelationSize>(translateRelation(rel)),
+                    std::make_unique<RamSignedConstant>(ioType->getLimitSize(rel)));
+            appendStmt(exitStmts, std::make_unique<RamExit>(std::move(limit)));
+        }
     }
 
     /* construct fixpoint loop  */
@@ -1197,6 +1209,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     if (!loop->getStatements().empty() && exitCond && updateTable.size() > 0) {
         appendStmt(res, std::make_unique<RamLoop>(std::make_unique<RamSequence>(std::move(loop),
                                 std::make_unique<RamExit>(std::move(exitCond)),
+                                std::make_unique<RamSequence>(std::move(exitStmts)),
                                 std::make_unique<RamSequence>(std::move(updateTable)))));
     }
     if (postamble.size() > 0) {
@@ -1496,6 +1509,9 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
 
 /** translates the given datalog program into an equivalent RAM program  */
 void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
+    // obtain IO Type of relations
+    ioType = translationUnit.getAnalysis<IOType>();
+
     // obtain type environment from analysis
     typeEnv = &translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
