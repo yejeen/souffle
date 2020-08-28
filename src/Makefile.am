@@ -49,6 +49,12 @@ souffle_profile_sources = \
         include/souffle/profile/htmlJsUtil.h               \
         include/souffle/profile/htmlMain.h
 
+souffle_provenance_sources = \
+        include/souffle/provenance/Explain.h               \
+        include/souffle/provenance/ExplainProvenance.h     \
+        include/souffle/provenance/ExplainProvenanceImpl.h \
+        include/souffle/provenance/ExplainTree.h
+
 souffle_swig_sources = \
         include/souffle/swig/SwigInterface.h               \
         include/souffle/swig/SwigInterface.i
@@ -439,10 +445,6 @@ soufflepublic_HEADERS = \
         include/souffle/CompiledSouffle.h                  \
         include/souffle/CompiledTuple.h                    \
         include/souffle/EventProcessor.h                   \
-        include/souffle/Explain.h                          \
-        include/souffle/ExplainProvenance.h                \
-        include/souffle/ExplainProvenanceImpl.h            \
-        include/souffle/ExplainTree.h                      \
         include/souffle/Logger.h                           \
         include/souffle/ProfileDatabase.h                  \
         include/souffle/ProfileEvent.h                     \
@@ -461,6 +463,10 @@ souffledatastructure_HEADERS = $(souffle_datastructure_sources)
 souffleprofiledir = $(soufflepublicdir)/profile
 
 souffleprofile_HEADERS = $(souffle_profile_sources)
+
+souffleprovenancedir = $(soufflepublicdir)/provenance
+
+souffleprovenance_HEADERS = $(souffle_provenance_sources)
 
 souffleswigdir = $(soufflepublicdir)/swig
 
