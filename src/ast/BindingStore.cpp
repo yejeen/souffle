@@ -32,19 +32,19 @@ BindingStore::BindingStore(const AstClause* clause) {
 
 void BindingStore::generateBindingDependencies(const AstClause* clause) {
     // Grab all relevant constraints (i.e. eq. constrs not involving aggregators)
-    std::set<const AstBinaryConstraint*> constraints;
+    std::set<const AstBinaryConstraint*> relevantEqConstraints;
     visitDepthFirst(*clause, [&](const AstBinaryConstraint& bc) {
         bool containsAggregators = false;
         visitDepthFirst(bc, [&](const AstAggregator& /* aggr */) { containsAggregators = true; });
         if (!containsAggregators && bc.getOperator() == BinaryConstraintOp::EQ) {
-            constraints.insert(&bc);
+            relevantEqConstraints.insert(&bc);
         }
     });
 
     // Add variable binding dependencies implied by the constraint
-    for (const auto* bc : constraints) {
-        processEqualityBindings(bc->getLHS(), bc->getRHS());
-        processEqualityBindings(bc->getRHS(), bc->getLHS());
+    for (const auto* eqConstraint : relevantEqConstraints) {
+        processEqualityBindings(eqConstraint->getLHS(), eqConstraint->getRHS());
+        processEqualityBindings(eqConstraint->getRHS(), eqConstraint->getLHS());
     }
 }
 
@@ -149,8 +149,8 @@ bool BindingStore::isBound(const AstArgument* arg) const {
     }
 }
 
-unsigned int BindingStore::numBoundArguments(const AstAtom* atom) const {
-    unsigned int count = 0;
+size_t BindingStore::numBoundArguments(const AstAtom* atom) const {
+    size_t count = 0;
     for (const auto* arg : atom->getArguments()) {
         if (isBound(arg)) {
             count++;

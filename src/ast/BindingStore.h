@@ -62,7 +62,7 @@ public:
     bool isBound(const AstArgument* arg) const;
 
     /** Counts the number of bound arguments in the given atom */
-    unsigned int numBoundArguments(const AstAtom* atom) const;
+    size_t numBoundArguments(const AstAtom* atom) const;
 
 private:
     // Helper types to represent a disjunction of several dependency sets
