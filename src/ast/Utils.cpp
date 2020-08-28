@@ -240,6 +240,10 @@ bool isRule(const AstClause& clause) {
     return (clause.getHead() != nullptr) && !isFact(clause);
 }
 
+bool isProposition(const AstAtom* atom) {
+    return atom->getArguments().empty();
+}
+
 AstClause* cloneHead(const AstClause* clause) {
     auto* clone = new AstClause();
     clone->setSrcLoc(clause->getSrcLoc());
