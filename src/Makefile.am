@@ -22,15 +22,17 @@ souffle_datastructure_sources = \
         include/souffle/datastructure/UnionFind.h
 
 souffle_profile_sources = \
-        include/souffle/ProfileDatabase.h                  \
-        include/souffle/json11.h                           \
         include/souffle/profile/Cell.h                     \
         include/souffle/profile/CellInterface.h            \
         include/souffle/profile/Cli.h                      \
         include/souffle/profile/DataComparator.h           \
+        include/souffle/profile/EventProcessor.h           \
         include/souffle/profile/HtmlGenerator.h            \
         include/souffle/profile/Iteration.h                \
+        include/souffle/profile/Logger.h                   \
         include/souffle/profile/OutputProcessor.h          \
+        include/souffle/profile/ProfileDatabase.h          \
+        include/souffle/profile/ProfileEvent.h             \
         include/souffle/profile/ProgramRun.h               \
         include/souffle/profile/Reader.h                   \
         include/souffle/profile/Relation.h                 \
@@ -438,14 +440,10 @@ soufflepublic_HEADERS = \
         include/souffle/CompiledOptions.h                  \
         include/souffle/CompiledSouffle.h                  \
         include/souffle/CompiledTuple.h                    \
-        include/souffle/EventProcessor.h                   \
         include/souffle/Explain.h                          \
         include/souffle/ExplainProvenance.h                \
         include/souffle/ExplainProvenanceImpl.h            \
         include/souffle/ExplainTree.h                      \
-        include/souffle/Logger.h                           \
-        include/souffle/ProfileDatabase.h                  \
-        include/souffle/ProfileEvent.h                     \
         include/souffle/RamTypes.h                         \
         include/souffle/RecordTable.h                      \
         include/souffle/SignalHandler.h                    \
