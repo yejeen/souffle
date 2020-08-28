@@ -70,6 +70,7 @@
 #include "ram/Query.h"
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
+#include "ram/RelationSize.h"
 #include "ram/RelationStatement.h"
 #include "ram/Scan.h"
 #include "ram/Sequence.h"
@@ -155,6 +156,7 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(PackRecord);
         FORWARD(SubroutineArgument);
         FORWARD(UndefValue);
+        FORWARD(RelationSize);
 
         // Conditions
         FORWARD(True);
@@ -299,6 +301,7 @@ protected:
     LINK(AutoIncrement, Expression);
     LINK(PackRecord, Expression);
     LINK(SubroutineArgument, Expression);
+    LINK(RelationSize, Expression);
 
     LINK(Expression, Node);
 

@@ -27,10 +27,10 @@
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Counter.h"
+#include "ast/Directive.h"
 #include "ast/ExecutionOrder.h"
 #include "ast/ExecutionPlan.h"
 #include "ast/Functor.h"
-#include "ast/IO.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -800,14 +800,14 @@ void AstSemanticCheckerImpl::checkTypesDeclarations() {
 }
 
 void AstSemanticCheckerImpl::checkIO() {
-    auto checkIO = [&](const AstIO* directive) {
+    auto checkIO = [&](const AstDirective* directive) {
         auto* r = getRelation(program, directive->getQualifiedName());
         if (r == nullptr) {
             report.addError(
                     "Undefined relation " + toString(directive->getQualifiedName()), directive->getSrcLoc());
         }
     };
-    for (const auto* directive : program.getIOs()) {
+    for (const auto* directive : program.getDirectives()) {
         checkIO(directive);
     }
 }

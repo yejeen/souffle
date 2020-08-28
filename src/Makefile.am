@@ -115,7 +115,7 @@ souffle_sources = \
         ast/ExecutionPlan.h                                \
         ast/Functor.h                                      \
         ast/FunctorDeclaration.h                           \
-        ast/IO.h                                           \
+        ast/Directive.h                                    \
         ast/IntrinsicFunctor.h                             \
         ast/LambdaNodeMapper.h                             \
         ast/Literal.h                                      \
@@ -346,6 +346,7 @@ souffle_sources = \
         ram/Relation.h                                     \
         ram/RelationOperation.h                            \
         ram/RelationStatement.h                            \
+        ram/RelationSize.h                                 \
         ram/ParallelScan.h                                 \
         ram/Scan.h                                         \
         ram/Sequence.h                                     \

@@ -1,6 +1,6 @@
 /*
  * Souffle - A Datalog Compiler
- * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Copyright (c) 2020, The Souffle Developers. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
@@ -8,9 +8,9 @@
 
 /************************************************************************
  *
- * @file IO.h
+ * @file Directive.h
  *
- * Defines the I/O operation class
+ * Defines a directive for a relation
  *
  ***********************************************************************/
 
@@ -28,35 +28,37 @@
 
 namespace souffle {
 
-enum class AstIoType { input, output, printsize };
+enum class AstDirectiveType { input, output, printsize, limitsize };
 
 // FIXME: I'm going crazy defining these. There has to be a library that does this boilerplate for us.
-inline std::ostream& operator<<(std::ostream& os, AstIoType e) {
+inline std::ostream& operator<<(std::ostream& os, AstDirectiveType e) {
     switch (e) {
-        case AstIoType::input: return os << "input";
-        case AstIoType::output: return os << "output";
-        case AstIoType::printsize: return os << "printsize";
+        case AstDirectiveType::input: return os << "input";
+        case AstDirectiveType::output: return os << "output";
+        case AstDirectiveType::printsize: return os << "printsize";
+        case AstDirectiveType::limitsize: return os << "limitsize";
     }
 
     UNREACHABLE_BAD_CASE_ANALYSIS
 }
 
 /**
- * @class AstIO
- * @brief I/O operation has a type (input/output/printsize), qualified relation name, and I/O directives.
+ * @class AstDirective
+ * @brief a directive has a type (e.g. input/output/printsize/limitsize), qualified relation name, and a key
+ * value map for storing parameters of the directive.
  */
-class AstIO : public AstNode {
+class AstDirective : public AstNode {
 public:
-    AstIO(AstIoType type, AstQualifiedName name, SrcLocation loc = {})
+    AstDirective(AstDirectiveType type, AstQualifiedName name, SrcLocation loc = {})
             : AstNode(std::move(loc)), type(type), name(std::move(name)) {}
 
-    /** Get I/O type */
-    AstIoType getType() const {
+    /** Get directive type */
+    AstDirectiveType getType() const {
         return type;
     }
 
-    /** Set I/O type */
-    void setType(AstIoType type) {
+    /** Set directive  type */
+    void setType(AstDirectiveType type) {
         this->type = type;
     }
 
@@ -70,28 +72,28 @@ public:
         this->name = std::move(name);
     }
 
-    /** Get value of I/O directive */
+    /** Get parameter */
     const std::string& getDirective(const std::string& key) const {
         return directives.at(key);
     }
 
-    /** Add new I/O directive */
+    /** Add new parameter */
     void addDirective(const std::string& key, std::string value) {
         directives[key] = std::move(value);
     }
 
-    /** Check for I/O directive */
+    /** Check for a parameter */
     bool hasDirective(const std::string& key) const {
         return directives.find(key) != directives.end();
     }
 
-    /** Get I/O-directive map */
+    /** Get parameters */
     const std::map<std::string, std::string>& getDirectives() const {
         return directives;
     }
 
-    AstIO* clone() const override {
-        auto res = new AstIO(type, name, getSrcLoc());
+    AstDirective* clone() const override {
+        auto res = new AstDirective(type, name, getSrcLoc());
         res->directives = directives;
         return res;
     }
@@ -107,17 +109,17 @@ protected:
     }
 
     bool equal(const AstNode& node) const override {
-        const auto& other = static_cast<const AstIO&>(node);
+        const auto& other = static_cast<const AstDirective&>(node);
         return other.type == type && other.name == name && other.directives == directives;
     }
 
-    /** Type of I/O operation */
-    AstIoType type;
+    /** Type of directive */
+    AstDirectiveType type;
 
-    /** Relation name of I/O operation */
+    /** Relation name of the directive */
     AstQualifiedName name;
 
-    /** I/O directives */
+    /** Parameters of directive */
     std::map<std::string, std::string> directives;
 };
 

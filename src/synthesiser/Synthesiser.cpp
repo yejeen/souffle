@@ -25,6 +25,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Relation.h"
+#include "ram/RelationSize.h"
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
 #include "ram/Utils.h"
@@ -1676,6 +1677,13 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_BEGIN_COMMENT(out);
             out << synthesiser.getRelationName(emptiness.getRelation()) << "->"
                 << "empty()";
+            PRINT_END_COMMENT(out);
+        }
+
+        void visitRelationSize(const RamRelationSize& size, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            out << "(RamDomain)" << synthesiser.getRelationName(size.getRelation()) << "->"
+                << "size()";
             PRINT_END_COMMENT(out);
         }
 

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "Global.h"
-#include "ast/IO.h"
+#include "ast/Directive.h"
 #include "ast/Program.h"
 #include "ast/RecordType.h"
 #include "ast/TranslationUnit.h"
@@ -62,7 +62,10 @@ private:
         AstProgram* program = translationUnit.getProgram();
         auto auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
 
-        for (AstIO* io : program->getIOs()) {
+        for (AstDirective* io : program->getDirectives()) {
+            if (io->getType() == AstDirectiveType::limitsize) {
+                continue;
+            }
             AstRelation* rel = getRelation(*translationUnit.getProgram(), io->getQualifiedName());
             // Prepare type system information.
             std::vector<std::string> attributesParams;
@@ -90,7 +93,10 @@ private:
     bool setAttributeNames(AstTranslationUnit& translationUnit) {
         bool changed = false;
         AstProgram* program = translationUnit.getProgram();
-        for (AstIO* io : program->getIOs()) {
+        for (AstDirective* io : program->getDirectives()) {
+            if (io->getType() == AstDirectiveType::limitsize) {
+                continue;
+            }
             if (io->hasDirective("attributeNames")) {
                 continue;
             }
@@ -124,7 +130,7 @@ private:
         auto auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
         auto typeEnv = &translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
-        for (AstIO* io : program->getIOs()) {
+        for (AstDirective* io : program->getDirectives()) {
             AstRelation* rel = getRelation(*translationUnit.getProgram(), io->getQualifiedName());
             // Prepare type system information.
             std::vector<std::string> attributesTypes;
@@ -152,7 +158,7 @@ private:
         return changed;
     }
 
-    std::string getRelationName(const AstIO* node) {
+    std::string getRelationName(const AstDirective* node) {
         return toString(join(node->getQualifiedName().getQualifiers(), "."));
     }
 

@@ -19,8 +19,8 @@
 #include "ast/Clause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
+#include "ast/Directive.h"
 #include "ast/FunctorDeclaration.h"
-#include "ast/IO.h"
 #include "ast/Pragma.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
@@ -124,21 +124,35 @@ void ParserDriver::addRelation(std::unique_ptr<AstRelation> r) {
     }
 }
 
-void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
-    if (d->getType() == AstIoType::printsize) {
-        for (const auto& cur : translationUnit->getProgram()->getIOs()) {
-            if (cur->getQualifiedName() == d->getQualifiedName() && cur->getType() == AstIoType::printsize) {
+void ParserDriver::addDirective(std::unique_ptr<AstDirective> directive) {
+    if (directive->getType() == AstDirectiveType::printsize) {
+        for (const auto& cur : translationUnit->getProgram()->getDirectives()) {
+            if (cur->getQualifiedName() == directive->getQualifiedName() &&
+                    cur->getType() == AstDirectiveType::printsize) {
                 Diagnostic err(Diagnostic::Type::ERROR,
                         DiagnosticMessage("Redefinition of printsize directives for relation " +
-                                                  toString(d->getQualifiedName()),
-                                d->getSrcLoc()),
+                                                  toString(directive->getQualifiedName()),
+                                directive->getSrcLoc()),
+                        {DiagnosticMessage("Previous definition", cur->getSrcLoc())});
+                translationUnit->getErrorReport().addDiagnostic(err);
+                return;
+            }
+        }
+    } else if (directive->getType() == AstDirectiveType::limitsize) {
+        for (const auto& cur : translationUnit->getProgram()->getDirectives()) {
+            if (cur->getQualifiedName() == directive->getQualifiedName() &&
+                    cur->getType() == AstDirectiveType::limitsize) {
+                Diagnostic err(Diagnostic::Type::ERROR,
+                        DiagnosticMessage("Redefinition of limitsize directives for relation " +
+                                                  toString(directive->getQualifiedName()),
+                                directive->getSrcLoc()),
                         {DiagnosticMessage("Previous definition", cur->getSrcLoc())});
                 translationUnit->getErrorReport().addDiagnostic(err);
                 return;
             }
         }
     }
-    translationUnit->getProgram()->addIO(std::move(d));
+    translationUnit->getProgram()->addDirective(std::move(directive));
 }
 
 void ParserDriver::addType(std::unique_ptr<AstType> type) {
@@ -165,15 +179,15 @@ void ParserDriver::addInstantiation(std::unique_ptr<AstComponentInit> ci) {
 
 void ParserDriver::addIoFromDeprecatedTag(AstRelation& rel) {
     if (rel.hasQualifier(RelationQualifier::INPUT)) {
-        addIO(mk<AstIO>(AstIoType::input, rel.getQualifiedName(), rel.getSrcLoc()));
+        addDirective(mk<AstDirective>(AstDirectiveType::input, rel.getQualifiedName(), rel.getSrcLoc()));
     }
 
     if (rel.hasQualifier(RelationQualifier::OUTPUT)) {
-        addIO(mk<AstIO>(AstIoType::output, rel.getQualifiedName(), rel.getSrcLoc()));
+        addDirective(mk<AstDirective>(AstDirectiveType::output, rel.getQualifiedName(), rel.getSrcLoc()));
     }
 
     if (rel.hasQualifier(RelationQualifier::PRINTSIZE)) {
-        addIO(mk<AstIO>(AstIoType::printsize, rel.getQualifiedName(), rel.getSrcLoc()));
+        addDirective(mk<AstDirective>(AstDirectiveType::printsize, rel.getQualifiedName(), rel.getSrcLoc()));
     }
 }
 
