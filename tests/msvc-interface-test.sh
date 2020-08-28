@@ -14,15 +14,14 @@ test_dir=$(wslpath -w $test_dir_wsl)
 souffle_include=$(wslpath -w /usr/local/include)
 driver_filename=$(wslpath -w $TESTDIR/driver.cpp)
 
-get_opt='C:\Users\bfairservice\repos\vcpkg\installed\x86-windows\include'
-get_opt_lib='C:\Users\bfairservice\repos\vcpkg\installed\x64-windows\lib\getopt.lib'
+get_opt_lib='getopt.lib'
 
 # Uses the environment variable SOUFFLE_TESTS_MSVC_VARS, which ought to be
 # the windows path of the vcvars batch file, with gno spaces.
 cat <<EOF > $test_dir_wsl/compile.bat
 call $SOUFFLE_TESTS_MSVC_VARS
 
-cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /I $get_opt /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $get_opt_lib
+cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $get_opt_lib
 EOF
 
 workdir=$(pwd)

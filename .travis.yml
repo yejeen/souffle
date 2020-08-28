@@ -69,14 +69,21 @@ jobs:
         paths: .
     script: docker exec souf /bin/sh -c "export CXX=g++ && .travis/init_test.sh '--enable-swig'"
 
-# Windows
+# MSVC souffle-interface
   - stage: Testing
     os: windows
     language: cpp
     before_script:
-      - choco install wsl-ubuntu-1804 --ignore-checksums
+      - choco install wsl-ubuntu-1804 --ignorechecksums
+      - choco install visualstudio2019community -y --version 16.7.2.0 --params="--installPath 'C:\\VS' --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC"
       - wsl bash -c "apt-get update -y"
       - wsl bash -c "apt-get install -y autoconf bison build-essential flex libffi-dev libncurses5-dev libtool lsb-release mcpp swig zlib1g-dev libsqlite3-dev"
+      - git clone https://github.com/microsoft/vcpkg
+      - ./vcpkg/bootstrap-vcpkg.sh
+      - ./vcpkg/vcpkg install getopt:x64-windows
+      - cmd.exe /C 'setx /M PATH %PATH$%;%cd%\vcpkg\installed\x64-windows\include;%cd%\vcpkg\installed\x64-windows\bin"'
+      - cmd.exe /C 'setx /M LIB "%LIB%;%cd%\vcpkg\installed\x64-windows\lib"'
+      - cmd.exe /C 'refreshenv'
     script: '.travis/windows-test.sh'
 
 # Testing stage without Evaluation tests nor OpenMP (,-c)
