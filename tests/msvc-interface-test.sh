@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 
 TESTDIR=$1
 shift
@@ -11,7 +12,12 @@ test_dir_wsl=$($script_location/create-msvc-build-dir.sh)
 mkdir $test_dir_wsl 1>/dev/null 2>/dev/null || true
 cp -R * $test_dir_wsl
 test_dir=$(wslpath -w $test_dir_wsl)
-souffle_include=$(wslpath -w /usr/local/include)
+
+# We need to copy the include directory because windows doesn't
+# like the WSL symlinks
+cp -Lr $SOUFFLE_INC $test_dir_wsl 1>&2 2>/dev/null || true
+souffle_include=$(wslpath -w $test_dir_wsl/include)
+
 driver_filename=$(wslpath -w $TESTDIR/driver.cpp)
 
 get_opt_lib='getopt.lib'
@@ -21,12 +27,13 @@ get_opt_lib='getopt.lib'
 cat <<EOF > $test_dir_wsl/compile.bat
 call $SOUFFLE_TESTS_MSVC_VARS
 
-cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $get_opt_lib
+cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $get_opt_lib
 EOF
 
 workdir=$(pwd)
 pushd $test_dir_wsl 2>&1 1>/dev/null
-cmd.exe /C "compile.bat" 1>>$workdir/$TESTNAME.err 2>>$workdir/$TESTNAME.err
+cmd.exe /C "compile.bat"
+#1>>$workdir/$TESTNAME.err 2>>$workdir/$TESTNAME.err
 popd 2>&1 1>/dev/null
 cp $test_dir_wsl/$TESTNAME.exe ./
 cp $test_dir_wsl/*.cpp ./

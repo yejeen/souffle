@@ -21,8 +21,8 @@ unsigned long __inline __builtin_clzll(unsigned long long value) {
     else
         return 64;
 }
-#endif // _MSC_VER < 1924
-#endif // _WIN32
+#endif  // _MSC_VER < 1924
+#endif  // _WIN32
 
 using std::size_t;
 namespace souffle {

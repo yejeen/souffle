@@ -155,7 +155,7 @@ private:
         std::atomic<Node*> aptr;
 
         // a pointer to the nested level (unsynchronized operations)
-        Node* ptr;
+        Node* ptr{nullptr};
 
         // an atomic view on the value stored in this cell (leaf node)
         atomic_value_type avalue;
