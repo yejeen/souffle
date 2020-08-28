@@ -586,7 +586,7 @@ public:
         auto found = equivalencePartition.find({sds.findNode(anteriorVal), nullptr});
         assert(found != equivalencePartition.end() && "iterator called on partition that doesn't exist");
 
-        return iterator(this, anteriorVal, (*found).second);
+        return iterator(static_cast<const EquivalenceRelation*>(this), static_cast<const value_type>(anteriorVal), static_cast<const StatesBucket>((*found).second));
     }
 
     /**
@@ -714,7 +714,7 @@ private:
             typename TupleType::value_type sparseVal = this->sds.toSparse(i);
             parent_t rep = this->sds.findNode(sparseVal);
 
-            StorePair p = {rep, nullptr};
+            StorePair p = {static_cast<value_type>(rep), nullptr};
             StatesList* mapList = equivalencePartition.insert(p, [&](StorePair& sp) {
                 auto* r = new StatesList(1);
                 sp.second = r;

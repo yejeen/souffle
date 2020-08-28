@@ -639,7 +639,7 @@ private:
         unsigned level = info.levels;
         while (level != 0) {
             // get X coordinate
-            auto x = getIndex(i, level);
+            auto x = getIndex(static_cast<RamDomain>(i), level);
 
             // decrease level counter
             --level;
@@ -756,7 +756,7 @@ public:
         unsigned level = unsynced.levels;
         while (level != 0) {
             // get X coordinate
-            auto x = getIndex(i, level);
+            auto x = getIndex(static_cast<RamDomain>(i), level);
 
             // decrease level counter
             --level;
@@ -847,7 +847,7 @@ public:
         Node** node = &unsynced.root;
         while (level > other.unsynced.levels) {
             // get X coordinate
-            auto x = getIndex(other.unsynced.offset, level);
+            auto x = getIndex(static_cast<RamDomain>(other.unsynced.offset), level);
 
             // decrease level counter
             --level;
@@ -959,7 +959,7 @@ public:
             int level = 1;
 
             // get current index on this level
-            x = getIndex(value.first, level);
+            x = getIndex(static_cast<RamDomain>(value.first), level);
             x++;
 
             while (level > 0 && node) {
@@ -985,7 +985,7 @@ public:
                     level++;
 
                     // get current index on this level
-                    x = getIndex(value.first, level);
+                    x = getIndex(static_cast<RamDomain>(value.first), level);
                     x++;  // go one step further
                 }
             }
@@ -1147,7 +1147,7 @@ public:
         unsigned level = unsynced.levels;
         while (true) {
             // get X coordinate
-            auto x = getIndex(i, level);
+            auto x = getIndex(static_cast<RamDomain>(i), level);
 
             // check next node
             Node* next = node->cell[x].ptr;
@@ -1354,7 +1354,7 @@ private:
         node->parent = nullptr;
 
         // insert existing root as child
-        auto x = getIndex(unsynced.offset, unsynced.levels + 1);
+        auto x = getIndex(static_cast<RamDomain>(unsynced.offset), unsynced.levels + 1);
         node->cell[x].ptr = unsynced.root;
 
         // swap the root
@@ -1381,7 +1381,7 @@ private:
         newRoot->parent = nullptr;
 
         // insert existing root as child
-        auto x = getIndex(info.offset, info.levels + 1);
+        auto x = getIndex(static_cast<RamDomain>(info.offset), info.levels + 1);
         newRoot->cell[x].ptr = info.root;
 
         // exchange the root in the info struct
@@ -2962,7 +2962,7 @@ public:
 
         template <typename Tuple>
         iterator_core(const iter_type& iter, Tuple& entry) : iter(iter) {
-            entry[I] = *iter;
+            entry[I] = static_cast<RamDomain>(*iter);
         }
 
         void setIterator(const iter_type& iter) {
