@@ -84,6 +84,7 @@ souffle_utility_sources = \
         include/souffle/utility/ParallelUtil.h             \
         include/souffle/utility/StreamUtil.h               \
         include/souffle/utility/StringUtil.h               \
+        include/souffle/utility/json11.h                   \
         include/souffle/utility/tinyformat.h
 
 DIR := ${CURDIR}
@@ -453,8 +454,7 @@ soufflepublic_HEADERS = \
         include/souffle/SignalHandler.h                    \
         include/souffle/SouffleInterface.h                 \
         include/souffle/SymbolTable.h                      \
-        include/souffle/TypeAttribute.h                    \
-        include/souffle/json11.h
+        include/souffle/TypeAttribute.h
 
 souffledatastructuredir = $(soufflepublicdir)/datastructure
 
