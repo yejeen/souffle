@@ -26,8 +26,8 @@
 #include "ast/analysis/AuxArity.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/transform/Transformer.h"
-#include "souffle/json11.h"
 #include "souffle/utility/StringUtil.h"
+#include "souffle/utility/json11.h"
 #include <string>
 #include <vector>
 
