@@ -2179,7 +2179,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     os << "\n#include \"souffle/CompiledSouffle.h\"\n";
     if (Global::config().has("provenance")) {
         os << "#include <mutex>\n";
-        os << "#include \"souffle/Explain.h\"\n";
+        os << "#include \"souffle/provenance/Explain.h\"\n";
     }
 
     if (Global::config().has("live-profile")) {
