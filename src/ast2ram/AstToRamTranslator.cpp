@@ -60,6 +60,7 @@
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
+#include "ast/transform/ReorderLiterals.h"
 #include "parser/SrcLocation.h"
 #include "ram/Aggregate.h"
 #include "ram/AutoIncrement.h"
@@ -412,6 +413,11 @@ std::unique_ptr<AstClause> AstToRamTranslator::ClauseTranslator::getReorderedCla
 
     // check whether there is an imposed order constraint
     if (plan == nullptr) {
+        // no plan, so reorder it according to the internal heuristic
+        auto sips = ReorderLiteralsTransformer::getSipsFunction("ast2ram");
+        if (auto* reorderedClause = ReorderLiteralsTransformer::reorderClauseWithSips(sips, &clause)) {
+            return std::unique_ptr<AstClause>(reorderedClause);
+        }
         return nullptr;
     }
     auto orders = plan->getOrders();

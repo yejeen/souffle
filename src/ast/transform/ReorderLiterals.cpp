@@ -241,6 +241,8 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
 
             return currLeastIdx;
         };
+    } else if (sipsChosen == "ast2ram") {
+        return getSipsFunction("all-bound");
     } else {
         // chosen SIPS is not implemented, so keep the same order
         // Goal: leftmost atom first
