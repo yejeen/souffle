@@ -49,7 +49,7 @@ class RamNestedOperation : public RamOperation {
 public:
     RamNestedOperation(std::unique_ptr<RamOperation> nested, std::string profileText = "")
             : nestedOperation(std::move(nested)), profileText(std::move(profileText)) {
-        assert(nullptr != nestedOperation);
+        assert(nestedOperation != nullptr);
     }
 
     RamNestedOperation* clone() const override = 0;

@@ -1709,7 +1709,7 @@ std::unique_ptr<RamTranslationUnit> AstToRamTranslator::translateUnit(AstTransla
     for (auto& cur : ramRels) {
         rels.push_back(std::move(cur.second));
     }
-    if (nullptr == ramMain) {
+    if (ramMain == nullptr) {
         ramMain = std::make_unique<RamSequence>();
     }
     auto ramProg = std::make_unique<RamProgram>(std::move(rels), std::move(ramMain), std::move(ramSubs));
