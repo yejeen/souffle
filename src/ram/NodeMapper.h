@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <memory>
 

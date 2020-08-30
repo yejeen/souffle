@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ast/transform/Meta.h"
+#include "souffle/utility/MiscUtil.h"
 #include <chrono>
 #include <iostream>
 
