@@ -22,11 +22,11 @@
 #include "ast/Literal.h"
 #include "ast/QualifiedName.h"
 #include "ast/Variable.h"
-#include "ast/Visitor.h"
 #include "ast/analysis/Analysis.h"
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/Transformer.h"
+#include "ast/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <cstddef>

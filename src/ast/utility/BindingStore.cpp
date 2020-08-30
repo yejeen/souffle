@@ -15,13 +15,13 @@
  *
  ***********************************************************************/
 
-#include "ast/BindingStore.h"
+#include "ast/utility/BindingStore.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constant.h"
 #include "ast/Variable.h"
-#include "ast/Visitor.h"
+#include "ast/utility/Visitor.h"
 
 namespace souffle {
 

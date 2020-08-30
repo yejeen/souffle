@@ -108,8 +108,6 @@ souffle_sources = \
         ast/Atom.h                                         \
         ast/Attribute.h                                    \
         ast/BinaryConstraint.h                             \
-        ast/BindingStore.h                                 \
-        ast/BindingStore.cpp                               \
         ast/BooleanConstraint.h                            \
         ast/BranchDeclaration.h                            \
         ast/BranchInit.h                                   \
@@ -126,12 +124,10 @@ souffle_sources = \
         ast/FunctorDeclaration.h                           \
         ast/Directive.h                                    \
         ast/IntrinsicFunctor.h                             \
-        ast/LambdaNodeMapper.h                             \
         ast/Literal.h                                      \
         ast/Negation.h                                     \
         ast/NilConstant.h                                  \
         ast/Node.h                                         \
-        ast/NodeMapper.h                                   \
         ast/NumericConstant.h                              \
         ast/Pragma.h                                       \
         ast/Program.h                                      \
@@ -150,10 +146,7 @@ souffle_sources = \
         ast/UnionType.h                                    \
         ast/UnnamedVariable.h                              \
         ast/UserDefinedFunctor.h                           \
-        ast/Utils.cpp                                      \
-        ast/Utils.h                                        \
         ast/Variable.h                                     \
-        ast/Visitor.h                                      \
         ast/analysis/Analysis.h                            \
         ast/analysis/AuxArity.cpp                          \
         ast/analysis/AuxArity.h                            \
@@ -268,6 +261,13 @@ souffle_sources = \
         ast/transform/UserDefinedFunctors.cpp              \
         ast/transform/UserDefinedFunctors.h                \
         ast/transform/While.h                              \
+        ast/utility/BindingStore.h                         \
+        ast/utility/BindingStore.cpp                       \
+        ast/utility/LambdaNodeMapper.h                     \
+        ast/utility/NodeMapper.h                           \
+        ast/utility/Utils.cpp                              \
+        ast/utility/Utils.h                                \
+        ast/utility/Visitor.h                              \
         ast2ram/AstToRamTranslator.cpp                     \
         ast2ram/AstToRamTranslator.h                       \
         interpreter/InterpreterContext.h                   \

@@ -19,14 +19,14 @@
 #include "Global.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
-#include "ast/BindingStore.h"
 #include "ast/Clause.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
-#include "ast/Utils.h"
 #include "ast/Variable.h"
-#include "ast/Visitor.h"
 #include "ast/analysis/ProfileUse.h"
+#include "ast/utility/BindingStore.h"
+#include "ast/utility/Utils.h"
+#include "ast/utility/Visitor.h"
 #include <algorithm>
 #include <cmath>
 #include <memory>
