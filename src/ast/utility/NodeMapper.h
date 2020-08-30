@@ -45,7 +45,7 @@ public:
     template <typename T>
     Own<T> operator()(Own<T> node) const {
         Own<AstNode> resPtr = (*this)(Own<AstNode>(static_cast<AstNode*>(node.release())));
-        assert(nullptr != dynamic_cast<T*>(resPtr.get()) && "Invalid target node!");
+        assert(isA<T>(resPtr.get()) && "Invalid target node!");
         return Own<T>(dynamic_cast<T*>(resPtr.release()));
     }
 };

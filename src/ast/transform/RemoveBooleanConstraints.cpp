@@ -74,7 +74,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                     if (!containsFalse) {
                         for (AstLiteral* lit : aggr->getBodyLiterals()) {
                             // Don't add in boolean constraints
-                            if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
+                            if (!isA<AstBooleanConstraint>(lit)) {
                                 isEmpty = false;
                                 newBody.push_back(souffle::clone(lit));
                             }
@@ -132,7 +132,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
                 // Only keep non-'true' literals
                 for (AstLiteral* lit : clause->getBodyLiterals()) {
-                    if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
+                    if (!isA<AstBooleanConstraint>(lit)) {
                         replacementClause->addToBody(souffle::clone(lit));
                     }
                 }

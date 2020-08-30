@@ -754,8 +754,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                 if (atom == nullptr) {
                     atom = dynamic_cast<const AstAtom*>(lit);
                 } else {
-                    assert(dynamic_cast<const AstAtom*>(lit) == nullptr &&
-                            "Unsupported complex aggregation body encountered!");
+                    assert(!isA<AstAtom>(lit) && "Unsupported complex aggregation body encountered!");
                 }
             }
 
@@ -836,7 +835,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
             // check whether all arguments are unnamed variables
             bool isAllArgsUnnamed = true;
             for (auto* argument : atom->getArguments()) {
-                if (dynamic_cast<AstUnnamedVariable*>(argument) == nullptr) {
+                if (!isA<AstUnnamedVariable>(argument)) {
                     isAllArgsUnnamed = false;
                 }
             }
@@ -1235,7 +1234,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeSubproofSubroutine(const A
     // create a clone where all the constraints are moved to the end
     for (auto bodyLit : clause.getBodyLiterals()) {
         // first add all the things that are not constraints
-        if (dynamic_cast<AstConstraint*>(bodyLit) == nullptr) {
+        if (!isA<AstConstraint>(bodyLit)) {
             intermediateClause->addToBody(souffle::clone(bodyLit));
         }
     }
@@ -1306,7 +1305,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
     // create a clone where all the constraints are moved to the end
     for (auto bodyLit : clause.getBodyLiterals()) {
         // first add all the things that are not constraints
-        if (dynamic_cast<AstConstraint*>(bodyLit) == nullptr) {
+        if (!isA<AstConstraint>(bodyLit)) {
             clauseReplacedAggregates->addToBody(souffle::clone(bodyLit));
         }
     }

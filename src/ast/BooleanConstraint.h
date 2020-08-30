@@ -60,7 +60,7 @@ protected:
     }
 
     bool equal(const AstNode& node) const override {
-        assert(nullptr != dynamic_cast<const AstBooleanConstraint*>(&node));
+        assert(isA<AstBooleanConstraint>(&node));
         const auto& other = static_cast<const AstBooleanConstraint&>(node);
         return truthValue == other.truthValue;
     }

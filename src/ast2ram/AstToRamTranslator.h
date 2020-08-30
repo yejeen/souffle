@@ -398,7 +398,7 @@ private:
     RamDomain getConstantRamRepresentation(const AstConstant& constant) {
         if (auto strConstant = dynamic_cast<const AstStringConstant*>(&constant)) {
             return getSymbolTable().lookup(strConstant->getConstant());
-        } else if (dynamic_cast<const AstNilConstant*>(&constant) != nullptr) {
+        } else if (isA<AstNilConstant>(&constant)) {
             return 0;
         } else if (auto* numConstant = dynamic_cast<const AstNumericConstant*>(&constant)) {
             assert(numConstant->getType().has_value());

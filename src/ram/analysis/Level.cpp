@@ -223,9 +223,7 @@ int RamLevelAnalysis::getLevel(const RamNode* node) const {
         }
     };
 
-    assert((dynamic_cast<const RamExpression*>(node) != nullptr ||
-                   dynamic_cast<const RamCondition*>(node) != nullptr ||
-                   dynamic_cast<const RamOperation*>(node) != nullptr) &&
+    assert((isA<RamExpression>(node) || isA<RamCondition>(node) || isA<RamOperation>(node)) &&
             "not an expression/condition/operation");
     return ValueLevelVisitor().visit(node);
 }
