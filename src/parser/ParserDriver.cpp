@@ -102,10 +102,13 @@ void ParserDriver::addPragma(std::unique_ptr<AstPragma> p) {
 
 void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> f) {
     const std::string& name = f->getName();
-    if (const AstFunctorDeclaration* prev = getFunctorDeclaration(*translationUnit->getProgram(), name)) {
+    const AstFunctorDeclaration* existingFunctorDecl =
+            getIf(translationUnit->getProgram()->getFunctorDeclarations(),
+                    [&](const AstFunctorDeclaration* current) { return current->getName() == name; });
+    if (existingFunctorDecl != nullptr) {
         Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of functor " + toString(name), f->getSrcLoc()),
-                {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
+                {DiagnosticMessage("Previous definition", existingFunctorDecl->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
     } else {
         translationUnit->getProgram()->addFunctorDeclaration(std::move(f));
@@ -157,10 +160,12 @@ void ParserDriver::addDirective(std::unique_ptr<AstDirective> directive) {
 
 void ParserDriver::addType(std::unique_ptr<AstType> type) {
     const auto& name = type->getQualifiedName();
-    if (const AstType* prev = getType(*translationUnit->getProgram(), name)) {
+    auto* existingType = getIf(translationUnit->getProgram()->getTypes(),
+            [&](const AstType* current) { return current->getQualifiedName() == name; });
+    if (existingType != nullptr) {
         Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of type " + toString(name), type->getSrcLoc()),
-                {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
+                {DiagnosticMessage("Previous definition", existingType->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
     } else {
         translationUnit->getProgram()->addType(std::move(type));

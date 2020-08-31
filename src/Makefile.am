@@ -130,6 +130,7 @@ souffle_sources = \
         ast/Node.h                                         \
         ast/NumericConstant.h                              \
         ast/Pragma.h                                       \
+        ast/Program.cpp                                    \
         ast/Program.h                                      \
         ast/ProvenanceNegation.h                           \
         ast/QualifiedName.h                                \
