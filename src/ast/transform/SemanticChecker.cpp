@@ -598,9 +598,11 @@ void AstSemanticCheckerImpl::checkRelationDeclaration(const AstRelation& relatio
     for (size_t i = 0; i < relation.getArity(); i++) {
         AstAttribute* attr = attributes[i];
         auto&& typeName = attr->getTypeName();
+        auto* existingType = getIf(program.getTypes(),
+                [&](const AstType* type) { return type->getQualifiedName() == typeName; });
 
         /* check whether type exists */
-        if (!typeEnv.isPrimitiveType(typeName) && !getType(program, typeName)) {
+        if (!typeEnv.isPrimitiveType(typeName) && nullptr == existingType) {
             report.addError(tfm::format("Undefined type in attribute %s", *attr), attr->getSrcLoc());
         }
 
@@ -649,12 +651,13 @@ void AstSemanticCheckerImpl::checkUnionType(const AstUnionType& type) {
         if (typeEnv.isPrimitiveType(sub)) {
             continue;
         }
-        const AstType* subt = getType(program, sub);
-        if (subt == nullptr) {
+        const AstType* subtype = getIf(
+                program.getTypes(), [&](const AstType* type) { return type->getQualifiedName() == sub; });
+        if (subtype == nullptr) {
             report.addError(tfm::format("Undefined type %s in definition of union type %s", sub,
                                     type.getQualifiedName()),
                     type.getSrcLoc());
-        } else if (!isA<AstUnionType>(subt) && !isA<AstSubsetType>(subt)) {
+        } else if (!isA<AstUnionType>(subtype) && !isA<AstSubsetType>(subtype)) {
             report.addError(tfm::format("Union type %s contains the non-primitive type %s",
                                     type.getQualifiedName(), sub),
                     type.getSrcLoc());

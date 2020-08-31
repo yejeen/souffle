@@ -29,8 +29,8 @@
 #include "ast/Relation.h"
 #include "ast/Type.h"
 #include "ast/utility/NodeMapper.h"
-#include "ast/utility/Utils.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
@@ -85,22 +85,10 @@ public:
     }
 
     /* Add relation */
-    void addRelation(Own<AstRelation> r) {
-        assert(getRelation(*this, r->getQualifiedName()) == nullptr && "Redefinition of relation!");
-        relations.push_back(std::move(r));
-    }
+    void addRelation(Own<AstRelation> relation);
 
     /** Remove relation */
-    bool removeRelationDecl(const AstQualifiedName& name) {
-        for (auto it = relations.begin(); it != relations.end(); it++) {
-            const auto& rel = *it;
-            if (rel->getQualifiedName() == name) {
-                relations.erase(it);
-                return true;
-            }
-        }
-        return false;
-    }
+    bool removeRelationDecl(const AstQualifiedName& name);
 
     /** Set clauses */
     void setClauses(VecOwn<AstClause> newClauses) {
@@ -108,33 +96,13 @@ public:
     }
 
     /** Add a clause */
-    void addClause(Own<AstClause> clause) {
-        assert(clause != nullptr && "Undefined clause");
-        assert(clause->getHead() != nullptr && "Undefined head of the clause");
-        clauses.push_back(std::move(clause));
-    }
+    void addClause(Own<AstClause> clause);
 
     /** Remove a clause */
-    bool removeClause(const AstClause* clause) {
-        for (auto it = clauses.begin(); it != clauses.end(); it++) {
-            if (**it == *clause) {
-                clauses.erase(it);
-                return true;
-            }
-        }
-        return false;
-    }
+    bool removeClause(const AstClause* clause);
 
     /** Remove a directive */
-    bool removeDirective(const AstDirective* directive) {
-        for (auto it = directives.begin(); it != directives.end(); it++) {
-            if (**it == *directive) {
-                directives.erase(it);
-                return true;
-            }
-        }
-        return false;
-    }
+    bool removeDirective(const AstDirective* directive);
 
     /** Return components */
     std::vector<AstComponent*> getComponents() const {
@@ -264,23 +232,11 @@ protected:
     friend class ComponentInstantiationTransformer;
     friend class ParserDriver;
 
-    /* Add type */
-    void addType(Own<AstType> type) {
-        assert(getType(*this, type->getQualifiedName()) == nullptr && "Redefinition of type!");
-        types.push_back(std::move(type));
-    }
+    void addType(Own<AstType> type);
 
-    /** Add a pragma */
-    void addPragma(Own<AstPragma> pragma) {
-        assert(pragma && "NULL pragma");
-        pragmaDirectives.push_back(std::move(pragma));
-    }
+    void addPragma(Own<AstPragma> pragma);
 
-    /** Add functor */
-    void addFunctorDeclaration(Own<souffle::AstFunctorDeclaration> f) {
-        assert(getFunctorDeclaration(*this, f->getName()) == nullptr && "Redefinition of functor!");
-        functors.push_back(std::move(f));
-    }
+    void addFunctorDeclaration(Own<souffle::AstFunctorDeclaration> functor);
 
     /** Add component */
     void addComponent(Own<AstComponent> c) {
