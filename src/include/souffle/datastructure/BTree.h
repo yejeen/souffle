@@ -640,7 +640,8 @@ protected:
 
                 // compute number of elements to be movable to left
                 //    space available in left vs. insertion index
-                size_type num = static_cast<size_type>(std::min<int>(static_cast<int>(maxKeys - left->numElements), idx));
+                size_type num = static_cast<size_type>(
+                        std::min<int>(static_cast<int>(maxKeys - left->numElements), idx));
 
                 // if there are elements to move ..
                 if (num > 0) {
@@ -671,7 +672,8 @@ protected:
                         // update moved children
                         for (size_type i = 0; i < num; ++i) {
                             iright->children[i]->parent = ileft;
-                            iright->children[i]->position = static_cast<field_index_type>(left->numElements + i) + 1;
+                            iright->children[i]->position =
+                                    static_cast<field_index_type>(left->numElements + i) + 1;
                         }
 
                         // shift child-pointer to the left
@@ -940,9 +942,8 @@ protected:
 
                 // split up the main part
                 for (i = step - 1; i < this->numElements - step; i += step) {
-                    res.push_back(chunk(iterator(this,
-                                                 static_cast<field_index_type>(i)),
-                                        iterator(this, static_cast<field_index_type>(i + step))));
+                    res.push_back(chunk(iterator(this, static_cast<field_index_type>(i)),
+                            iterator(this, static_cast<field_index_type>(i + step))));
                 }
 
                 // the last chunk runs to the end
@@ -958,14 +959,12 @@ protected:
             assert(part > 0);
             getChild(0)->collectChunks(res, part, begin, iterator(this, 0));
             for (size_type i = 1; i < this->numElements; i++) {
-                getChild(i)->collectChunks(res,
-                                           part,
-                                           iterator(this, static_cast<field_index_type>(i - 1)),
-                                           iterator(this, static_cast<field_index_type>(i)));
+                getChild(i)->collectChunks(res, part, iterator(this, static_cast<field_index_type>(i - 1)),
+                        iterator(this, static_cast<field_index_type>(i)));
             }
             getChild(this->numElements)
                     ->collectChunks(res, num - (part * this->numElements),
-                                    iterator(this, static_cast<field_index_type>(this->numElements) - 1), end);
+                            iterator(this, static_cast<field_index_type>(this->numElements) - 1), end);
 
             // done
             return res;
@@ -1098,7 +1097,7 @@ public:
     /**
      * The iterator type to be utilized for scanning through btree instances.
      */
-    class iterator : public std::iterator<std::forward_iterator_tag, Key> {
+    class iterator {
         // a pointer to the node currently referred to
         node const* cur;
 
@@ -1106,6 +1105,12 @@ public:
         field_index_type pos = 0;
 
     public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef Key value_type;
+        typedef ptrdiff_t difference_type;
+        typedef value_type* pointer;
+        typedef value_type& reference;
+
         // default constructor -- creating an end-iterator
         iterator() : cur(nullptr) {}
 

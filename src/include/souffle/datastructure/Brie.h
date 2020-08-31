@@ -1613,7 +1613,7 @@ public:
     /**
      * An iterator iterating over all indices set to 1.
      */
-    class iterator : public std::iterator<std::forward_iterator_tag, index_type> {
+    class iterator {
         using nested_iterator = typename data_store_t::iterator;
 
         // the iterator through the underlying sparse data structure
@@ -1626,6 +1626,12 @@ public:
         index_type value{};
 
     public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef index_type value_type;
+        typedef ptrdiff_t difference_type;
+        typedef value_type* pointer;
+        typedef value_type& reference;
+
         // default constructor -- creating an end-iterator
         iterator() = default;
 
@@ -1880,7 +1886,7 @@ public:
      * core -- one for each nested trie level.
      */
     template <template <unsigned D> class IterCore>
-    class iterator : public std::iterator<std::forward_iterator_tag, entry_type> {
+    class iterator {
         template <unsigned Len, unsigned Pos, unsigned Dimensions>
         friend struct fix_binding;
 
@@ -1903,6 +1909,12 @@ public:
         entry_type value;
 
     public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef entry_type value_type;
+        typedef ptrdiff_t difference_type;
+        typedef value_type* pointer;
+        typedef value_type& reference;
+
         // default constructor -- creating an end-iterator
         iterator() = default;
 
