@@ -27,7 +27,7 @@ check_PROGRAMS =
 
 # interpreter relation test
 check_PROGRAMS += interpreter_relation_test
-interpreter_relation_test_SOURCES = interpreter_relation_test.cpp test.h
+interpreter_relation_test_SOURCES = interpreter_relation_test.cpp
 interpreter_relation_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 # make all check-programs tests

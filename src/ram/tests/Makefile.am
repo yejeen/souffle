@@ -26,42 +26,42 @@ check_PROGRAMS =
 # test_testname_CXXFLAGS = test-specific flags
 
 check_PROGRAMS += ram_condition_equal_clone_test
-ram_condition_equal_clone_test_SOURCES = ram_condition_equal_clone_test.cpp test.h
+ram_condition_equal_clone_test_SOURCES = ram_condition_equal_clone_test.cpp
 ram_condition_equal_clone_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 check_PROGRAMS += ram_statement_equal_clone_test
-ram_statement_equal_clone_test_SOURCES = ram_statement_equal_clone_test.cpp test.h
+ram_statement_equal_clone_test_SOURCES = ram_statement_equal_clone_test.cpp
 ram_statement_equal_clone_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 check_PROGRAMS += ram_expression_equal_clone_test
-ram_expression_equal_clone_test_SOURCES = ram_expression_equal_clone_test.cpp test.h
+ram_expression_equal_clone_test_SOURCES = ram_expression_equal_clone_test.cpp
 ram_expression_equal_clone_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 check_PROGRAMS += ram_operation_equal_clone_test
-ram_operation_equal_clone_test_SOURCES = ram_operation_equal_clone_test.cpp test.h
+ram_operation_equal_clone_test_SOURCES = ram_operation_equal_clone_test.cpp
 ram_operation_equal_clone_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 check_PROGRAMS += ram_relation_equal_clone_test
-ram_relation_equal_clone_test_SOURCES = ram_relation_equal_clone_test.cpp test.h
+ram_relation_equal_clone_test_SOURCES = ram_relation_equal_clone_test.cpp
 ram_relation_equal_clone_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 # relation test
 check_PROGRAMS += ram_relation_test
-ram_relation_test_SOURCES = ram_relation_test.cpp test.h
+ram_relation_test_SOURCES = ram_relation_test.cpp
 ram_relation_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 # arithmetic test
 check_PROGRAMS += ram_arithmetic_test
-ram_arithmetic_test_SOURCES = ram_arithmetic_test.cpp test.h
+ram_arithmetic_test_SOURCES = ram_arithmetic_test.cpp
 ram_arithmetic_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 check_PROGRAMS += ram_type_conversion_test
-ram_type_conversion_test_SOURCES = ram_type_conversion_test.cpp test.h
+ram_type_conversion_test_SOURCES = ram_type_conversion_test.cpp
 ram_type_conversion_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 # matching test
 check_PROGRAMS += matching_test
-matching_test_SOURCES = matching_test.cpp test.h
+matching_test_SOURCES = matching_test.cpp
 matching_test_LDADD = $(top_srcdir)/src/libsouffle.la
 
 # make all check-programs tests
