@@ -5,3 +5,6 @@ setx /M PATH "%PATH$%;%cd%\vcpkg\installed\x64-windows\bin"
 setx /M INCLUDE "%INCLUDE%;%cd%\vcpkg\installed\x64-windows\include;"
 setx /M LIB "%LIB%;%cd%\vcpkg\installed\x64-windows\lib"
 refreshenv
+echo %PATH%
+echo %INCLUDE%
+echo %LIB%
