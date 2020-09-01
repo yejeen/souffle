@@ -94,15 +94,6 @@ AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name
     return getIf(program.getRelations(), [&](const AstRelation* r) { return r->getQualifiedName() == name; });
 }
 
-const AstType* getType(const AstProgram& program, const AstQualifiedName& name) {
-    return getIf(program.getTypes(), [&](const AstType* t) { return t->getQualifiedName() == name; });
-}
-
-const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, const std::string& name) {
-    return getIf(program.getFunctorDeclarations(),
-            [&](const AstFunctorDeclaration* f) { return f->getName() == name; });
-}
-
 void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name) {
     if (getRelation(*tu.getProgram(), name) != nullptr) {
         removeRelationClauses(tu, name);

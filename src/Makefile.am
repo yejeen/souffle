@@ -4,7 +4,7 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-SUBDIRS = . tests
+SUBDIRS = . tests ast/tests ram/tests interpreter/tests
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .h
 
@@ -130,6 +130,7 @@ souffle_sources = \
         ast/Node.h                                         \
         ast/NumericConstant.h                              \
         ast/Pragma.h                                       \
+        ast/Program.cpp                                    \
         ast/Program.h                                      \
         ast/ProvenanceNegation.h                           \
         ast/QualifiedName.h                                \

@@ -114,24 +114,6 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation&
 AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name);
 
 /**
- * Returns the type with the given name in the program.
- *
- * @param program the program
- * @param name the name of the type to search for
- * @return the type if it exists; nullptr otherwise
- */
-const AstType* getType(const AstProgram& program, const AstQualifiedName& name);
-
-/**
- * Returns the functor declaration with the given name in the program.
- *
- * @param program the program
- * @param name the name of the functor declaration to search for
- * @return the functor declaration if it exists; nullptr otherwise
- */
-const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, const std::string& name);
-
-/**
  * Remove relation and all its clauses from the program.
  *
  * @param tu the translation unit

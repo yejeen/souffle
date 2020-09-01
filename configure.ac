@@ -273,6 +273,9 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  src/ast/tests/Makefile
+  src/interpreter/tests/Makefile
+  src/ram/tests/Makefile
   src/tests/Makefile
   tests/Makefile
   tests/atlocal
