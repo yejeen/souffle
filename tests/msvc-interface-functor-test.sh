@@ -21,6 +21,7 @@ get_opt_lib='getopt.lib'
 # Uses the environment variable SOUFFLE_TESTS_MSVC_VARS, which ought to be
 # the windows path of the vcvars batch file, with no spaces.
 cat <<EOF > $test_dir_wsl/compile.bat
+call refreshenv
 call $SOUFFLE_TESTS_MSVC_VARS
 cl.exe $functor_dir\functors.cpp /std:c++17 /permissive- /nologo /c
 lib functors.obj

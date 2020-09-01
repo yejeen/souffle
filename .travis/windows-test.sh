@@ -13,6 +13,8 @@ set -x
 export SOUFFLE_CATEGORY="Interface"
 export SOUFFLE_CONFS="-j8"
 export SOUFFLE_TESTS_MSVC_VARS="C:\VS\VC\Auxiliary\Build\vcvars64.bat"
+export GETOPT_LIB="$(cygpath -w $(pwd)/vcpkg/installed/x64-windows/lib/getopt.lib)"
+export GETOPT_INCLUDE="$(cygpath -w $(pwd)/vcpkg/installed/x64-windows/include)"
 
 ./bootstrap
 ./configure

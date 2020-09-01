@@ -20,14 +20,17 @@ souffle_include=$(wslpath -w $test_dir_wsl/include)
 
 driver_filename=$(wslpath -w $TESTDIR/driver.cpp)
 
-get_opt_lib='getopt.lib'
-
 # Uses the environment variable SOUFFLE_TESTS_MSVC_VARS, which ought to be
-# the windows path of the vcvars batch file, with gno spaces.
+# the windows path of the vcvars batch file, with no spaces.
+# Also uses GETOPT_INCLUDE and GETOPT_LIB, the locations of getopt.h and
+# getopt.lib, respectively.  getopt.dll needs to be on the path for the test
+# program to execute.
 cat <<EOF > $test_dir_wsl/compile.bat
 call $SOUFFLE_TESTS_MSVC_VARS
-
-cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $get_opt_lib
+echo "PATH: %PATH%"
+echo "INCLUDE: $GETOPT_INCLUDE"
+echo "LIB: $GETOPT_LIB"
+cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /I $GETOPT_INCLUDE /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $GETOPT_LIB
 EOF
 
 workdir=$(pwd)
