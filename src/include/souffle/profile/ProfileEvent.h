@@ -30,11 +30,11 @@
 #include <string>
 #include <thread>
 #ifdef WIN32
-#   include <Psapi.h>
+#include <Psapi.h>
 #else
-#   include <sys/resource.h>
-#   include <sys/time.h>
-#endif // WIN32
+#include <sys/resource.h>
+#include <sys/time.h>
+#endif  // WIN32
 
 namespace souffle {
 
@@ -119,14 +119,14 @@ public:
         uint64_t userTime = ru.ru_utime.tv_sec * 1000000 + ru.ru_utime.tv_usec;
         /* Maximum resident set size (kb) */
         size_t maxRSS = ru.ru_maxrss;
-#endif // WIN32
+#endif  // WIN32
 
         profile::EventProcessorSingleton::instance().process(
                 database, txt.c_str(), time, systemTime, userTime, maxRSS);
     }
 
-    void setOutputFile(std::string filename) {
-        this->filename = filename;
+    void setOutputFile(std::string outputFilename) {
+        filename = outputFilename;
     }
     /** Dump all events */
     void dump() {
@@ -157,8 +157,8 @@ public:
         return database;
     }
 
-    void setDBFromFile(const std::string& filename) {
-        database = profile::ProfileDatabase(filename);
+    void setDBFromFile(const std::string& databaseFilename) {
+        database = profile::ProfileDatabase(databaseFilename);
     }
 
 private:
