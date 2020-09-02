@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 TESTDIR=$1
 shift
@@ -27,16 +26,13 @@ driver_filename=$(wslpath -w $TESTDIR/driver.cpp)
 # program to execute.
 cat <<EOF > $test_dir_wsl/compile.bat
 call $SOUFFLE_TESTS_MSVC_VARS
-echo "PATH: %PATH%"
-echo "INCLUDE: $GETOPT_INCLUDE"
-echo "LIB: $GETOPT_LIB"
+
 cl.exe $driver_filename $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /D__EMBEDDED_SOUFFLE__ /I $souffle_include /I $GETOPT_INCLUDE /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link $GETOPT_LIB
 EOF
 
 workdir=$(pwd)
 pushd $test_dir_wsl 2>&1 1>/dev/null
-cmd.exe /C "compile.bat"
-#1>>$workdir/$TESTNAME.err 2>>$workdir/$TESTNAME.err
+cmd.exe /C "compile.bat" 1>$workdir/$TESTNAME-msvc.err 2>$workdir/$TESTNAME-msvc.err
 popd 2>&1 1>/dev/null
 cp $test_dir_wsl/$TESTNAME.exe ./
 cp $test_dir_wsl/*.cpp ./

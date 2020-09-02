@@ -14,8 +14,9 @@ m4_define([TEST_EVAL_INTERFACE],[
   m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
   m4_define([FACTS],[TESTDIR/facts])
   if [[ ! -z "$SOUFFLE_TESTS_MSVC_VARS" ]]; then
-    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./ PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-test.sh TESTDIR TESTNAME], [0])
+    cp -r FACTS ./
     AT_CHECK([./$1.exe $(wslpath -w FACTS) 1>TESTNAME.out 2>>TESTNAME.err], [0])
     dos2unix --quiet TESTNAME.out TESTNAME.err
   else
@@ -23,7 +24,7 @@ m4_define([TEST_EVAL_INTERFACE],[
     # remove executable and re-build it from scratch
     AT_CHECK([rm $1 2>>TESTNAME.err],[0])
     AT_CHECK([$CXX "-I$SOUFFLE_INC" $CXXFLAGS $CPPFLAGS -D__EMBEDDED_SOUFFLE__ -o $1 TESTDIR/driver.cpp $1.cpp $LIBS $LDFLAGS -L$TESTDIR 2>>TESTNAME.err],[0])
-    AT_CHECK([./$1 $FACTS 1>TESTNAME.out 2>>TESTNAME.err], [0])
+    AT_CHECK([./$1 FACTS 1>TESTNAME.out 2>>TESTNAME.err], [0])
   fi
 
   SORTED_SAME_FILES([*.csv],[EXPECTEDDIR])
@@ -41,11 +42,10 @@ m4_define([TEST_EVAL_ERROR_INTERFACE],[
   m4_define([FACTS],[TESTDIR/facts])
 
   if [[ ! -z "$SOUFFLE_TESTS_MSVC_VARS" ]]; then
-    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./ PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([rm TESTNAME.err],[0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-test.sh TESTDIR TESTNAME], [0])
-    cp TESTNAME.err msvc-output # Makes reporting errors easier in the CI
-    AT_CHECK([rm TESTNAME.err],[0])
+    cp -r FACTS ./
     AT_CHECK([./$1.exe $(wslpath -w FACTS) 1>TESTNAME.out 2>>TESTNAME.err], [1])
     dos2unix --quiet TESTNAME.out TESTNAME.err
   else
@@ -90,7 +90,8 @@ m4_define([TEST_EVAL_FUNCTOR],[
   if [[ ! -z "$SOUFFLE_TESTS_MSVC_VARS" ]]; then
     AT_CHECK(["$SOUFFLE" -g $1.cpp -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-functor-test.sh TESTDIR TESTNAME FACTS PROGRAM], [0])
-    AT_CHECK([./$1.exe FACTS 1>TESTNAME.out 2>>TESTNAME.err], [0])
+    cp -r FACTS ./
+    AT_CHECK([./$1.exe $(wslpath -w FACTS) 1>TESTNAME.out 2>>TESTNAME.err], [0])
     dos2unix --quiet TESTNAME.out TESTNAME.err
   else
     dnl copy libs from where they were built
