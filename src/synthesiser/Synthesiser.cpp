@@ -2059,10 +2059,17 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         void visitUserDefinedOperator(const RamUserDefinedOperator& op, std::ostream& out) override {
             const std::string& name = op.getName();
 
+            auto args = op.getArguments();
             if(op.isStateful()) { 
+                out << name << "(&symTable, &recordTable";
+                for (size_t i = 0; i < args.size(); i++) {
+                   out << ",";
+                   visit(args[i], out);
+                } 
+                out << ")"; 
+            }  else {
 
             const std::vector<TypeAttribute>& argTypes = op.getArgsTypes();
-            auto args = op.getArguments();
 
             if (op.getReturnType() == TypeAttribute::Symbol) {
                 out << "symTable.lookup(";
@@ -2102,15 +2109,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             if (op.getReturnType() == TypeAttribute::Symbol) {
                 out << ")";
             }
-            } else {
-                out << name << "(symTab, recordTab";
-                for (size_t i = 0; i < args.size(); i++) {
-                   if (i > 0) {
-                      out << ",";
-                   }
-                   visit(args[i], out);
-                } 
-            } 
+            }
         }
 
         // -- records --
@@ -2199,10 +2198,10 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     }
     os << "\n";
     // produce external definitions for user-defined functors
-    std::map<std::string, std::pair<TypeAttribute, std::vector<TypeAttribute>>> functors;
+    std::map<std::string, std::tuple<TypeAttribute, std::vector<TypeAttribute>,bool>> functors;
     visitDepthFirst(prog, [&](const RamUserDefinedOperator& op) {
         if (functors.find(op.getName()) == functors.end()) {
-            functors[op.getName()] = std::make_pair(op.getReturnType(), op.getArgsTypes());
+            functors[op.getName()] = std::make_tuple(op.getReturnType(), op.getArgsTypes(), op.isStateful());
         }
         withSharedLibrary = true;
     });
@@ -2212,8 +2211,9 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         const std::string& name = f.first;
 
         const auto& functorTypes = f.second;
-        const auto& returnType = functorTypes.first;
-        const auto& argsTypes = functorTypes.second;
+        const auto& returnType = std::get<0>(functorTypes);
+        const auto& argsTypes = std::get<1>(functorTypes);
+        const auto& stateful = std::get<2>(functorTypes); 
 
         auto cppTypeDecl = [](TypeAttribute ty) -> char const* {
             switch (ty) {
@@ -2229,11 +2229,11 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         };
 
         if (stateful) {
-              os << "RamDomain " << name << "(SymbolTable *, RecordTable *";
-              for(size_t i=0;i<argsType.size();i++) {
-                  os << ",RamDomain";
+              os << "souffle::RamDomain " << name << "(souffle::SymbolTable *, souffle::RecordTable *";
+              for(size_t i=0;i<argsTypes.size();i++) {
+                  os << ",souffle::RamDomain";
               }
-              os << ")"; 
+              os << ");\n"; 
         } else {
            tfm::format(
                  os, "%s %s(%s);\n", cppTypeDecl(returnType), name, join(map(argsTypes, cppTypeDecl), ","));
