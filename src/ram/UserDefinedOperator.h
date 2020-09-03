@@ -37,9 +37,9 @@ namespace souffle {
 class RamUserDefinedOperator : public RamAbstractOperator {
 public:
     RamUserDefinedOperator(std::string n, std::vector<TypeAttribute> argsTypes, TypeAttribute returnType,
-            std::vector<std::unique_ptr<RamExpression>> args)
+            bool stateful, std::vector<std::unique_ptr<RamExpression>> args)
             : RamAbstractOperator(std::move(args)), name(std::move(n)), argsTypes(std::move(argsTypes)),
-              returnType(returnType) {
+              returnType(returnType), stateful(stateful) {
         assert(argsTypes.size() == args.size());
     }
 
@@ -58,8 +58,13 @@ public:
         return returnType;
     }
 
+    /** @brief Is functor stateful? */
+    bool isStateful() const {
+        return stateful;
+    }
+
     RamUserDefinedOperator* clone() const override {
-        auto* res = new RamUserDefinedOperator(name, argsTypes, returnType, {});
+        auto* res = new RamUserDefinedOperator(name, argsTypes, returnType, stateful, {});
         for (auto& cur : arguments) {
             RamExpression* arg = cur->clone();
             res->arguments.emplace_back(arg);
@@ -69,16 +74,20 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-        os << "@" << name << "_" << argsTypes << "(";
-        os << join(arguments, ",",
-                [](std::ostream& out, const std::unique_ptr<RamExpression>& arg) { out << *arg; });
-        os << ")";
+        os << "@" << name << "_" << argsTypes;
+        os << "_" << returnType;
+        if (stateful) {
+            os << "_stateful";
+        }
+        os << "(" << join(arguments, ",", [](std::ostream& out, const std::unique_ptr<RamExpression>& arg) {
+            out << *arg;
+        }) << ")";
     }
 
     bool equal(const RamNode& node) const override {
         const auto& other = static_cast<const RamUserDefinedOperator&>(node);
         return RamAbstractOperator::equal(node) && name == other.name && argsTypes == other.argsTypes &&
-               returnType == other.returnType;
+               returnType == other.returnType && stateful == other.stateful;
     }
 
     /** Name of user-defined operator */
@@ -87,6 +96,10 @@ protected:
     /** Argument types */
     const std::vector<TypeAttribute> argsTypes;
 
+    /** Return type */
     const TypeAttribute returnType;
+
+    /** Stateful */
+    const bool stateful;
 };
 }  // end of namespace souffle
