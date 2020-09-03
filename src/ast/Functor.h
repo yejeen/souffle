@@ -39,7 +39,6 @@ public:
     AstFunctor* clone() const override = 0;
 
 protected:
-    /* TODO(b-scholz): check whehter still in use */
     using AstTerm::AstTerm;
 };
 
