@@ -86,7 +86,7 @@ void AstProgram::addType(Own<AstType> type) {
 
 void AstProgram::addPragma(Own<AstPragma> pragma) {
     assert(pragma && "NULL pragma");
-    pragmaDirectives.push_back(std::move(pragma));
+    pragmas.push_back(std::move(pragma));
 }
 
 void AstProgram::addFunctorDeclaration(Own<souffle::AstFunctorDeclaration> f) {

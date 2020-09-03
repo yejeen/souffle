@@ -12,8 +12,6 @@
  *
  * Defines the program class
  *
- * TODO(b-scholz): Remove ast/utility/Utils.h dependency!
- *
  ***********************************************************************/
 
 #pragma once
@@ -81,7 +79,7 @@ public:
 
     /** Return pragma directives */
     const VecOwn<AstPragma>& getPragmaDirectives() const {
-        return pragmaDirectives;
+        return pragmas;
     }
 
     /* Add relation */
@@ -116,7 +114,7 @@ public:
 
     AstProgram* clone() const override {
         auto res = new AstProgram();
-        res->pragmaDirectives = souffle::clone(pragmaDirectives);
+        res->pragmas = souffle::clone(pragmas);
         res->components = souffle::clone(components);
         res->instantiations = souffle::clone(instantiations);
         res->types = souffle::clone(types);
@@ -128,7 +126,7 @@ public:
     }
 
     void apply(const AstNodeMapper& map) override {
-        for (auto& cur : pragmaDirectives) {
+        for (auto& cur : pragmas) {
             cur = map(std::move(cur));
         }
         for (auto& cur : components) {
@@ -156,7 +154,7 @@ public:
 
     std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
-        for (const auto& cur : pragmaDirectives) {
+        for (const auto& cur : pragmas) {
             res.push_back(cur.get());
         }
         for (const auto& cur : components) {
@@ -189,7 +187,7 @@ protected:
             if (!xs.empty()) os << join(xs, sep) << "\n";
         };
 
-        show(pragmaDirectives, "\n\n");
+        show(pragmas, "\n\n");
         show(components);
         show(instantiations);
         show(types);
@@ -201,7 +199,7 @@ protected:
 
     bool equal(const AstNode& node) const override {
         const auto& other = static_cast<const AstProgram&>(node);
-        if (!equal_targets(pragmaDirectives, other.pragmaDirectives)) {
+        if (!equal_targets(pragmas, other.pragmas)) {
             return false;
         }
         if (!equal_targets(components, other.components)) {
@@ -239,13 +237,15 @@ protected:
     void addFunctorDeclaration(Own<souffle::AstFunctorDeclaration> functor);
 
     /** Add component */
-    void addComponent(Own<AstComponent> c) {
-        components.push_back(std::move(c));
+    void addComponent(Own<AstComponent> component) {
+        assert(component && "NULL component");
+        components.push_back(std::move(component));
     }
 
     /** Add component instantiation */
-    void addInstantiation(Own<AstComponentInit> i) {
-        instantiations.push_back(std::move(i));
+    void addInstantiation(Own<AstComponentInit> instantiation) {
+        assert(instantiation && "NULL instantiation");
+        instantiations.push_back(std::move(instantiation));
     }
 
     /** Program types  */
@@ -260,7 +260,7 @@ protected:
     /** Program clauses */
     VecOwn<AstClause> clauses;
 
-    /** I/O directives */
+    /** Directives */
     VecOwn<AstDirective> directives;
 
     /** Component definitions */
@@ -270,7 +270,7 @@ protected:
     VecOwn<AstComponentInit> instantiations;
 
     /** Pragmas */
-    VecOwn<AstPragma> pragmaDirectives;
+    VecOwn<AstPragma> pragmas;
 };
 
 }  // namespace souffle
