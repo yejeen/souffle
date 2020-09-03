@@ -2059,6 +2059,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         void visitUserDefinedOperator(const RamUserDefinedOperator& op, std::ostream& out) override {
             const std::string& name = op.getName();
 
+            if(op.isStateful()) { 
+
             const std::vector<TypeAttribute>& argTypes = op.getArgsTypes();
             auto args = op.getArguments();
 
@@ -2100,6 +2102,15 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             if (op.getReturnType() == TypeAttribute::Symbol) {
                 out << ")";
             }
+            } else {
+                out << name << "(symTab, recordTab";
+                for (size_t i = 0; i < args.size(); i++) {
+                   if (i > 0) {
+                      out << ",";
+                   }
+                   visit(args[i], out);
+                } 
+            } 
         }
 
         // -- records --
@@ -2217,8 +2228,16 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
             UNREACHABLE_BAD_CASE_ANALYSIS
         };
 
-        tfm::format(
-                os, "%s %s(%s);\n", cppTypeDecl(returnType), name, join(map(argsTypes, cppTypeDecl), ","));
+        if (stateful) {
+              os << "RamDomain " << name << "(SymbolTable *, RecordTable *";
+              for(size_t i=0;i<argsType.size();i++) {
+                  os << ",RamDomain";
+              }
+              os << ")"; 
+        } else {
+           tfm::format(
+                 os, "%s %s(%s);\n", cppTypeDecl(returnType), name, join(map(argsTypes, cppTypeDecl), ","));
+        }
     }
     os << "}\n";
     os << "\n";
