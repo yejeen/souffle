@@ -225,6 +225,7 @@
 %token MAGIC_QUALIFIER           "relation qualifier magic"
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
+%token STATEFUL                  "stateful functor"
 %token CAT                       "concatenation of strings"
 %token ORD                       "ordinal number of a string"
 %token RANGE                     "range"
@@ -833,7 +834,9 @@ comp_init : INSTANTIATE IDENT EQUALS comp_type { $$ = mk<AstComponentInit>($IDEN
 /* Functor declaration */
 functor_decl
   : FUNCTOR IDENT LPAREN functor_arg_type_list[args] RPAREN COLON predefined_type
-    { $$ = mk<AstFunctorDeclaration>($IDENT, $args, $predefined_type, @$); }
+    { $$ = mk<AstFunctorDeclaration>($IDENT, $args, $predefined_type, false, @$); }
+  | FUNCTOR IDENT LPAREN functor_arg_type_list[args] RPAREN COLON predefined_type STATEFUL
+    { $$ = mk<AstFunctorDeclaration>($IDENT, $args, $predefined_type, true, @$); }
   ;
 
 /* Functor argument list type */

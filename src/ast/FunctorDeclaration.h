@@ -44,9 +44,9 @@ namespace souffle {
 class AstFunctorDeclaration : public AstNode {
 public:
     AstFunctorDeclaration(std::string name, std::vector<TypeAttribute> argsTypes, TypeAttribute returnType,
-            SrcLocation loc = {})
+            bool stateful, SrcLocation loc = {})
             : AstNode(std::move(loc)), name(std::move(name)), argsTypes(std::move(argsTypes)),
-              returnType(returnType) {
+              returnType(returnType), stateful(stateful) {
         assert(this->name.length() > 0 && "functor name is empty");
     }
 
@@ -70,8 +70,13 @@ public:
         return argsTypes.size();
     }
 
+    /** Check whether functor is stateful */
+    bool isStateful() const {
+        return stateful;
+    }
+
     AstFunctorDeclaration* clone() const override {
-        return new AstFunctorDeclaration(name, argsTypes, returnType, getSrcLoc());
+        return new AstFunctorDeclaration(name, argsTypes, returnType, stateful, getSrcLoc());
     }
 
 protected:
@@ -89,12 +94,17 @@ protected:
         };
 
         tfm::format(
-                out, ".declfun %s(%s): %s\n", name, join(map(argsTypes, convert), ","), convert(returnType));
+                out, ".declfun %s(%s): %s", name, join(map(argsTypes, convert), ","), convert(returnType));
+        if (stateful) {
+            out << " stateful";
+        }
+        out << std::endl;
     }
 
     bool equal(const AstNode& node) const override {
         const auto& other = static_cast<const AstFunctorDeclaration&>(node);
-        return name == other.name && argsTypes == other.argsTypes && returnType == other.returnType;
+        return name == other.name && argsTypes == other.argsTypes && returnType == other.returnType &&
+               stateful == other.stateful;
     }
 
     /** Name of functor */
@@ -105,6 +115,9 @@ protected:
 
     /** Type of the return value */
     const TypeAttribute returnType;
+
+    /** Stateful flag */
+    const bool stateful;
 };
 
 }  // end of namespace souffle
