@@ -80,13 +80,13 @@ TEST(RamUserDefinedOperator, CloneAndEquals) {
     a_args.emplace_back(new RamSignedConstant(1));
     a_args.emplace_back(new RamSignedConstant(10));
     RamUserDefinedOperator a(
-            "NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed, std::move(a_args));
+            "NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed, false, std::move(a_args));
 
     std::vector<std::unique_ptr<RamExpression>> b_args;
     b_args.emplace_back(new RamSignedConstant(1));
     b_args.emplace_back(new RamSignedConstant(10));
     RamUserDefinedOperator b(
-            "NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed, std::move(b_args));
+            "NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed, false, std::move(b_args));
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
