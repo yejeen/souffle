@@ -96,7 +96,7 @@ std::string NormalisedClause::normaliseArgument(const AstArgument* arg) {
         name << "@min:cst:num:" << *numericCst;
         constants.insert(name.str());
         return name.str();
-    } else if (dynamic_cast<const AstNilConstant*>(arg) != nullptr) {
+    } else if (isA<AstNilConstant>(arg)) {
         constants.insert("@min:cst:nil");
         return "@min:cst:nil";
     } else if (auto* var = dynamic_cast<const AstVariable*>(arg)) {

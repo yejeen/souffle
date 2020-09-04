@@ -60,9 +60,7 @@ int RamComplexityAnalysis::getComplexity(const RamNode* node) const {
         }
     };
 
-    assert((dynamic_cast<const RamExpression*>(node) != nullptr ||
-                   dynamic_cast<const RamCondition*>(node) != nullptr) &&
-            "not an expression/condition/operation");
+    assert((isA<RamExpression>(node) || isA<RamCondition>(node)) && "not an expression/condition/operation");
     return ValueComplexityVisitor().visit(node);
 }
 

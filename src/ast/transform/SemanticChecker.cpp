@@ -673,7 +673,7 @@ void AstSemanticCheckerImpl::checkUnionType(const AstUnionType& type) {
     /* check that union types do not mix different primitive types */
     for (const auto* type : program.getTypes()) {
         // We are only interested in unions here.
-        if (dynamic_cast<const AstUnionType*>(type) == nullptr) {
+        if (!isA<AstUnionType>(type)) {
             continue;
         }
 
@@ -829,7 +829,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             static int numReplaced = 0;
-            if (dynamic_cast<AstAggregator*>(node.get()) != nullptr) {
+            if (isA<AstAggregator>(node.get())) {
                 // Replace the aggregator with a variable
                 std::stringstream newVariableName;
                 newVariableName << "+aggr_var_" << numReplaced++;
@@ -1106,7 +1106,7 @@ void AstSemanticCheckerImpl::checkInlining() {
         AstRelation* associatedRelation = getRelation(program, atom.getQualifiedName());
         if (associatedRelation != nullptr && isInline(associatedRelation)) {
             visitDepthFirst(atom, [&](const AstArgument& arg) {
-                if (dynamic_cast<const AstCounter*>(&arg) != nullptr) {
+                if (isA<AstCounter>(&arg)) {
                     report.addError(
                             "Cannot inline literal containing a counter argument '$'", arg.getSrcLoc());
                 }
@@ -1118,7 +1118,7 @@ void AstSemanticCheckerImpl::checkInlining() {
     for (const AstRelation* rel : inlinedRelations) {
         for (AstClause* clause : getClauses(program, *rel)) {
             visitDepthFirst(*clause, [&](const AstArgument& arg) {
-                if (dynamic_cast<const AstCounter*>(&arg) != nullptr) {
+                if (isA<AstCounter>(&arg)) {
                     report.addError(
                             "Cannot inline clause containing a counter argument '$'", arg.getSrcLoc());
                 }
@@ -1211,10 +1211,10 @@ void AstSemanticCheckerImpl::checkInlining() {
     //  - lastSrcLoc is the source location of the last visited node
     std::function<std::pair<bool, SrcLocation>(const AstNode*)> checkInvalidUnderscore =
             [&](const AstNode* node) {
-                if (dynamic_cast<const AstUnnamedVariable*>(node) != nullptr) {
+                if (isA<AstUnnamedVariable>(node)) {
                     // Found an invalid underscore
                     return std::make_pair(true, node->getSrcLoc());
-                } else if (dynamic_cast<const AstAggregator*>(node) != nullptr) {
+                } else if (isA<AstAggregator>(node)) {
                     // Don't care about underscores within aggregators
                     return std::make_pair(false, node->getSrcLoc());
                 }
