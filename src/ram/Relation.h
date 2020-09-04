@@ -117,7 +117,7 @@ protected:
     }
 
     bool equal(const RamNode& node) const override {
-        assert(nullptr != dynamic_cast<const RamRelation*>(&node));
+        assert(isA<RamRelation>(&node));
         const auto& other = static_cast<const RamRelation&>(node);
         return representation == other.representation && name == other.name && arity == other.arity &&
                auxiliaryArity == other.auxiliaryArity && attributeNames == other.attributeNames &&
