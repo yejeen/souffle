@@ -52,8 +52,8 @@ R(@rnd(0.7)) :- true.
 R(@rnd(0.2)) :- true.
 .output R
 
-// test stateful functors 
+// test stateful functors
 
-.decl S(x:symbol) 
-S(@mycat("A","B")) :- true. 
+.decl S(x:symbol)
+S(@mycat("A","B")) :- true.
 .output S
