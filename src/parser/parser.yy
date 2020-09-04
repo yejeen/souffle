@@ -200,7 +200,7 @@
 }
 
 %code {
-    #include "ParserDriver.h"
+    #include "parser/ParserDriver.h"
 }
 
 %param { ParserDriver &driver }
