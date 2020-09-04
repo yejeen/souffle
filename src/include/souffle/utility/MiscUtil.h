@@ -16,7 +16,14 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning( disable : 4127 )
+#endif // _MSC_VER
 #include "tinyformat.h"
+#ifdef _MSC_VER
+#pragma warning( default : 4127 )
+#endif // _MSC_VER
+
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
