@@ -8,7 +8,7 @@
 .functor goo(symbol, number):number
 .functor hoo():symbol
 .functor ioo(number):symbol
-.functor mycat(symbol, symbol):symbol 
+.functor mycat(symbol, symbol):symbol stateful
 
 .functor factorial(unsigned):unsigned
 .functor rnd(float):number
