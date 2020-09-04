@@ -602,8 +602,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
                 /* Initialize arguments for ffi-call */
                 args[0] = args[1] = &ffi_type_pointer;
-                values[0] = (void*)&getSymbolTable();
-                values[1] = (void*)&getRecordTable();
+                void* symbolTable = (void*)&getSymbolTable();
+                values[0] = &symbolTable;
+                void* recordTable = (void*)&getRecordTable();
+                values[1] = &recordTable;
                 for (size_t i = 0; i < arity; i++) {
                     intVal[i] = execute(shadow.getChild(i), ctxt);
                     args[i + 2] = &FFI_RamSigned;
