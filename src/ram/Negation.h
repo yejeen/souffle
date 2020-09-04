@@ -42,7 +42,7 @@ namespace souffle {
 class RamNegation : public RamCondition {
 public:
     RamNegation(std::unique_ptr<RamCondition> op) : operand(std::move(op)) {
-        assert(nullptr != operand && "operand of negation is a null-pointer");
+        assert(operand != nullptr && "operand of negation is a null-pointer");
     }
 
     /** @brief Get operand of negation */

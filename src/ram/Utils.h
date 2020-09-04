@@ -32,12 +32,12 @@ namespace souffle {
 
 /** @brief Determines if an expression represents an undefined value */
 inline bool isRamUndefValue(const RamExpression* expr) {
-    return nullptr != dynamic_cast<const RamUndefValue*>(expr);
+    return isA<RamUndefValue>(expr);
 }
 
 /** @brief Determines if a condition represents true */
 inline bool isRamTrue(const RamCondition* cond) {
-    return nullptr != dynamic_cast<const RamTrue*>(cond);
+    return isA<RamTrue>(cond);
 }
 
 /**

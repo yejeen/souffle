@@ -445,12 +445,12 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
             // All non-variables should be normalised
             if (auto* arg = dynamic_cast<AstArgument*>(node.get())) {
-                if (dynamic_cast<AstVariable*>(arg) == nullptr) {
+                if (!isA<AstVariable>(arg)) {
                     std::stringstream name;
                     name << "@abdul" << changeCount++;
 
                     // Unnamed variables don't need a new constraint, just give them a name
-                    if (dynamic_cast<AstUnnamedVariable*>(arg) != nullptr) {
+                    if (isA<AstUnnamedVariable>(arg)) {
                         return std::make_unique<AstVariable>(name.str());
                     }
 
@@ -479,8 +479,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
         // Apply to each body literal that isn't already a `<var> = <arg>` constraint
         for (AstLiteral* lit : clause->getBodyLiterals()) {
             if (auto* bc = dynamic_cast<AstBinaryConstraint*>(lit)) {
-                if (bc->getOperator() == BinaryConstraintOp::EQ &&
-                        dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr) {
+                if (bc->getOperator() == BinaryConstraintOp::EQ && isA<AstVariable>(bc->getLHS())) {
                     continue;
                 }
             }
@@ -577,7 +576,7 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
             queueAdornment(negatedAtomName, "");
         }
 
-        if (dynamic_cast<const AstAtom*>(lit) == nullptr) {
+        if (!isA<AstAtom>(lit)) {
             // Non-atoms are added directly
             adornedBodyLiterals.push_back(souffle::clone(lit));
             continue;
@@ -1026,8 +1025,7 @@ std::vector<const AstBinaryConstraint*> MagicSetCoreTransformer::getBindingEqual
     for (const auto* lit : clause->getBodyLiterals()) {
         const auto* bc = dynamic_cast<const AstBinaryConstraint*>(lit);
         if (bc == nullptr || bc->getOperator() != BinaryConstraintOp::EQ) continue;
-        if (dynamic_cast<AstVariable*>(bc->getLHS()) != nullptr ||
-                dynamic_cast<AstConstant*>(bc->getRHS()) != nullptr) {
+        if (isA<AstVariable>(bc->getLHS()) || isA<AstConstant>(bc->getRHS())) {
             bool containsAggrs = false;
             visitDepthFirst(*bc, [&](const AstAggregator& /* aggr */) { containsAggrs = true; });
             if (!containsAggrs) {

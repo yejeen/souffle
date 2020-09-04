@@ -62,8 +62,8 @@ public:
             if (debug) {
                 std::stringstream ss;
                 analyses[name]->print(ss);
-                if (nullptr == dynamic_cast<PrecedenceGraphAnalysis*>(analyses[name].get()) &&
-                        nullptr == dynamic_cast<SCCGraphAnalysis*>(analyses[name].get())) {
+                if (!isA<PrecedenceGraphAnalysis>(analyses[name].get()) &&
+                        !isA<SCCGraphAnalysis>(analyses[name].get())) {
                     debugReport.addSection(name, "Ast Analysis [" + name + "]", ss.str());
                 } else {
                     debugReport.addSection(

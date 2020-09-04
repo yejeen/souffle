@@ -46,7 +46,7 @@ bool RamTransformer::apply(RamTranslationUnit& translationUnit) {
     }
 
     // print runtime & change info for transformer in verbose mode
-    if (verbose && (nullptr == dynamic_cast<RamMetaTransformer*>(this))) {
+    if (verbose && (!isA<RamMetaTransformer>(this))) {
         std::string changedString = changed ? "changed" : "unchanged";
         std::cout << getName() << " time: " << std::chrono::duration<double>(end - start).count() << "sec ["
                   << changedString << "]" << std::endl;

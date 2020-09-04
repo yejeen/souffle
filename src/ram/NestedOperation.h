@@ -17,7 +17,7 @@
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Operation.h"
-#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <iosfwd>
 #include <memory>
@@ -49,7 +49,7 @@ class RamNestedOperation : public RamOperation {
 public:
     RamNestedOperation(std::unique_ptr<RamOperation> nested, std::string profileText = "")
             : nestedOperation(std::move(nested)), profileText(std::move(profileText)) {
-        assert(nullptr != nestedOperation);
+        assert(nestedOperation != nullptr);
     }
 
     RamNestedOperation* clone() const override = 0;
