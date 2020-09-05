@@ -121,18 +121,24 @@ void executeBinary(const std::string& binaryFilename) {
         throw std::invalid_argument("Generated executable <" + binaryFilename + "> could not be found");
     }
 
+    std::string ldPath;
     // run the executable
     if (Global::config().has("library-dir")) {
-        std::string ldPath;
         for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
             ldPath += library + ':';
         }
         ldPath.pop_back();
         setenv("LD_LIBRARY_PATH", ldPath.c_str(), 1);
-        setenv("DYLD_LIBRARY_PATH", ldPath.c_str(), 1);
     }
 
-    int exitCode = system(binaryFilename.c_str());
+    std::string exePath;
+#ifdef __APPLE__
+    // OSX does not pass on the environment from setenv so add it to the command line
+    exePath = "DYLD_LIBRARY_PATH=\"" + ldPath + "\" ";
+#endif
+    exePath += binaryFilename;
+
+    int exitCode = system(exePath.c_str());
 
     if (Global::config().get("dl-program").empty()) {
         remove(binaryFilename.c_str());
