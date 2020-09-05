@@ -16,20 +16,18 @@
 
 #pragma once
 
+#include "ast/Component.h"
+#include "ast/ComponentInit.h"
+#include "ast/ComponentType.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/ComponentLookup.h"
 #include "ast/transform/Transformer.h"
+#include "parser/SrcLocation.h"
+#include "reports/ErrorReport.h"
 #include <string>
 
 namespace souffle {
-
-class AstComponent;
-class AstComponentType;
-class AstComponentInit;
-class AstProgram;
-class SrcLocation;
-class AstTranslationUnit;
-class ComponentLookup;
-class ErrorReport;
-class TypeBinding;
 
 class AstComponentChecker : public AstTransformer {
 public:

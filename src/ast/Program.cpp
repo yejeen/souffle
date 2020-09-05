@@ -25,8 +25,8 @@
 #include "ast/Relation.h"
 #include "ast/Type.h"
 #include "souffle/utility/ContainerUtil.h"
-#include "souffle/utility/MiscUtil.h"
 #include <cassert>
+#include <string>
 #include <utility>
 #include <vector>
 

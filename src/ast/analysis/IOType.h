@@ -16,15 +16,16 @@
 
 #pragma once
 
+#include "ast/Relation.h"
 #include "ast/analysis/Analysis.h"
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 
 namespace souffle {
 
-class AstRelation;
 class AstTranslationUnit;
 
 class IOType : public AstAnalysis {

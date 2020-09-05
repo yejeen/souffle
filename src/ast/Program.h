@@ -28,7 +28,6 @@
 #include "ast/Type.h"
 #include "ast/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
-#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>

@@ -15,6 +15,7 @@
  ***********************************************************************/
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"
@@ -26,8 +27,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformation pass which wraps another transformation pass and generates

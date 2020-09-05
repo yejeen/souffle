@@ -16,15 +16,13 @@
 
 #pragma once
 
+#include "ast/Argument.h"
 #include "ast/Functor.h"
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
-#include "souffle/RamTypes.h"
 #include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
-#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <optional>
