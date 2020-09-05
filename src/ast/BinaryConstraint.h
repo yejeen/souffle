@@ -88,7 +88,7 @@ protected:
     }
 
     bool equal(const AstNode& node) const override {
-        assert(nullptr != dynamic_cast<const AstBinaryConstraint*>(&node));
+        assert(isA<AstBinaryConstraint>(&node));
         const auto& other = static_cast<const AstBinaryConstraint&>(node);
         return operation == other.operation && equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);
     }

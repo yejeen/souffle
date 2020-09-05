@@ -10,88 +10,6 @@ SUFFIXES = .cpp .h .yy .ll .cc .hh .h
 
 bin_PROGRAMS = souffle souffle-profile
 
-nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
-
-souffle_datastructure_sources = \
-        include/souffle/datastructure/BTree.h              \
-        include/souffle/datastructure/Brie.h               \
-        include/souffle/datastructure/EquivalenceRelation.h\
-        include/souffle/datastructure/LambdaBTree.h        \
-        include/souffle/datastructure/PiggyList.h          \
-        include/souffle/datastructure/Table.h              \
-        include/souffle/datastructure/UnionFind.h
-
-souffle_profile_sources = \
-        include/souffle/profile/Cell.h                     \
-        include/souffle/profile/CellInterface.h            \
-        include/souffle/profile/Cli.h                      \
-        include/souffle/profile/DataComparator.h           \
-        include/souffle/profile/EventProcessor.h           \
-        include/souffle/profile/HtmlGenerator.h            \
-        include/souffle/profile/Iteration.h                \
-        include/souffle/profile/Logger.h                   \
-        include/souffle/profile/OutputProcessor.h          \
-        include/souffle/profile/ProfileDatabase.h          \
-        include/souffle/profile/ProfileEvent.h             \
-        include/souffle/profile/ProgramRun.h               \
-        include/souffle/profile/Reader.h                   \
-        include/souffle/profile/Relation.h                 \
-        include/souffle/profile/Row.h                      \
-        include/souffle/profile/Rule.h                     \
-        include/souffle/profile/StringUtils.h              \
-        include/souffle/profile/Table.h                    \
-        include/souffle/profile/Tui.h                      \
-        include/souffle/profile/UserInputReader.h          \
-        include/souffle/profile/htmlCssChartist.h          \
-        include/souffle/profile/htmlCssStyle.h             \
-        include/souffle/profile/htmlJsChartistMin.h        \
-        include/souffle/profile/htmlJsChartistPlugin.h     \
-        include/souffle/profile/htmlJsMain.h               \
-        include/souffle/profile/htmlJsTableSort.h          \
-        include/souffle/profile/htmlJsUtil.h               \
-        include/souffle/profile/htmlMain.h
-
-souffle_provenance_sources = \
-        include/souffle/provenance/Explain.h               \
-        include/souffle/provenance/ExplainProvenance.h     \
-        include/souffle/provenance/ExplainProvenanceImpl.h \
-        include/souffle/provenance/ExplainTree.h
-
-souffle_swig_sources = \
-        include/souffle/swig/SwigInterface.h               \
-        include/souffle/swig/SwigInterface.i
-
-souffle_io_sources = \
-        include/souffle/io/IOSystem.h                      \
-        include/souffle/io/gzfstream.h                     \
-        include/souffle/io/ReadStream.h                    \
-        include/souffle/io/ReadStreamCSV.h                 \
-        include/souffle/io/ReadStreamJSON.h                \
-        include/souffle/io/ReadStreamSQLite.h              \
-        include/souffle/io/SerialisationStream.h           \
-        include/souffle/io/WriteStreamSQLite.h             \
-        include/souffle/io/WriteStream.h                   \
-        include/souffle/io/WriteStreamCSV.h                \
-        include/souffle/io/WriteStreamJSON.h
-
-souffle_utility_sources = \
-        include/souffle/utility/CacheUtil.h                \
-        include/souffle/utility/ContainerUtil.h            \
-        include/souffle/utility/FileUtil.h                 \
-        include/souffle/utility/EvaluatorUtil.h            \
-        include/souffle/utility/FunctionalUtil.h           \
-        include/souffle/utility/MiscUtil.h                 \
-        include/souffle/utility/ParallelUtil.h             \
-        include/souffle/utility/StreamUtil.h               \
-        include/souffle/utility/StringUtil.h               \
-        include/souffle/utility/json11.h                   \
-        include/souffle/utility/tinyformat.h
-
-DIR := ${CURDIR}
-
-# ... which should no go to distribution
-nodist_souffle_SOURCES = $(BUILT_SOURCES)
-
 souffle_sources = \
         AggregateOp.h                                      \
         FunctorOps.cpp                                     \
@@ -459,27 +377,90 @@ soufflepublic_HEADERS = \
 
 souffledatastructuredir = $(soufflepublicdir)/datastructure
 
-souffledatastructure_HEADERS = $(souffle_datastructure_sources)
-
-souffleprofiledir = $(soufflepublicdir)/profile
-
-souffleprofile_HEADERS = $(souffle_profile_sources)
-
-souffleprovenancedir = $(soufflepublicdir)/provenance
-
-souffleprovenance_HEADERS = $(souffle_provenance_sources)
-
-souffleswigdir = $(soufflepublicdir)/swig
-
-souffleswig_HEADERS = $(souffle_swig_sources)
-
-souffleutilitydir = $(soufflepublicdir)/utility
-
-souffleutility_HEADERS = $(souffle_utility_sources)
+souffledatastructure_HEADERS = \
+        include/souffle/datastructure/BTree.h              \
+        include/souffle/datastructure/Brie.h               \
+        include/souffle/datastructure/EquivalenceRelation.h\
+        include/souffle/datastructure/LambdaBTree.h        \
+        include/souffle/datastructure/PiggyList.h          \
+        include/souffle/datastructure/Table.h              \
+        include/souffle/datastructure/UnionFind.h
 
 souffleiodir = $(soufflepublicdir)/io
 
-souffleio_HEADERS = $(souffle_io_sources)
+souffleio_HEADERS = \
+        include/souffle/io/IOSystem.h                      \
+        include/souffle/io/gzfstream.h                     \
+        include/souffle/io/ReadStream.h                    \
+        include/souffle/io/ReadStreamCSV.h                 \
+        include/souffle/io/ReadStreamJSON.h                \
+        include/souffle/io/ReadStreamSQLite.h              \
+        include/souffle/io/SerialisationStream.h           \
+        include/souffle/io/WriteStreamSQLite.h             \
+        include/souffle/io/WriteStream.h                   \
+        include/souffle/io/WriteStreamCSV.h                \
+        include/souffle/io/WriteStreamJSON.h
+
+souffleprofiledir = $(soufflepublicdir)/profile
+
+souffleprofile_HEADERS = \
+        include/souffle/profile/Cell.h                     \
+        include/souffle/profile/CellInterface.h            \
+        include/souffle/profile/Cli.h                      \
+        include/souffle/profile/DataComparator.h           \
+        include/souffle/profile/EventProcessor.h           \
+        include/souffle/profile/HtmlGenerator.h            \
+        include/souffle/profile/Iteration.h                \
+        include/souffle/profile/Logger.h                   \
+        include/souffle/profile/OutputProcessor.h          \
+        include/souffle/profile/ProfileDatabase.h          \
+        include/souffle/profile/ProfileEvent.h             \
+        include/souffle/profile/ProgramRun.h               \
+        include/souffle/profile/Reader.h                   \
+        include/souffle/profile/Relation.h                 \
+        include/souffle/profile/Row.h                      \
+        include/souffle/profile/Rule.h                     \
+        include/souffle/profile/StringUtils.h              \
+        include/souffle/profile/Table.h                    \
+        include/souffle/profile/Tui.h                      \
+        include/souffle/profile/UserInputReader.h          \
+        include/souffle/profile/htmlCssChartist.h          \
+        include/souffle/profile/htmlCssStyle.h             \
+        include/souffle/profile/htmlJsChartistMin.h        \
+        include/souffle/profile/htmlJsChartistPlugin.h     \
+        include/souffle/profile/htmlJsMain.h               \
+        include/souffle/profile/htmlJsTableSort.h          \
+        include/souffle/profile/htmlJsUtil.h               \
+        include/souffle/profile/htmlMain.h
+
+souffleprovenancedir = $(soufflepublicdir)/provenance
+
+souffleprovenance_HEADERS = \
+        include/souffle/provenance/Explain.h               \
+        include/souffle/provenance/ExplainProvenance.h     \
+        include/souffle/provenance/ExplainProvenanceImpl.h \
+        include/souffle/provenance/ExplainTree.h
+
+souffleswigdir = $(soufflepublicdir)/swig
+
+souffleswig_HEADERS = \
+        include/souffle/swig/SwigInterface.h               \
+        include/souffle/swig/SwigInterface.i
+
+souffleutilitydir = $(soufflepublicdir)/utility
+
+souffleutility_HEADERS = \
+        include/souffle/utility/CacheUtil.h                \
+        include/souffle/utility/ContainerUtil.h            \
+        include/souffle/utility/FileUtil.h                 \
+        include/souffle/utility/EvaluatorUtil.h            \
+        include/souffle/utility/FunctionalUtil.h           \
+        include/souffle/utility/MiscUtil.h                 \
+        include/souffle/utility/ParallelUtil.h             \
+        include/souffle/utility/StreamUtil.h               \
+        include/souffle/utility/StringUtil.h               \
+        include/souffle/utility/json11.h                   \
+        include/souffle/utility/tinyformat.h
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
