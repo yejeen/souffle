@@ -18,6 +18,7 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

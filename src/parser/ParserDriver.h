@@ -17,10 +17,20 @@
 #pragma once
 
 #include "RelationTag.h"
+#include "ast/Clause.h"
+#include "ast/Component.h"
+#include "ast/ComponentInit.h"
+#include "ast/Directive.h"
+#include "ast/FunctorDeclaration.h"
+#include "ast/Pragma.h"
 #include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/SubsetType.h"
 #include "ast/TranslationUnit.h"
+#include "ast/Type.h"
 #include "parser/SrcLocation.h"
 #include "parser/parser.hh"
+#include "reports/DebugReport.h"
 #include <cstdio>
 #include <memory>
 #include <set>
@@ -28,18 +38,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstClause;
-class AstComponent;
-class AstComponentInit;
-class AstFunctorDeclaration;
-class AstPragma;
-class AstRelation;
-class AstDirective;
-class AstSubsetType;
-class AstType;
-class DebugReport;
-class ErrorReport;
 
 using yyscan_t = void*;
 
