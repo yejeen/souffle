@@ -36,7 +36,7 @@ bool AddNullariesToAtomlessAggregatesTransformer::transform(AstTranslationUnit& 
     visitDepthFirst(program, [&](const AstAggregator& agg) {
         bool seenAtom{false};
         for (const auto& literal : agg.getBodyLiterals()) {
-            if (dynamic_cast<const AstAtom*>(literal) != nullptr) {
+            if (isA<AstAtom>(literal)) {
                 seenAtom = true;
             }
         }

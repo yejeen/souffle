@@ -105,7 +105,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
 
                 // update constant to be the variable created
                 return newVariable;
-            } else if (dynamic_cast<AstUnnamedVariable*>(node.get()) != nullptr) {
+            } else if (isA<AstUnnamedVariable>(node.get())) {
                 // underscore found
                 changeCount++;
 

@@ -142,7 +142,7 @@ bool BindingStore::isBound(const AstArgument* arg) const {
             }
         }
         return true;
-    } else if (dynamic_cast<const AstConstant*>(arg) != nullptr) {
+    } else if (isA<AstConstant>(arg)) {
         return true;
     } else {
         return false;

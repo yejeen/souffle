@@ -47,7 +47,7 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
     // Checks whether an atom is of the form a(_,_,...,_)
     auto isExistentialAtom = [&](const AstAtom& atom) {
         for (AstArgument* arg : atom.getArguments()) {
-            if (dynamic_cast<AstUnnamedVariable*>(arg) == nullptr) {
+            if (!isA<AstUnnamedVariable>(arg)) {
                 return false;
             }
         }

@@ -250,7 +250,7 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     std::vector<unsigned int> atomPositions;
     std::vector<AstLiteral*> bodyLiterals = clause->getBodyLiterals();
     for (unsigned int i = 0; i < bodyLiterals.size(); i++) {
-        if (dynamic_cast<AstAtom*>(bodyLiterals[i]) != nullptr) {
+        if (isA<AstAtom>(bodyLiterals[i])) {
             atomPositions.push_back(i);
         }
     }
@@ -268,7 +268,7 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     unsigned int currentAtom = 0;
     for (unsigned int currentLiteral = 0; currentLiteral < bodyLiterals.size(); currentLiteral++) {
         AstLiteral* literalToAdd = bodyLiterals[currentLiteral];
-        if (dynamic_cast<AstAtom*>(literalToAdd) != nullptr) {
+        if (isA<AstAtom>(literalToAdd)) {
             // Atoms should be reordered
             literalToAdd = bodyLiterals[atomPositions[newOrder[currentAtom++]]];
         }
