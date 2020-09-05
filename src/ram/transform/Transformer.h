@@ -16,11 +16,10 @@
 
 #pragma once
 
+#include "ram/TranslationUnit.h"
 #include <string>
 
 namespace souffle {
-
-class RamTranslationUnit;
 
 /**
  * @Class RamTransformer

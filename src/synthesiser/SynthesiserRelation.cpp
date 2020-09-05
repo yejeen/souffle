@@ -7,15 +7,13 @@
  */
 
 #include "synthesiser/SynthesiserRelation.h"
-#include "Global.h"
 #include "RelationTag.h"
 #include "ram/analysis/Index.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
-#include <iterator>
+#include <functional>
 #include <map>
-#include <numeric>
 #include <set>
 #include <sstream>
 #include <vector>
