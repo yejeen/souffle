@@ -263,9 +263,9 @@ public:
 
     std::unique_ptr<Stream> clone() const {
         if (source == nullptr) {
-            return std::make_unique<Stream>();
+            return mk<Stream>();
         }
-        auto newStream = std::make_unique<Stream>(source->clone());
+        auto newStream = mk<Stream>(source->clone());
         newStream->source->reload(&newStream->buffer[0], limit);
         newStream->cur = cur;
         newStream->limit = limit;
@@ -593,7 +593,7 @@ class NullaryIndex : public InterpreterIndex {
         }
 
         std::unique_ptr<Stream::Source> clone() override {
-            return std::make_unique<Source>(present);
+            return mk<Source>(present);
         }
     };
 
@@ -634,7 +634,7 @@ public:
     }
 
     IndexViewPtr createView() const override {
-        return std::make_unique<NullaryIndexView>(*this);
+        return mk<NullaryIndexView>(*this);
     }
 
     bool insert(const TupleRef& tuple) override {
@@ -659,7 +659,7 @@ public:
     }
 
     Stream scan() const override {
-        return std::make_unique<Source>(present);
+        return mk<Source>(present);
     }
 
     PartitionedStream partitionScan(int) const override {
@@ -742,7 +742,7 @@ protected:
         }
 
         std::unique_ptr<Stream::Source> clone() override {
-            auto source = std::make_unique<Source>(order, cur, end);
+            auto source = mk<Source>(order, cur, end);
             source->buffer = this->buffer;
             return source;
         }
@@ -771,7 +771,7 @@ protected:
 
         Stream range(const TupleRef& low, const TupleRef& high) const override {
             auto range = index.bounds(low, high, hints);
-            return std::make_unique<Source>(index.order, range.begin(), range.end());
+            return mk<Source>(index.order, range.begin(), range.end());
         }
 
         size_t getArity() const override {
@@ -783,7 +783,7 @@ public:
     GenericIndex(Order order) : order(std::move(order)) {}
 
     IndexViewPtr createView() const override {
-        return std::make_unique<GenericIndexView>(*this);
+        return mk<GenericIndexView>(*this);
     }
 
     size_t getArity() const override {
@@ -818,7 +818,7 @@ public:
     }
 
     Stream scan() const override {
-        return std::make_unique<Source>(order, data.begin(), data.end());
+        return mk<Source>(order, data.begin(), data.end());
     }
 
     PartitionedStream partitionScan(int partitionCount) const override {
@@ -826,7 +826,7 @@ public:
         std::vector<Stream> res;
         res.reserve(chunks.size());
         for (const auto& cur : chunks) {
-            res.push_back(std::make_unique<Source>(order, cur.begin(), cur.end()));
+            res.push_back(mk<Source>(order, cur.begin(), cur.end()));
         }
         return res;
     }
@@ -842,7 +842,7 @@ public:
         std::vector<Stream> res;
         res.reserve(partitionCount);
         for (const auto& cur : range.partition(partitionCount)) {
-            res.push_back(std::make_unique<Source>(order, cur.begin(), cur.end()));
+            res.push_back(mk<Source>(order, cur.begin(), cur.end()));
         }
         return res;
     }

@@ -47,7 +47,7 @@ bool TupleIdTransformer::reorderOperations(RamProgram& program) {
             if (auto* element = dynamic_cast<RamTupleElement*>(node.get())) {
                 if (reorder[element->getTupleId()] != element->getTupleId()) {
                     changed = true;
-                    node = std::make_unique<RamTupleElement>(
+                    node = mk<RamTupleElement>(
                             reorder[element->getTupleId()], element->getElement());
                 }
             }

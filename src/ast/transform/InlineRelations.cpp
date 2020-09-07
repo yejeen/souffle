@@ -94,9 +94,9 @@ void normaliseInlinedHeads(AstProgram& program) {
 
         for (AstClause* clause : getClauses(program, *rel)) {
             // Set up the new clause with an empty body and no arguments in the head
-            auto newClause = std::make_unique<AstClause>();
+            auto newClause = mk<AstClause>();
             newClause->setSrcLoc(clause->getSrcLoc());
-            auto clauseHead = std::make_unique<AstAtom>(clause->getHead()->getQualifiedName());
+            auto clauseHead = mk<AstAtom>(clause->getHead()->getQualifiedName());
 
             // Add in everything in the original body
             for (AstLiteral* lit : clause->getBodyLiterals()) {
@@ -109,7 +109,7 @@ void normaliseInlinedHeads(AstProgram& program) {
                     // Found a constant in the head, so replace it with a variable
                     std::stringstream newVar;
                     newVar << "<new_var_" << newVarCount++ << ">";
-                    clauseHead->addArgument(std::make_unique<AstVariable>(newVar.str()));
+                    clauseHead->addArgument(mk<AstVariable>(newVar.str()));
 
                     auto* const c_num = dynamic_cast<const AstNumericConstant*>(constant);
                     assert((!c_num || c_num->getType()) && "numeric constant wasn't bound to a type");
@@ -118,8 +118,8 @@ void normaliseInlinedHeads(AstProgram& program) {
                                         : BinaryConstraintOp::EQ;
 
                     // Add a body constraint to set the variable's value to be the original constant
-                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(
-                            opEq, std::make_unique<AstVariable>(newVar.str()), souffle::clone(constant)));
+                    newClause->addToBody(mk<AstBinaryConstraint>(
+                            opEq, mk<AstVariable>(newVar.str()), souffle::clone(constant)));
                 } else {
                     // Already a variable
                     clauseHead->addArgument(souffle::clone(arg));
@@ -166,7 +166,7 @@ void nameInlinedUnderscores(AstProgram& program) {
                 // general
                 std::stringstream newVarName;
                 newVarName << "<underscore_" << underscoreCount++ << ">";
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             }
 
             node->apply(*this);

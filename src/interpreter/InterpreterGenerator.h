@@ -88,15 +88,15 @@ public:
     }
 
     NodePtr visitConstant(const RamConstant& num) override {
-        return std::make_unique<InterpreterConstant>(I_Constant, &num);
+        return mk<InterpreterConstant>(I_Constant, &num);
     }
 
     NodePtr visitTupleElement(const RamTupleElement& access) override {
-        return std::make_unique<InterpreterTupleElement>(I_TupleElement, &access);
+        return mk<InterpreterTupleElement>(I_TupleElement, &access);
     }
 
     NodePtr visitAutoIncrement(const RamAutoIncrement& inc) override {
-        return std::make_unique<InterpreterAutoIncrement>(I_AutoIncrement, &inc);
+        return mk<InterpreterAutoIncrement>(I_AutoIncrement, &inc);
     }
 
     NodePtr visitIntrinsicOperator(const RamIntrinsicOperator& op) override {
@@ -104,7 +104,7 @@ public:
         for (const auto& arg : op.getArguments()) {
             children.push_back(visit(arg));
         }
-        return std::make_unique<InterpreterIntrinsicOperator>(I_IntrinsicOperator, &op, std::move(children));
+        return mk<InterpreterIntrinsicOperator>(I_IntrinsicOperator, &op, std::move(children));
     }
 
     NodePtr visitUserDefinedOperator(const RamUserDefinedOperator& op) override {
@@ -112,7 +112,7 @@ public:
         for (const auto& arg : op.getArguments()) {
             children.push_back(visit(arg));
         }
-        return std::make_unique<InterpreterUserDefinedOperator>(
+        return mk<InterpreterUserDefinedOperator>(
                 I_UserDefinedOperator, &op, std::move(children));
     }
 
@@ -122,7 +122,7 @@ public:
             children.push_back(visit(arg));
         }
         children.push_back(visitTupleOperation(op));
-        return std::make_unique<InterpreterNestedIntrinsicOperator>(
+        return mk<InterpreterNestedIntrinsicOperator>(
                 I_NestedIntrinsicOperator, &op, std::move(children));
     }
 
@@ -131,41 +131,41 @@ public:
         for (const auto& arg : pr.getArguments()) {
             children.push_back(visit(arg));
         }
-        return std::make_unique<InterpreterPackRecord>(I_PackRecord, &pr, std::move(children));
+        return mk<InterpreterPackRecord>(I_PackRecord, &pr, std::move(children));
     }
 
     NodePtr visitSubroutineArgument(const RamSubroutineArgument& arg) override {
-        return std::make_unique<InterpreterSubroutineArgument>(I_SubroutineArgument, &arg);
+        return mk<InterpreterSubroutineArgument>(I_SubroutineArgument, &arg);
     }
 
     // -- connectors operators --
     NodePtr visitTrue(const RamTrue& ltrue) override {
-        return std::make_unique<InterpreterTrue>(I_True, &ltrue);
+        return mk<InterpreterTrue>(I_True, &ltrue);
     }
 
     NodePtr visitFalse(const RamFalse& lfalse) override {
-        return std::make_unique<InterpreterFalse>(I_False, &lfalse);
+        return mk<InterpreterFalse>(I_False, &lfalse);
     }
 
     NodePtr visitConjunction(const RamConjunction& conj) override {
-        return std::make_unique<InterpreterConjunction>(
+        return mk<InterpreterConjunction>(
                 I_Conjunction, &conj, visit(conj.getLHS()), visit(conj.getRHS()));
     }
 
     NodePtr visitNegation(const RamNegation& neg) override {
-        return std::make_unique<InterpreterNegation>(I_Negation, &neg, visit(neg.getOperand()));
+        return mk<InterpreterNegation>(I_Negation, &neg, visit(neg.getOperand()));
     }
 
     NodePtr visitEmptinessCheck(const RamEmptinessCheck& emptiness) override {
         size_t relId = encodeRelation(emptiness.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterEmptinessCheck>(I_EmptinessCheck, &emptiness, rel);
+        return mk<InterpreterEmptinessCheck>(I_EmptinessCheck, &emptiness, rel);
     }
 
     NodePtr visitRelationSize(const RamRelationSize& size) override {
         size_t relId = encodeRelation(size.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterRelationSize>(I_RelationSize, &size, rel);
+        return mk<InterpreterRelationSize>(I_RelationSize, &size, rel);
     }
 
     NodePtr visitExistenceCheck(const RamExistenceCheck& exists) override {
@@ -177,19 +177,19 @@ public:
                 isTotal = false;
             }
         }
-        return std::make_unique<InterpreterExistenceCheck>(
+        return mk<InterpreterExistenceCheck>(
                 I_ExistenceCheck, &exists, isTotal, encodeView(&exists), std::move(superOp));
     }
 
     NodePtr visitProvenanceExistenceCheck(const RamProvenanceExistenceCheck& provExists) override {
         InterpreterSuperInstruction superOp = getExistenceSuperInstInfo(provExists);
-        return std::make_unique<InterpreterProvenanceExistenceCheck>(I_ProvenanceExistenceCheck, &provExists,
+        return mk<InterpreterProvenanceExistenceCheck>(I_ProvenanceExistenceCheck, &provExists,
                 visit(provExists.getChildNodes().back()), encodeView(&provExists), std::move(superOp));
     }
 
     // -- comparison operators --
     NodePtr visitConstraint(const RamConstraint& relOp) override {
-        return std::make_unique<InterpreterConstraint>(
+        return mk<InterpreterConstraint>(
                 I_Constraint, &relOp, visit(relOp.getLHS()), visit(relOp.getRHS()));
     }
 
@@ -199,7 +199,7 @@ public:
 
     NodePtr visitTupleOperation(const RamTupleOperation& search) override {
         if (profileEnabled) {
-            return std::make_unique<InterpreterTupleOperation>(
+            return mk<InterpreterTupleOperation>(
                     I_TupleOperation, &search, visit(search.getOperation()));
         }
         return visit(search.getOperation());
@@ -208,13 +208,13 @@ public:
     NodePtr visitScan(const RamScan& scan) override {
         size_t relId = encodeRelation(scan.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterScan>(I_Scan, &scan, rel, visitTupleOperation(scan));
+        return mk<InterpreterScan>(I_Scan, &scan, rel, visitTupleOperation(scan));
     }
 
     NodePtr visitParallelScan(const RamParallelScan& pScan) override {
         size_t relId = encodeRelation(pScan.getRelation());
         auto rel = relations[relId].get();
-        auto res = std::make_unique<InterpreterParallelScan>(
+        auto res = mk<InterpreterParallelScan>(
                 I_ParallelScan, &pScan, rel, visitTupleOperation(pScan));
         res->setPreamble(parentQueryPreamble);
         return res;
@@ -224,7 +224,7 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(scan);
         NodePtrVec children;
         children.push_back(visitTupleOperation(scan));
-        return std::make_unique<InterpreterIndexScan>(I_IndexScan, &scan, nullptr, visitTupleOperation(scan),
+        return mk<InterpreterIndexScan>(I_IndexScan, &scan, nullptr, visitTupleOperation(scan),
                 encodeView(&scan), std::move(indexOperation));
     }
 
@@ -232,7 +232,7 @@ public:
         size_t relId = encodeRelation(piscan.getRelation());
         auto rel = relations[relId].get();
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(piscan);
-        auto res = std::make_unique<InterpreterParallelIndexScan>(I_ParallelIndexScan, &piscan, rel,
+        auto res = mk<InterpreterParallelIndexScan>(I_ParallelIndexScan, &piscan, rel,
                 visitTupleOperation(piscan), encodeIndexPos(piscan), std::move(indexOperation));
         res->setPreamble(parentQueryPreamble);
         return res;
@@ -241,14 +241,14 @@ public:
     NodePtr visitChoice(const RamChoice& choice) override {
         size_t relId = encodeRelation(choice.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterChoice>(
+        return mk<InterpreterChoice>(
                 I_Choice, &choice, rel, visit(choice.getCondition()), visitTupleOperation(choice));
     }
 
     NodePtr visitParallelChoice(const RamParallelChoice& pchoice) override {
         size_t relId = encodeRelation(pchoice.getRelation());
         auto rel = relations[relId].get();
-        auto res = std::make_unique<InterpreterParallelChoice>(
+        auto res = mk<InterpreterParallelChoice>(
                 I_ParallelChoice, &pchoice, rel, visit(pchoice.getCondition()), visitTupleOperation(pchoice));
         res->setPreamble(parentQueryPreamble);
         return res;
@@ -256,7 +256,7 @@ public:
 
     NodePtr visitIndexChoice(const RamIndexChoice& choice) override {
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(choice);
-        return std::make_unique<InterpreterIndexChoice>(I_IndexChoice, &choice, nullptr,
+        return mk<InterpreterIndexChoice>(I_IndexChoice, &choice, nullptr,
                 visit(choice.getCondition()), visitTupleOperation(choice), encodeView(&choice),
                 std::move(indexOperation));
     }
@@ -265,7 +265,7 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(ichoice);
         size_t relId = encodeRelation(ichoice.getRelation());
         auto rel = relations[relId].get();
-        auto res = std::make_unique<InterpreterParallelIndexChoice>(I_ParallelIndexChoice, &ichoice, rel,
+        auto res = mk<InterpreterParallelIndexChoice>(I_ParallelIndexChoice, &ichoice, rel,
                 visit(ichoice.getCondition()), visit(ichoice.getOperation()), encodeIndexPos(ichoice),
                 std::move(indexOperation));
         res->setPreamble(parentQueryPreamble);
@@ -273,14 +273,14 @@ public:
     }
 
     NodePtr visitUnpackRecord(const RamUnpackRecord& lookup) override {  // get reference
-        return std::make_unique<InterpreterUnpackRecord>(
+        return mk<InterpreterUnpackRecord>(
                 I_UnpackRecord, &lookup, visit(lookup.getExpression()), visitTupleOperation(lookup));
     }
 
     NodePtr visitAggregate(const RamAggregate& aggregate) override {
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterAggregate>(I_Aggregate, &aggregate, rel,
+        return mk<InterpreterAggregate>(I_Aggregate, &aggregate, rel,
                 visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate));
     }
@@ -288,7 +288,7 @@ public:
     NodePtr visitParallelAggregate(const RamParallelAggregate& aggregate) override {
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        auto res = std::make_unique<InterpreterParallelAggregate>(I_ParallelAggregate, &aggregate, rel,
+        auto res = mk<InterpreterParallelAggregate>(I_ParallelAggregate, &aggregate, rel,
                 visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate));
         res->setPreamble(parentQueryPreamble);
@@ -299,7 +299,7 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(aggregate);
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterIndexAggregate>(I_IndexAggregate, &aggregate, rel,
+        return mk<InterpreterIndexAggregate>(I_IndexAggregate, &aggregate, rel,
                 visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate), encodeView(&aggregate), std::move(indexOperation));
     }
@@ -308,7 +308,7 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(aggregate);
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        auto res = std::make_unique<InterpreterParallelIndexAggregate>(I_ParallelIndexAggregate, &aggregate,
+        auto res = mk<InterpreterParallelIndexAggregate>(I_ParallelIndexAggregate, &aggregate,
                 rel, visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate), encodeView(&aggregate), std::move(indexOperation));
         res->setPreamble(parentQueryPreamble);
@@ -316,12 +316,12 @@ public:
     }
 
     NodePtr visitBreak(const RamBreak& breakOp) override {
-        return std::make_unique<InterpreterBreak>(
+        return mk<InterpreterBreak>(
                 I_Break, &breakOp, visit(breakOp.getCondition()), visit(breakOp.getOperation()));
     }
 
     NodePtr visitFilter(const RamFilter& filter) override {
-        return std::make_unique<InterpreterFilter>(
+        return mk<InterpreterFilter>(
                 I_Filter, &filter, visit(filter.getCondition()), visit(filter.getOperation()));
     }
 
@@ -329,7 +329,7 @@ public:
         InterpreterSuperInstruction superOp = getProjectSuperInstInfo(project);
         size_t relId = encodeRelation(project.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterProject>(I_Project, &project, rel, std::move(superOp));
+        return mk<InterpreterProject>(I_Project, &project, rel, std::move(superOp));
     }
 
     // -- return from subroutine --
@@ -338,7 +338,7 @@ public:
         for (const auto& value : ret.getValues()) {
             children.push_back(visit(value));
         }
-        return std::make_unique<InterpreterSubroutineReturn>(I_SubroutineReturn, &ret, std::move(children));
+        return mk<InterpreterSubroutineReturn>(I_SubroutineReturn, &ret, std::move(children));
     }
 
     NodePtr visitSequence(const RamSequence& seq) override {
@@ -346,7 +346,7 @@ public:
         for (const auto& value : seq.getStatements()) {
             children.push_back(visit(value));
         }
-        return std::make_unique<InterpreterSequence>(I_Sequence, &seq, std::move(children));
+        return mk<InterpreterSequence>(I_Sequence, &seq, std::move(children));
     }
 
     NodePtr visitParallel(const RamParallel& parallel) override {
@@ -355,15 +355,15 @@ public:
         for (const auto& value : parallel.getStatements()) {
             children.push_back(visit(value));
         }
-        return std::make_unique<InterpreterParallel>(I_Parallel, &parallel, std::move(children));
+        return mk<InterpreterParallel>(I_Parallel, &parallel, std::move(children));
     }
 
     NodePtr visitLoop(const RamLoop& loop) override {
-        return std::make_unique<InterpreterLoop>(I_Loop, &loop, visit(loop.getBody()));
+        return mk<InterpreterLoop>(I_Loop, &loop, visit(loop.getBody()));
     }
 
     NodePtr visitExit(const RamExit& exit) override {
-        return std::make_unique<InterpreterExit>(I_Exit, &exit, visit(exit.getCondition()));
+        return mk<InterpreterExit>(I_Exit, &exit, visit(exit.getCondition()));
     }
 
     NodePtr visitCall(const RamCall& call) override {
@@ -374,7 +374,7 @@ public:
         // entry.
         auto subs = program->getSubroutines();
         size_t subroutineId = distance(subs.begin(), subs.find(call.getName()));
-        return std::make_unique<InterpreterCall>(I_Call, &call, subroutineId);
+        return mk<InterpreterCall>(I_Call, &call, subroutineId);
     }
 
     NodePtr visitLogRelationTimer(const RamLogRelationTimer& timer) override {
@@ -382,38 +382,38 @@ public:
         auto rel = relations[relId].get();
         NodePtrVec children;
         children.push_back(visit(timer.getStatement()));
-        return std::make_unique<InterpreterLogRelationTimer>(
+        return mk<InterpreterLogRelationTimer>(
                 I_LogRelationTimer, &timer, visit(timer.getStatement()), rel);
     }
 
     NodePtr visitLogTimer(const RamLogTimer& timer) override {
         NodePtrVec children;
         children.push_back(visit(timer.getStatement()));
-        return std::make_unique<InterpreterLogTimer>(I_LogTimer, &timer, visit(timer.getStatement()));
+        return mk<InterpreterLogTimer>(I_LogTimer, &timer, visit(timer.getStatement()));
     }
 
     NodePtr visitDebugInfo(const RamDebugInfo& dbg) override {
         NodePtrVec children;
         children.push_back(visit(dbg.getStatement()));
-        return std::make_unique<InterpreterDebugInfo>(I_DebugInfo, &dbg, visit(dbg.getStatement()));
+        return mk<InterpreterDebugInfo>(I_DebugInfo, &dbg, visit(dbg.getStatement()));
     }
 
     NodePtr visitClear(const RamClear& clear) override {
         size_t relId = encodeRelation(clear.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterClear>(I_Clear, &clear, rel);
+        return mk<InterpreterClear>(I_Clear, &clear, rel);
     }
 
     NodePtr visitLogSize(const RamLogSize& size) override {
         size_t relId = encodeRelation(size.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterLogSize>(I_LogSize, &size, rel);
+        return mk<InterpreterLogSize>(I_LogSize, &size, rel);
     }
 
     NodePtr visitIO(const RamIO& io) override {
         size_t relId = encodeRelation(io.getRelation());
         auto rel = relations[relId].get();
-        return std::make_unique<InterpreterIO>(I_IO, &io, rel);
+        return mk<InterpreterIO>(I_IO, &io, rel);
     }
 
     NodePtr visitQuery(const RamQuery& query) override {
@@ -460,7 +460,7 @@ public:
         NodePtrVec children;
         children.push_back(visit(*next));
 
-        auto res = std::make_unique<InterpreterQuery>(I_Query, &query, visit(*next));
+        auto res = mk<InterpreterQuery>(I_Query, &query, visit(*next));
         res->setPreamble(parentQueryPreamble);
         return res;
     }
@@ -468,13 +468,13 @@ public:
     NodePtr visitExtend(const RamExtend& extend) override {
         size_t src = encodeRelation(extend.getFirstRelation());
         size_t target = encodeRelation(extend.getSecondRelation());
-        return std::make_unique<InterpreterExtend>(I_Extend, &extend, src, target);
+        return mk<InterpreterExtend>(I_Extend, &extend, src, target);
     }
 
     NodePtr visitSwap(const RamSwap& swap) override {
         size_t src = encodeRelation(swap.getFirstRelation());
         size_t target = encodeRelation(swap.getSecondRelation());
-        return std::make_unique<InterpreterSwap>(I_Swap, &swap, src, target);
+        return mk<InterpreterSwap>(I_Swap, &swap, src, target);
     }
 
     NodePtr visitUndefValue(const RamUndefValue&) override {
@@ -648,18 +648,18 @@ private:
             relations.resize(idx + 1);
         }
         if (id.getRepresentation() == RelationRepresentation::EQREL) {
-            res = std::make_unique<InterpreterEqRelation>(id.getArity(), id.getAuxiliaryArity(), id.getName(),
+            res = mk<InterpreterEqRelation>(id.getArity(), id.getAuxiliaryArity(), id.getName(),
                     std::vector<std::string>(), orderSet);
         } else {
             if (isProvenance) {
-                res = std::make_unique<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
+                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
                         id.getName(), std::vector<std::string>(), orderSet, createBTreeProvenanceIndex);
             } else {
-                res = std::make_unique<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
+                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
                         id.getName(), std::vector<std::string>(), orderSet);
             }
         }
-        relations[idx] = std::make_unique<RelationHandle>(std::move(res));
+        relations[idx] = mk<RelationHandle>(std::move(res));
     }
 
     /**

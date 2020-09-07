@@ -19,6 +19,7 @@
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <set>
 #include <string>
@@ -56,7 +57,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(wrappedTransformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(wrappedTransformer->getName()) != transforms.end()) {
-            wrappedTransformer = std::make_unique<NullTransformer>();
+            wrappedTransformer = mk<NullTransformer>();
         }
     }
 

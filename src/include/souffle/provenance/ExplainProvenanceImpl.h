@@ -89,7 +89,7 @@ public:
 
         // if fact
         if (levelNum == 0) {
-            return std::make_unique<LeafNode>(relName + "(" + joinedArgsStr + ")");
+            return mk<LeafNode>(relName + "(" + joinedArgsStr + ")");
         }
 
         assert(info.find(std::make_pair(relName, ruleNum)) != info.end() && "invalid rule for tuple");
@@ -109,12 +109,12 @@ public:
                 idx = subproofs.size() - 1;
             }
 
-            return std::make_unique<LeafNode>("subproof " + relName + "(" + std::to_string(idx) + ")");
+            return mk<LeafNode>("subproof " + relName + "(" + std::to_string(idx) + ")");
         }
 
         tuple.push_back(levelNum);
 
-        auto internalNode = std::make_unique<InnerNode>(
+        auto internalNode = mk<InnerNode>(
                 relName + "(" + joinedArgsStr + ")", "(R" + std::to_string(ruleNum) + ")");
 
         // make return vector pointer
@@ -174,7 +174,7 @@ public:
                 std::stringstream joinedTuple;
                 joinedTuple << join(decodeArguments(bodyRelAtomName, subproofTuple), ", ");
                 auto joinedTupleStr = joinedTuple.str();
-                internalNode->add_child(std::make_unique<LeafNode>(bodyRel + "(" + joinedTupleStr + ")"));
+                internalNode->add_child(mk<LeafNode>(bodyRel + "(" + joinedTupleStr + ")"));
                 internalNode->setSize(internalNode->getSize() + 1);
                 // for a binary constraint, display the corresponding values and do not recurse
             } else if (isConstraint) {
@@ -189,7 +189,7 @@ public:
                                      << symTable.resolve(subproofTuple[1]) << "\")";
                 }
 
-                internalNode->add_child(std::make_unique<LeafNode>(joinedConstraint.str()));
+                internalNode->add_child(mk<LeafNode>(joinedConstraint.str()));
                 internalNode->setSize(internalNode->getSize() + 1);
                 // otherwise, for a normal tuple, recurse
             } else {
@@ -209,7 +209,7 @@ public:
             std::string relName, std::vector<std::string> args, size_t depthLimit) override {
         auto tuple = argsToNums(relName, args);
         if (tuple.empty()) {
-            return std::make_unique<LeafNode>("Relation not found");
+            return mk<LeafNode>("Relation not found");
         }
 
         std::tuple<int, int> tupleInfo = findTuple(relName, tuple);
@@ -218,7 +218,7 @@ public:
         int levelNum = std::get<1>(tupleInfo);
 
         if (ruleNum < 0 || levelNum == -1) {
-            return std::make_unique<LeafNode>("Tuple not found");
+            return mk<LeafNode>("Tuple not found");
         }
 
         return explain(relName, tuple, ruleNum, levelNum, depthLimit);
@@ -227,7 +227,7 @@ public:
     std::unique_ptr<TreeNode> explainSubproof(
             std::string relName, RamDomain subproofNum, size_t depthLimit) override {
         if (subproofNum >= (int)subproofs.size()) {
-            return std::make_unique<LeafNode>("Subproof not found");
+            return mk<LeafNode>("Subproof not found");
         }
 
         auto tup = subproofs[subproofNum];
@@ -402,7 +402,7 @@ public:
         // construct tree nodes
         std::stringstream joinedArgsStr;
         joinedArgsStr << join(tuple, ",");
-        auto internalNode = std::make_unique<InnerNode>(
+        auto internalNode = mk<InnerNode>(
                 relName + "(" + joinedArgsStr.str() + ")", "(R" + std::to_string(ruleNum) + ")");
 
         // store the head tuple in bodyVariables so we can print
@@ -464,7 +464,7 @@ public:
                 childLabel << " x";
             }
 
-            internalNode->add_child(std::make_unique<LeafNode>(childLabel.str()));
+            internalNode->add_child(mk<LeafNode>(childLabel.str()));
             internalNode->setSize(internalNode->getSize() + 1);
 
             literalCounter++;

@@ -67,9 +67,9 @@ std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const Ra
             newOp = indexScan->getOperation().clone();
         }
 
-        return std::make_unique<RamFilter>(
-                std::make_unique<RamExistenceCheck>(
-                        std::make_unique<RamRelationReference>(&indexScan->getRelation()),
+        return mk<RamFilter>(
+                mk<RamExistenceCheck>(
+                        mk<RamRelationReference>(&indexScan->getRelation()),
                         std::move(newValues)),
                 std::unique_ptr<RamOperation>(newOp), indexScan->getProfileText());
     }

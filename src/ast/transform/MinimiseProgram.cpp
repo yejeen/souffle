@@ -414,7 +414,7 @@ bool MinimiseProgramTransformer::reduceClauseBodies(AstTranslationUnit& translat
         }
 
         if (!redundantPositions.empty()) {
-            auto minimisedClause = std::make_unique<AstClause>();
+            auto minimisedClause = mk<AstClause>();
             minimisedClause->setHead(souffle::clone(clause->getHead()));
             for (size_t i = 0; i < bodyLiterals.size(); i++) {
                 if (!contains(redundantPositions, i)) {

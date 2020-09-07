@@ -270,7 +270,7 @@ class WriteFileJSONFactory : public WriteStreamFactory {
 public:
     std::unique_ptr<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation,
             const SymbolTable& symbolTable, const RecordTable& recordTable) override {
-        return std::make_unique<WriteFileJSON>(rwOperation, symbolTable, recordTable);
+        return mk<WriteFileJSON>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {
@@ -285,7 +285,7 @@ class WriteCoutJSONFactory : public WriteStreamFactory {
 public:
     std::unique_ptr<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation,
             const SymbolTable& symbolTable, const RecordTable& recordTable) override {
-        return std::make_unique<WriteCoutJSON>(rwOperation, symbolTable, recordTable);
+        return mk<WriteCoutJSON>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {

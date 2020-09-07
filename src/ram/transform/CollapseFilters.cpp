@@ -50,7 +50,7 @@ bool CollapseFiltersTransformer::collapseFilters(RamProgram& program) {
 
                 if (canCollapse) {
                     changed = true;
-                    node = std::make_unique<RamFilter>(toCondition(conditions),
+                    node = mk<RamFilter>(toCondition(conditions),
                             souffle::clone(&prevFilter->getOperation()), prevFilter->getProfileText());
                 }
             }

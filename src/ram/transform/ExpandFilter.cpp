@@ -41,10 +41,10 @@ bool ExpandFilterTransformer::expandFilters(RamProgram& program) {
                     std::vector<std::unique_ptr<RamFilter>> filters;
                     for (auto& cond : conditionList) {
                         if (filters.empty()) {
-                            filters.emplace_back(std::make_unique<RamFilter>(
+                            filters.emplace_back(mk<RamFilter>(
                                     souffle::clone(cond), souffle::clone(&filter->getOperation())));
                         } else {
-                            filters.emplace_back(std::make_unique<RamFilter>(
+                            filters.emplace_back(mk<RamFilter>(
                                     souffle::clone(cond), std::move(filters.back())));
                         }
                     }

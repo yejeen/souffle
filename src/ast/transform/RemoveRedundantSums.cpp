@@ -44,7 +44,7 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
                                     dynamic_cast<const AstNumericConstant*>(agg->getTargetExpression())) {
                         changed = true;
                         // Then construct the new thing to replace it with
-                        auto count = std::make_unique<AstAggregator>(AggregateOp::COUNT);
+                        auto count = mk<AstAggregator>(AggregateOp::COUNT);
                         // Duplicate the body of the aggregate
                         std::vector<std::unique_ptr<AstLiteral>> newBody;
                         for (const auto& lit : agg->getBodyLiterals()) {
@@ -53,7 +53,7 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
                         count->setBody(std::move(newBody));
                         auto number = souffle::clone(constant);
                         // Now it's constant * count : { ... }
-                        auto result = std::make_unique<AstIntrinsicFunctor>(
+                        auto result = mk<AstIntrinsicFunctor>(
                                 "*", std::move(number), std::move(count));
 
                         return result;

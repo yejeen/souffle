@@ -837,7 +837,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
                 // Keep track of which variables are bound to aggregators
                 aggregatorVariables.insert(newVariableName.str());
 
-                return std::make_unique<AstVariable>(newVariableName.str());
+                return mk<AstVariable>(newVariableName.str());
             }
             node->apply(*this);
             return node;
@@ -849,12 +849,12 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     // Create two versions of the original clause
 
     // Clause 1 - will remain equivalent to the original clause in terms of variable groundedness
-    auto originalClause = std::make_unique<AstClause>();
-    originalClause->setHead(std::make_unique<AstAtom>("*"));
+    auto originalClause = mk<AstClause>();
+    originalClause->setHead(mk<AstAtom>("*"));
 
     // Clause 2 - will have aggregators replaced with intrinsically grounded variables
-    auto aggregatorlessClause = std::make_unique<AstClause>();
-    aggregatorlessClause->setHead(std::make_unique<AstAtom>("*"));
+    auto aggregatorlessClause = mk<AstClause>();
+    aggregatorlessClause->setHead(mk<AstAtom>("*"));
 
     // Construct both clauses in the same manner to match the original clause
     // Must keep track of the subnode in Clause 1 that each subnode in Clause 2 matches to
@@ -884,13 +884,13 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     aggregatorlessClause->apply(update);
 
     // Create a dummy atom to force certain arguments to be grounded in the aggregatorlessClause
-    auto groundingAtomAggregatorless = std::make_unique<AstAtom>("grounding_atom");
-    auto groundingAtomOriginal = std::make_unique<AstAtom>("grounding_atom");
+    auto groundingAtomAggregatorless = mk<AstAtom>("grounding_atom");
+    auto groundingAtomOriginal = mk<AstAtom>("grounding_atom");
 
     // Force the new aggregator variables to be grounded in the aggregatorless clause
     const std::set<std::string>& aggregatorVariables = update.getAggregatorVariables();
     for (const std::string& str : aggregatorVariables) {
-        groundingAtomAggregatorless->addArgument(std::make_unique<AstVariable>(str));
+        groundingAtomAggregatorless->addArgument(mk<AstVariable>(str));
     }
 
     // Force the given grounded arguments to be grounded in both clauses
@@ -944,10 +944,10 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
         std::vector<AstLiteral*> bodyLiterals = clause.getBodyLiterals();
 
         // Add in all head variables as new ungrounded body literals
-        auto headVariables = std::make_unique<AstAtom>("*");
+        auto headVariables = mk<AstAtom>("*");
         visitDepthFirst(*clause.getHead(),
                 [&](const AstVariable& var) { headVariables->addArgument(souffle::clone(&var)); });
-        auto headNegation = std::make_unique<AstNegation>(std::move(headVariables));
+        auto headNegation = mk<AstNegation>(std::move(headVariables));
         bodyLiterals.push_back(headNegation.get());
 
         // Perform the check

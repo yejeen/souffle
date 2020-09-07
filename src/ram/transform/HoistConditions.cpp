@@ -36,7 +36,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
         if (condition == nullptr) {
             return c;
         } else {
-            return std::make_unique<RamConjunction>(std::move(condition), std::move(c));
+            return mk<RamConjunction>(std::move(condition), std::move(c));
         }
     };
 
@@ -67,7 +67,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
             changed = true;
             auto* nestedOp = const_cast<RamOperation*>(&mQuery->getOperation());
             mQuery->rewrite(
-                    nestedOp, std::make_unique<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
+                    nestedOp, mk<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
         }
     });
 
@@ -95,7 +95,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
         if (newCondition != nullptr) {
             // insert new filter operation after the search operation
             changed = true;
-            tupleOp->rewrite(&tupleOp->getOperation(), std::make_unique<RamFilter>(std::move(newCondition),
+            tupleOp->rewrite(&tupleOp->getOperation(), mk<RamFilter>(std::move(newCondition),
                                                                souffle::clone(&tupleOp->getOperation())));
         }
     });

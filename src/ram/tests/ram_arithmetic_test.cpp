@@ -55,13 +55,13 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
 
     Global::config().set("jobs", "1");
     std::unique_ptr<RamStatement> query =
-            std::make_unique<RamQuery>(std::make_unique<RamSubroutineReturn>(std::move(returnValues)));
+            mk<RamQuery>(mk<RamSubroutineReturn>(std::move(returnValues)));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
     subs.insert(std::make_pair("test", std::move(query)));
     std::vector<std::unique_ptr<RamRelation>> rels;
 
     std::unique_ptr<RamProgram> prog =
-            std::make_unique<RamProgram>(std::move(rels), std::make_unique<RamSequence>(), std::move(subs));
+            mk<RamProgram>(std::move(rels), mk<RamSequence>(), std::move(subs));
 
     ErrorReport errReport;
     DebugReport debugReport;
@@ -69,7 +69,7 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
     RamTranslationUnit translationUnit(std::move(prog), symTab, errReport, debugReport);
 
     // configure and execute interpreter
-    std::unique_ptr<InterpreterEngine> interpreter = std::make_unique<InterpreterEngine>(translationUnit);
+    std::unique_ptr<InterpreterEngine> interpreter = mk<InterpreterEngine>(translationUnit);
 
     std::string name("test");
     std::vector<RamDomain> ret;
@@ -87,7 +87,7 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
 
 RamDomain evalMultiArg(
         FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args, SymbolTable& symTab) {
-    return evalExpression(std::make_unique<RamIntrinsicOperator>(functor, std::move(args)), symTab);
+    return evalExpression(mk<RamIntrinsicOperator>(functor, std::move(args)), symTab);
 }
 
 RamDomain evalMultiArg(FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args) {
@@ -98,7 +98,7 @@ RamDomain evalMultiArg(FunctorOp functor, std::vector<std::unique_ptr<RamExpress
 /** Evaluate a single argument expression */
 RamDomain evalUnary(FunctorOp functor, RamDomain arg1) {
     std::vector<std::unique_ptr<RamExpression>> args;
-    args.push_back(std::make_unique<RamSignedConstant>(arg1));
+    args.push_back(mk<RamSignedConstant>(arg1));
 
     return evalMultiArg(functor, std::move(args));
 }
@@ -106,15 +106,15 @@ RamDomain evalUnary(FunctorOp functor, RamDomain arg1) {
 /** Evaluate a binary operator */
 RamDomain evalBinary(FunctorOp functor, RamDomain arg1, RamDomain arg2) {
     std::vector<std::unique_ptr<RamExpression>> args;
-    args.push_back(std::make_unique<RamSignedConstant>(arg1));
-    args.push_back(std::make_unique<RamSignedConstant>(arg2));
+    args.push_back(mk<RamSignedConstant>(arg1));
+    args.push_back(mk<RamSignedConstant>(arg2));
 
     return evalMultiArg(functor, std::move(args));
 }
 
 TEST(RamSignedConstant, ArithmeticEvaluation) {
     RamDomain num = 42;
-    std::unique_ptr<RamExpression> expression = std::make_unique<RamSignedConstant>(num);
+    std::unique_ptr<RamExpression> expression = mk<RamSignedConstant>(num);
     RamDomain result = evalExpression(std::move(expression));
     EXPECT_EQ(result, num);
 }
@@ -612,7 +612,7 @@ TEST(MultiArg, Max) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamDomain i = 0; i <= 50; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(i));
+        args.push_back(mk<RamSignedConstant>(i));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -625,7 +625,7 @@ TEST(MultiArg, UnsignedMax) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamUnsigned i = 0; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(ramBitCast(i)));
+        args.push_back(mk<RamSignedConstant>(ramBitCast(i)));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -638,7 +638,7 @@ TEST(MultiArg, FloatMax) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamDomain i = -100; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
+        args.push_back(mk<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -653,7 +653,7 @@ TEST(MultiArg, SymbolMax) {
     SymbolTable symTab;
 
     for (RamDomain i = -100; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(symTab.lookup(std::to_string(i))));
+        args.push_back(mk<RamSignedConstant>(symTab.lookup(std::to_string(i))));
     }
 
     auto&& result = symTab.resolve(evalMultiArg(functor, std::move(args), symTab));
@@ -666,7 +666,7 @@ TEST(MultiArg, Min) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamDomain i = 0; i <= 50; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(i));
+        args.push_back(mk<RamSignedConstant>(i));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -679,7 +679,7 @@ TEST(MultiArg, UnsignedMin) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamUnsigned i = 0; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(ramBitCast(i)));
+        args.push_back(mk<RamSignedConstant>(ramBitCast(i)));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -692,7 +692,7 @@ TEST(MultiArg, FloatMin) {
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
 
     for (RamDomain i = -100; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
+        args.push_back(mk<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
     }
 
     RamDomain result = evalMultiArg(functor, std::move(args));
@@ -707,7 +707,7 @@ TEST(MultiArg, SymbolMin) {
     SymbolTable symTab;
 
     for (RamDomain i = -100; i <= 100; ++i) {
-        args.push_back(std::make_unique<RamSignedConstant>(symTab.lookup(std::to_string(i))));
+        args.push_back(mk<RamSignedConstant>(symTab.lookup(std::to_string(i))));
     }
 
     auto&& result = symTab.resolve(evalMultiArg(functor, std::move(args), symTab));

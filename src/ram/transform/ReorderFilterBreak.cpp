@@ -36,8 +36,8 @@ bool ReorderFilterBreak::reorderFilterBreak(RamProgram& program) {
                 if (const RamBreak* br = dynamic_cast<RamBreak*>(&filter->getOperation())) {
                     changed = true;
                     // convert to break-filter nesting
-                    node = std::make_unique<RamBreak>(souffle::clone(&br->getCondition()),
-                            std::make_unique<RamFilter>(souffle::clone(&filter->getCondition()),
+                    node = mk<RamBreak>(souffle::clone(&br->getCondition()),
+                            mk<RamFilter>(souffle::clone(&filter->getCondition()),
                                     souffle::clone(&br->getOperation())));
                 }
             }
