@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>
