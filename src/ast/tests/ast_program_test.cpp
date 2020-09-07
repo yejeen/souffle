@@ -48,9 +48,9 @@ inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program) {
 }
 
 inline std::unique_ptr<AstClause> makeClause(std::string name, std::unique_ptr<AstArgument> headArgument) {
-    auto headAtom = std::make_unique<AstAtom>(name);
+    auto headAtom = mk<AstAtom>(name);
     headAtom->addArgument(std::move(headArgument));
-    auto clause = std::make_unique<AstClause>();
+    auto clause = mk<AstClause>();
     clause->setHead(std::move(headAtom));
     return clause;
 }
@@ -196,9 +196,9 @@ TESTASTCLONEANDEQUAL(RelationCopies,
 
 /** test removeClause, addRelation and removeRelation */
 TEST(AstProgram, RemoveClause) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto sum = std::make_unique<AstAggregator>(AggregateOp::SUM, std::make_unique<AstVariable>("x"));
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto sum = mk<AstAggregator>(AggregateOp::SUM, mk<AstVariable>("x"));
     std::vector<std::unique_ptr<AstLiteral>> body;
     body.push_back(std::move(atom));
     sum->setBody(std::move(body));
@@ -214,9 +214,9 @@ TEST(AstProgram, RemoveClause) {
 TEST(AstProgram, AppendAstRelation) {
     auto tu1 = makeATU(".decl A,B,C(x:number)");
     auto* prog1 = tu1->getProgram();
-    auto rel = std::make_unique<AstRelation>();
+    auto rel = mk<AstRelation>();
     rel->setQualifiedName("D");
-    rel->addAttribute(std::make_unique<AstAttribute>("x", "number"));
+    rel->addAttribute(mk<AstAttribute>("x", "number"));
     prog1->addRelation(std::move(rel));
     auto tu2 = makeATU(".decl A,B,C,D(x:number)");
     EXPECT_EQ(*tu1->getProgram(), *tu2->getProgram());

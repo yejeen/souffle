@@ -182,7 +182,7 @@ class ReadSQLiteFactory : public ReadStreamFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const std::map<std::string, std::string>& rwOperation,
             SymbolTable& symbolTable, RecordTable& recordTable) override {
-        return std::make_unique<ReadStreamSQLite>(rwOperation, symbolTable, recordTable);
+        return mk<ReadStreamSQLite>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {

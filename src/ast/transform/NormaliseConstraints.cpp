@@ -79,7 +79,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 newVariableName << boundPrefix << changeCount << "_" << constantValue << "_s";
 
                 // create new constraint (+abdulX = constant)
-                auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
+                auto newVariable = mk<AstVariable>(newVariableName.str());
                 constraints.insert(new AstBinaryConstraint(
                         BinaryConstraintOp::EQ, souffle::clone(newVariable), souffle::clone(stringConstant)));
 
@@ -99,7 +99,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                                     : BinaryConstraintOp::EQ;
 
                 // create new constraint (+abdulX = constant)
-                auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
+                auto newVariable = mk<AstVariable>(newVariableName.str());
                 constraints.insert(new AstBinaryConstraint(
                         opEq, souffle::clone(newVariable), souffle::clone(numberConstant)));
 
@@ -113,7 +113,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 std::stringstream newVariableName;
                 newVariableName << "+underscore" << changeCount;
 
-                return std::make_unique<AstVariable>(newVariableName.str());
+                return mk<AstVariable>(newVariableName.str());
             }
 
             node->apply(*this);

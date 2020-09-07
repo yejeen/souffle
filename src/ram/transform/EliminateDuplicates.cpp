@@ -49,7 +49,7 @@ bool EliminateDuplicatesTransformer::eliminateDuplicates(RamProgram& program) {
                 }
                 if (eliminatedDuplicate) {
                     changed = true;
-                    node = std::make_unique<RamFilter>(std::unique_ptr<RamCondition>(toCondition(conds)),
+                    node = mk<RamFilter>(std::unique_ptr<RamCondition>(toCondition(conds)),
                             souffle::clone(&filter->getOperation()));
                 }
             }

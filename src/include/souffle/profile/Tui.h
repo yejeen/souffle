@@ -27,6 +27,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <map>
@@ -39,7 +40,6 @@
 #include <utility>
 #include <vector>
 #include <dirent.h>
-#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 

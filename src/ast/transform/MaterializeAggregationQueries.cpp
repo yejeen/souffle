@@ -174,7 +174,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 int n = pair.second;
                 // if it doesn't occur in this level, don't add it
                 if (n > 0) {
-                    head->addArgument(std::make_unique<AstVariable>(var));
+                    head->addArgument(mk<AstVariable>(var));
                 }
             }
 
@@ -213,7 +213,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             std::map<const AstArgument*, TypeSet> argTypes =
                     TypeAnalysis::analyseTypes(translationUnit, *aggClause);
             for (const auto& cur : head->getArguments()) {
-                rel->addAttribute(std::make_unique<AstAttribute>(toString(*cur),
+                rel->addAttribute(mk<AstAttribute>(toString(*cur),
                         (isOfKind(argTypes[cur], TypeAttribute::Signed)) ? "number" : "symbol"));
             }
 
@@ -232,8 +232,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 }
                 args.emplace_back(arg->clone());
             }
-            auto aggAtom =
-                    std::make_unique<AstAtom>(head->getQualifiedName(), std::move(args), head->getSrcLoc());
+            auto aggAtom = mk<AstAtom>(head->getQualifiedName(), std::move(args), head->getSrcLoc());
 
             std::vector<std::unique_ptr<AstLiteral>> newBody;
             newBody.push_back(std::move(aggAtom));

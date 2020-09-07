@@ -443,70 +443,52 @@ int main(int argc, char** argv) {
     // ------- rewriting / optimizations -------------
 
     /* set up additional global options based on pragma declaratives */
-    (std::make_unique<AstPragmaChecker>())->apply(*astTranslationUnit);
+    (mk<AstPragmaChecker>())->apply(*astTranslationUnit);
 
     /* construct the transformation pipeline */
 
     // Equivalence pipeline
-    auto equivalencePipeline =
-            std::make_unique<PipelineTransformer>(std::make_unique<NameUnnamedVariablesTransformer>(),
-                    std::make_unique<FixpointTransformer>(std::make_unique<MinimiseProgramTransformer>()),
-                    std::make_unique<ReplaceSingletonVariablesTransformer>(),
-                    std::make_unique<RemoveRelationCopiesTransformer>(),
-                    std::make_unique<RemoveEmptyRelationsTransformer>(),
-                    std::make_unique<RemoveRedundantRelationsTransformer>());
+    auto equivalencePipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
+            mk<FixpointTransformer>(mk<MinimiseProgramTransformer>()),
+            mk<ReplaceSingletonVariablesTransformer>(), mk<RemoveRelationCopiesTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<RemoveRedundantRelationsTransformer>());
 
     // Magic-Set pipeline
-    auto magicPipeline = std::make_unique<PipelineTransformer>(std::make_unique<MagicSetTransformer>(),
-            std::make_unique<ResolveAliasesTransformer>(),
-            std::make_unique<RemoveRelationCopiesTransformer>(),
-            std::make_unique<RemoveEmptyRelationsTransformer>(),
-            std::make_unique<RemoveRedundantRelationsTransformer>(), souffle::clone(equivalencePipeline));
+    auto magicPipeline = mk<PipelineTransformer>(mk<MagicSetTransformer>(), mk<ResolveAliasesTransformer>(),
+            mk<RemoveRelationCopiesTransformer>(), mk<RemoveEmptyRelationsTransformer>(),
+            mk<RemoveRedundantRelationsTransformer>(), souffle::clone(equivalencePipeline));
 
     // Partitioning pipeline
-    auto partitionPipeline =
-            std::make_unique<PipelineTransformer>(std::make_unique<NameUnnamedVariablesTransformer>(),
-                    std::make_unique<PartitionBodyLiteralsTransformer>(),
-                    std::make_unique<ReplaceSingletonVariablesTransformer>());
+    auto partitionPipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
+            mk<PartitionBodyLiteralsTransformer>(), mk<ReplaceSingletonVariablesTransformer>());
 
     // Provenance pipeline
     auto provenancePipeline = mk<ConditionalTransformer>(Global::config().has("provenance"),
             mk<PipelineTransformer>(mk<ProvenanceTransformer>(), mk<PolymorphicObjectsTransformer>()));
 
     // Main pipeline
-    auto pipeline = std::make_unique<PipelineTransformer>(std::make_unique<AstComponentChecker>(),
-            std::make_unique<ComponentInstantiationTransformer>(), std::make_unique<IODefaultsTransformer>(),
-            std::make_unique<UniqueAggregationVariablesTransformer>(),
-            std::make_unique<AstUserDefinedFunctorsTransformer>(),
-            std::make_unique<FixpointTransformer>(
-                    std::make_unique<PipelineTransformer>(std::make_unique<ResolveAnonymousRecordAliases>(),
-                            std::make_unique<FoldAnonymousRecords>())),
-            std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<AstSemanticChecker>(),
-            std::make_unique<ADTtoRecordsTransformer>(),
-            std::make_unique<MaterializeSingletonAggregationTransformer>(),
-            std::make_unique<FixpointTransformer>(
-                    std::make_unique<MaterializeAggregationQueriesTransformer>()),
-            std::make_unique<ResolveAliasesTransformer>(), std::make_unique<RemoveTypecastsTransformer>(),
-            std::make_unique<RemoveBooleanConstraintsTransformer>(),
-            std::make_unique<ResolveAliasesTransformer>(), std::make_unique<MinimiseProgramTransformer>(),
-            std::make_unique<InlineRelationsTransformer>(), std::make_unique<PolymorphicObjectsTransformer>(),
-            std::make_unique<GroundedTermsChecker>(), std::make_unique<ResolveAliasesTransformer>(),
-            std::make_unique<RemoveRedundantRelationsTransformer>(),
-            std::make_unique<RemoveRelationCopiesTransformer>(),
-            std::make_unique<RemoveEmptyRelationsTransformer>(),
-            std::make_unique<ReplaceSingletonVariablesTransformer>(),
-            std::make_unique<FixpointTransformer>(
-                    std::make_unique<PipelineTransformer>(std::make_unique<ReduceExistentialsTransformer>(),
-                            std::make_unique<RemoveRedundantRelationsTransformer>())),
-            std::make_unique<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
-            std::move(equivalencePipeline), std::make_unique<RemoveRelationCopiesTransformer>(),
-            std::move(magicPipeline), std::make_unique<ReorderLiteralsTransformer>(),
-            std::make_unique<RemoveRedundantSumsTransformer>(),
-            std::make_unique<RemoveEmptyRelationsTransformer>(),
-            std::make_unique<AddNullariesToAtomlessAggregatesTransformer>(),
-            std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<ReorderLiteralsTransformer>(),
-            std::make_unique<AstExecutionPlanChecker>(), std::move(provenancePipeline),
-            std::make_unique<IOAttributesTransformer>());
+    auto pipeline = mk<PipelineTransformer>(mk<AstComponentChecker>(),
+            mk<ComponentInstantiationTransformer>(), mk<IODefaultsTransformer>(),
+            mk<UniqueAggregationVariablesTransformer>(), mk<AstUserDefinedFunctorsTransformer>(),
+            mk<FixpointTransformer>(
+                    mk<PipelineTransformer>(mk<ResolveAnonymousRecordAliases>(), mk<FoldAnonymousRecords>())),
+            mk<PolymorphicObjectsTransformer>(), mk<AstSemanticChecker>(), mk<ADTtoRecordsTransformer>(),
+            mk<MaterializeSingletonAggregationTransformer>(),
+            mk<FixpointTransformer>(mk<MaterializeAggregationQueriesTransformer>()),
+            mk<ResolveAliasesTransformer>(), mk<RemoveTypecastsTransformer>(),
+            mk<RemoveBooleanConstraintsTransformer>(), mk<ResolveAliasesTransformer>(),
+            mk<MinimiseProgramTransformer>(), mk<InlineRelationsTransformer>(),
+            mk<PolymorphicObjectsTransformer>(), mk<GroundedTermsChecker>(), mk<ResolveAliasesTransformer>(),
+            mk<RemoveRedundantRelationsTransformer>(), mk<RemoveRelationCopiesTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<ReplaceSingletonVariablesTransformer>(),
+            mk<FixpointTransformer>(mk<PipelineTransformer>(
+                    mk<ReduceExistentialsTransformer>(), mk<RemoveRedundantRelationsTransformer>())),
+            mk<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
+            std::move(equivalencePipeline), mk<RemoveRelationCopiesTransformer>(), std::move(magicPipeline),
+            mk<ReorderLiteralsTransformer>(), mk<RemoveRedundantSumsTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<AddNullariesToAtomlessAggregatesTransformer>(),
+            mk<PolymorphicObjectsTransformer>(), mk<ReorderLiteralsTransformer>(),
+            mk<AstExecutionPlanChecker>(), std::move(provenancePipeline), mk<IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {
@@ -585,27 +567,23 @@ int main(int argc, char** argv) {
             AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
-    std::unique_ptr<RamTransformer> ramTransform = std::make_unique<RamTransformerSequence>(
-            std::make_unique<RamLoopTransformer>(std::make_unique<RamTransformerSequence>(
-                    std::make_unique<ExpandFilterTransformer>(),
-                    std::make_unique<HoistConditionsTransformer>(), std::make_unique<MakeIndexTransformer>()
+    std::unique_ptr<RamTransformer> ramTransform = mk<RamTransformerSequence>(
+            mk<RamLoopTransformer>(mk<RamTransformerSequence>(mk<ExpandFilterTransformer>(),
+                    mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>()
                     // not sure if I need to move out the filter transform
                     )),
-            std::make_unique<RamLoopTransformer>(std::make_unique<IndexedInequalityTransformer>()),
-            std::make_unique<IfConversionTransformer>(), std::make_unique<ChoiceConversionTransformer>(),
-            std::make_unique<CollapseFiltersTransformer>(), std::make_unique<TupleIdTransformer>(),
-            std::make_unique<RamLoopTransformer>(std::make_unique<RamTransformerSequence>(
-                    std::make_unique<HoistAggregateTransformer>(), std::make_unique<TupleIdTransformer>())),
-            std::make_unique<ExpandFilterTransformer>(), std::make_unique<HoistConditionsTransformer>(),
-            std::make_unique<CollapseFiltersTransformer>(),
-            std::make_unique<EliminateDuplicatesTransformer>(),
-            std::make_unique<ReorderConditionsTransformer>(),
-            std::make_unique<RamLoopTransformer>(std::make_unique<ReorderFilterBreak>()),
-            std::make_unique<RamConditionalTransformer>(
+            mk<RamLoopTransformer>(mk<IndexedInequalityTransformer>()), mk<IfConversionTransformer>(),
+            mk<ChoiceConversionTransformer>(), mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
+            mk<RamLoopTransformer>(
+                    mk<RamTransformerSequence>(mk<HoistAggregateTransformer>(), mk<TupleIdTransformer>())),
+            mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(), mk<CollapseFiltersTransformer>(),
+            mk<EliminateDuplicatesTransformer>(), mk<ReorderConditionsTransformer>(),
+            mk<RamLoopTransformer>(mk<ReorderFilterBreak>()),
+            mk<RamConditionalTransformer>(
                     // job count of 0 means all cores are used.
                     []() -> bool { return std::stoi(Global::config().get("jobs")) != 1; },
-                    std::make_unique<ParallelTransformer>()),
-            std::make_unique<ReportIndexTransformer>());
+                    mk<ParallelTransformer>()),
+            mk<ReportIndexTransformer>());
 
     ramTransform->apply(*ramTranslationUnit);
     if (ramTranslationUnit->getErrorReport().getNumIssues() != 0) {
@@ -630,8 +608,7 @@ int main(int argc, char** argv) {
             }
 
             // configure and execute interpreter
-            std::unique_ptr<InterpreterEngine> interpreter(
-                    std::make_unique<InterpreterEngine>(*ramTranslationUnit));
+            std::unique_ptr<InterpreterEngine> interpreter(mk<InterpreterEngine>(*ramTranslationUnit));
             interpreter->executeMain();
             // If the profiler was started, join back here once it exits.
             if (profiler.joinable()) {
@@ -648,7 +625,7 @@ int main(int argc, char** argv) {
             }
         } else {
             // ------- compiler -------------
-            std::unique_ptr<Synthesiser> synthesiser = std::make_unique<Synthesiser>(*ramTranslationUnit);
+            std::unique_ptr<Synthesiser> synthesiser = mk<Synthesiser>(*ramTranslationUnit);
 
             // Find the base filename for code generation and execution
             std::string baseFilename;

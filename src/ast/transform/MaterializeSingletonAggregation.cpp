@@ -85,9 +85,9 @@ bool MaterializeSingletonAggregationTransformer::transform(AstTranslationUnit& t
         AstClause* clause = pair.second;
         // synthesise an aggregate relation
         // __agg_rel_0()
-        auto aggRel = std::make_unique<AstRelation>();
-        auto aggHead = std::make_unique<AstAtom>();
-        auto aggClause = std::make_unique<AstClause>();
+        auto aggRel = mk<AstRelation>();
+        auto aggHead = mk<AstAtom>();
+        auto aggClause = mk<AstClause>();
 
         std::string aggRelName = findUniqueAggregateRelationName(program);
         aggRel->setQualifiedName(aggRelName);
@@ -95,16 +95,16 @@ bool MaterializeSingletonAggregationTransformer::transform(AstTranslationUnit& t
 
         // create a synthesised variable to replace the aggregate term!
         std::string variableName = findUniqueVariableName(*clause);
-        auto variable = std::make_unique<AstVariable>(variableName);
+        auto variable = mk<AstVariable>(variableName);
 
         // __agg_rel_0(z) :- ...
         aggHead->addArgument(souffle::clone(variable));
-        aggRel->addAttribute(std::make_unique<AstAttribute>(variableName, "number"));
+        aggRel->addAttribute(mk<AstAttribute>(variableName, "number"));
         aggClause->setHead(souffle::clone(aggHead));
 
         //    A(x) :- x = sum .., B(x).
         // -> A(x) :- x = z, B(x), __agg_rel_0(z).
-        auto equalityLiteral = std::make_unique<AstBinaryConstraint>(
+        auto equalityLiteral = mk<AstBinaryConstraint>(
                 BinaryConstraintOp::EQ, souffle::clone(variable), souffle::clone(aggregate));
         // __agg_rel_0(z) :- z = sum ...
         aggClause->addToBody(std::move(equalityLiteral));

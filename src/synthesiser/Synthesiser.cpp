@@ -2412,7 +2412,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         // defining table
         os << "// -- Table: " << datalogName << "\n";
 
-        os << "std::unique_ptr<" << type << "> " << cppName << " = std::make_unique<" << type << ">();\n";
+        os << "std::unique_ptr<" << type << "> " << cppName << " = mk<" << type << ">();\n";
         if (!rel->isTemp()) {
             os << "souffle::RelationWrapper<";
             os << relCtr++ << ",";
