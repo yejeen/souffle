@@ -47,7 +47,7 @@ namespace souffle {
  */
 class RamConstraint : public RamCondition {
 public:
-    RamConstraint(BinaryConstraintOp op, std::unique_ptr<RamExpression> l, std::unique_ptr<RamExpression> r)
+    RamConstraint(BinaryConstraintOp op, Own<RamExpression> l, Own<RamExpression> r)
             : op(op), lhs(std::move(l)), rhs(std::move(r)) {
         assert(lhs != nullptr && "left-hand side of constraint is a null-pointer");
         assert(rhs != nullptr && "right-hand side of constraint is a null-pointer");
@@ -97,10 +97,10 @@ protected:
     BinaryConstraintOp op;
 
     /** Left-hand side of constraint*/
-    std::unique_ptr<RamExpression> lhs;
+    Own<RamExpression> lhs;
 
     /** Right-hand side of constraint */
-    std::unique_ptr<RamExpression> rhs;
+    Own<RamExpression> rhs;
 };
 
 }  // end of namespace souffle

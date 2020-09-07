@@ -115,10 +115,10 @@ bool MaterializeSingletonAggregationTransformer::transform(AstTranslationUnit& t
         // clause with the synthesised variable
         struct replaceAggregate : public AstNodeMapper {
             const AstAggregator& aggregate;
-            const std::unique_ptr<AstVariable> variable;
-            replaceAggregate(const AstAggregator& aggregate, std::unique_ptr<AstVariable> variable)
+            const Own<AstVariable> variable;
+            replaceAggregate(const AstAggregator& aggregate, Own<AstVariable> variable)
                     : aggregate(aggregate), variable(std::move(variable)) {}
-            std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            Own<AstNode> operator()(Own<AstNode> node) const override {
                 assert(node != nullptr);
                 if (auto* current = dynamic_cast<AstAggregator*>(node.get())) {
                     if (*current == aggregate) {

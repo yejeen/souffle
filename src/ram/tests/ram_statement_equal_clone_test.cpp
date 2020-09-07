@@ -130,7 +130,7 @@ TEST(RamQuery, CloneAndEquals) {
      *  FOR t0 IN A
      *   PROJECT (t0.0, t0.2) INTO B
      */
-    std::vector<std::unique_ptr<RamExpression>> a_expressions;
+    VecOwn<RamExpression> a_expressions;
     a_expressions.emplace_back(new RamTupleElement(0, 0));
     a_expressions.emplace_back(new RamTupleElement(0, 2));
     auto a_project = std::make_unique<RamProject>(
@@ -138,7 +138,7 @@ TEST(RamQuery, CloneAndEquals) {
     auto a_scan = std::make_unique<RamScan>(
             std::make_unique<RamRelationReference>(&A), 0, std::move(a_project), "");
 
-    std::vector<std::unique_ptr<RamExpression>> b_expressions;
+    VecOwn<RamExpression> b_expressions;
     b_expressions.emplace_back(new RamTupleElement(0, 0));
     b_expressions.emplace_back(new RamTupleElement(0, 2));
     auto b_project = std::make_unique<RamProject>(
@@ -161,7 +161,7 @@ TEST(RamQuery, CloneAndEquals) {
      *  PARALLEL CHOICE t1 IN A WHERE (t1.0 = 0)
      *   RETURN (t1.2)
      */
-    std::vector<std::unique_ptr<RamExpression>> d_return_value;
+    VecOwn<RamExpression> d_return_value;
     d_return_value.emplace_back(new RamTupleElement(1, 0));
     auto d_return = std::make_unique<RamSubroutineReturn>(std::move(d_return_value));
     // condition t1.0 = 0
@@ -170,7 +170,7 @@ TEST(RamQuery, CloneAndEquals) {
     auto d_parallel_choice = std::make_unique<RamParallelChoice>(
             std::make_unique<RamRelationReference>(&A), 1, std::move(d_cond), std::move(d_return), "");
 
-    std::vector<std::unique_ptr<RamExpression>> e_return_value;
+    VecOwn<RamExpression> e_return_value;
     e_return_value.emplace_back(new RamTupleElement(1, 0));
     auto e_return = std::make_unique<RamSubroutineReturn>(std::move(e_return_value));
     // condition t1.0 = 0
@@ -246,7 +246,7 @@ TEST(RamParallel, CloneAndEquals) {
      * END PARALLEL
      * */
 
-    std::vector<std::unique_ptr<RamExpression>> a_expressions;
+    VecOwn<RamExpression> a_expressions;
     a_expressions.emplace_back(new RamTupleElement(0, 0));
     a_expressions.emplace_back(new RamTupleElement(0, 2));
     auto a_project = std::make_unique<RamProject>(
@@ -260,7 +260,7 @@ TEST(RamParallel, CloneAndEquals) {
     auto a_query = std::make_unique<RamQuery>(std::move(a_scan));
     RamParallel a(std::move(a_query));
 
-    std::vector<std::unique_ptr<RamExpression>> b_expressions;
+    VecOwn<RamExpression> b_expressions;
     b_expressions.emplace_back(new RamTupleElement(0, 0));
     b_expressions.emplace_back(new RamTupleElement(0, 2));
     auto b_project = std::make_unique<RamProject>(
@@ -293,7 +293,7 @@ TEST(RamLoop, CloneAndEquals) {
      *    PROJECT (t0.0) INTO B
      * END LOOP
      * */
-    std::vector<std::unique_ptr<RamExpression>> a_expressions;
+    VecOwn<RamExpression> a_expressions;
     a_expressions.emplace_back(new RamTupleElement(0, 0));
     auto a_project = std::make_unique<RamProject>(
             std::make_unique<RamRelationReference>(&B), std::move(a_expressions));
@@ -306,7 +306,7 @@ TEST(RamLoop, CloneAndEquals) {
     auto a_query = std::make_unique<RamQuery>(std::move(a_scan));
     RamLoop a(std::move(a_query));
 
-    std::vector<std::unique_ptr<RamExpression>> b_expressions;
+    VecOwn<RamExpression> b_expressions;
     b_expressions.emplace_back(new RamTupleElement(0, 0));
     auto b_project = std::make_unique<RamProject>(
             std::make_unique<RamRelationReference>(&B), std::move(b_expressions));
@@ -395,17 +395,17 @@ TEST(RamDebugInfo, CloneAndEquals) {
      * [17:1-17:26];" QUERY FOR t0 IN edge IF (NOT (edge = ∅)) IF (NOT (t0.0,t0.1,⊥,⊥) ∈ path) PROJECT (t0.0,
      * t0.1, number(1), (t0.3+number(1))) INTO path END DEBUG
      * */
-    std::vector<std::unique_ptr<RamExpression>> a_project_list;
+    VecOwn<RamExpression> a_project_list;
     a_project_list.emplace_back(new RamTupleElement(0, 0));
     a_project_list.emplace_back(new RamTupleElement(0, 1));
     a_project_list.emplace_back(new RamSignedConstant(1));
-    std::vector<std::unique_ptr<RamExpression>> a_project_add;
+    VecOwn<RamExpression> a_project_add;
     a_project_add.emplace_back(new RamTupleElement(0, 3));
     a_project_add.emplace_back(new RamSignedConstant(1));
     a_project_list.emplace_back(new RamIntrinsicOperator(FunctorOp::ADD, std::move(a_project_add)));
     auto a_project = std::make_unique<RamProject>(
             std::make_unique<RamRelationReference>(&path), std::move(a_project_list));
-    std::vector<std::unique_ptr<RamExpression>> a_filter1_list;
+    VecOwn<RamExpression> a_filter1_list;
     a_filter1_list.emplace_back(new RamTupleElement(0, 0));
     a_filter1_list.emplace_back(new RamTupleElement(0, 1));
     a_filter1_list.emplace_back(new RamUndefValue);
@@ -423,17 +423,17 @@ TEST(RamDebugInfo, CloneAndEquals) {
     RamDebugInfo a(std::move(a_query),
             "path(x,y,1,(@level_num_0+1)) :- \n   edge(x,y,_,@level_num_0).\nin file /edge.dl [17:1-17:26];");
 
-    std::vector<std::unique_ptr<RamExpression>> b_project_list;
+    VecOwn<RamExpression> b_project_list;
     b_project_list.emplace_back(new RamTupleElement(0, 0));
     b_project_list.emplace_back(new RamTupleElement(0, 1));
     b_project_list.emplace_back(new RamSignedConstant(1));
-    std::vector<std::unique_ptr<RamExpression>> b_project_add;
+    VecOwn<RamExpression> b_project_add;
     b_project_add.emplace_back(new RamTupleElement(0, 3));
     b_project_add.emplace_back(new RamSignedConstant(1));
     b_project_list.emplace_back(new RamIntrinsicOperator(FunctorOp::ADD, std::move(b_project_add)));
     auto b_project = std::make_unique<RamProject>(
             std::make_unique<RamRelationReference>(&path), std::move(b_project_list));
-    std::vector<std::unique_ptr<RamExpression>> b_filter1_list;
+    VecOwn<RamExpression> b_filter1_list;
     b_filter1_list.emplace_back(new RamTupleElement(0, 0));
     b_filter1_list.emplace_back(new RamTupleElement(0, 1));
     b_filter1_list.emplace_back(new RamUndefValue);

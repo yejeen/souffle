@@ -30,7 +30,7 @@
 
 namespace souffle {
 
-std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* indexScan) {
+Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* indexScan) {
     // check whether tuple is used in subsequent operations
     bool tupleNotUsed = true;
     visitDepthFirst(*indexScan, [&](const RamTupleElement& element) {
@@ -42,7 +42,7 @@ std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const Ra
     // if not used, transform the IndexScan operation to an existence check
     if (tupleNotUsed) {
         // replace IndexScan with an Filter/Existence check
-        std::vector<std::unique_ptr<RamExpression>> newValues;
+        VecOwn<RamExpression> newValues;
 
         size_t arity = indexScan->getRangePattern().first.size();
         for (size_t i = 0; i < arity; ++i) {
@@ -71,7 +71,7 @@ std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const Ra
                 std::make_unique<RamExistenceCheck>(
                         std::make_unique<RamRelationReference>(&indexScan->getRelation()),
                         std::move(newValues)),
-                std::unique_ptr<RamOperation>(newOp), indexScan->getProfileText());
+                Own<RamOperation>(newOp), indexScan->getProfileText());
     }
     return nullptr;
 }
@@ -79,10 +79,9 @@ std::unique_ptr<RamOperation> IfConversionTransformer::rewriteIndexScan(const Ra
 bool IfConversionTransformer::convertIndexScans(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> scanRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> scanRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamIndexScan* scan = dynamic_cast<RamIndexScan*>(node.get())) {
-                if (std::unique_ptr<RamOperation> op = rewriteIndexScan(scan)) {
+                if (Own<RamOperation> op = rewriteIndexScan(scan)) {
                     changed = true;
                     node = std::move(op);
                 }

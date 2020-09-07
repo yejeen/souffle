@@ -31,8 +31,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
     bool changed = false;
 
     // helper for collecting conditions from filter operations
-    auto addCondition = [](std::unique_ptr<RamCondition> condition,
-                                std::unique_ptr<RamCondition> c) -> std::unique_ptr<RamCondition> {
+    auto addCondition = [](Own<RamCondition> condition, Own<RamCondition> c) -> Own<RamCondition> {
         if (condition == nullptr) {
             return c;
         } else {
@@ -43,9 +42,8 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
     // hoist conditions to the most outer scope if they
     // don't depend on RamTupleOperations
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::unique_ptr<RamCondition> newCondition;
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        Own<RamCondition> newCondition;
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition& condition = filter->getCondition();
                 // if filter condition is independent of any RamTupleOperation,
@@ -73,9 +71,8 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
 
     // hoist conditions for each RamTupleOperation operation
     visitDepthFirst(program, [&](const RamTupleOperation& search) {
-        std::unique_ptr<RamCondition> newCondition;
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        Own<RamCondition> newCondition;
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition& condition = filter->getCondition();
                 // if filter condition matches level of RamTupleOperation,

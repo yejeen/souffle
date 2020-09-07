@@ -99,7 +99,7 @@ bool ResolveAnonymousRecordAliases::replaceNamedVariables(AstTranslationUnit& tu
         ReplaceVariables(std::map<std::string, const AstRecordInit*> varToRecordMap)
                 : varToRecordMap(std::move(varToRecordMap)){};
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto variable = dynamic_cast<AstVariable*>(node.get())) {
                 auto iteratorToRecord = varToRecordMap.find(variable->getName());
                 if (iteratorToRecord != varToRecordMap.end()) {
@@ -127,7 +127,7 @@ bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(AstClause& clause) {
         mutable bool changed{false};
         ReplaceUnnamed() = default;
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             auto isUnnamed = [](AstNode* node) -> bool { return isA<AstUnnamedVariable>(node); };
             auto isRecord = [](AstNode* node) -> bool { return isA<AstRecordInit>(node); };
 

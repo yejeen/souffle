@@ -51,10 +51,10 @@ namespace souffle {
  * @brief Generate an executable InterpreterNode tree based on the RAM tree.
  *        Each node contains run time information which is necessary for InterpreterEngine to interpreter.
  */
-class NodeGenerator : public RamVisitor<std::unique_ptr<InterpreterNode>> {
-    using NodePtr = std::unique_ptr<InterpreterNode>;
+class NodeGenerator : public RamVisitor<Own<InterpreterNode>> {
+    using NodePtr = Own<InterpreterNode>;
     using NodePtrVec = std::vector<NodePtr>;
-    using RelationHandle = std::unique_ptr<InterpreterRelation>;
+    using RelationHandle = Own<InterpreterRelation>;
 
 public:
     NodeGenerator(RamIndexAnalysis* isa)
@@ -487,7 +487,7 @@ public:
 
 public:
     /** @brief Move relation map */
-    std::vector<std::unique_ptr<RelationHandle>>& getRelations() {
+    VecOwn<RelationHandle>& getRelations() {
         return relations;
     }
 
@@ -513,7 +513,7 @@ private:
     /** Environment encoding, store a mapping from RamRelation to its id */
     std::unordered_map<const RamRelation*, size_t> relTable;
     /** Symbol table for relations */
-    std::vector<std::unique_ptr<RelationHandle>> relations;
+    VecOwn<RelationHandle> relations;
     /** If generating a provenance program */
     const bool isProvenance;
     /** If profile is enable in this program */
@@ -692,8 +692,7 @@ private:
             }
 
             // Generic expression
-            indexOperation.exprFirst.push_back(
-                    std::pair<size_t, std::unique_ptr<InterpreterNode>>(i, visit(low)));
+            indexOperation.exprFirst.push_back(std::pair<size_t, Own<InterpreterNode>>(i, visit(low)));
         }
         const auto& second = ramIndex.getRangePattern().second;
         for (size_t i = 0; i < arity; ++i) {
@@ -719,8 +718,7 @@ private:
             }
 
             // Generic expression
-            indexOperation.exprSecond.push_back(
-                    std::pair<size_t, std::unique_ptr<InterpreterNode>>(i, visit(hig)));
+            indexOperation.exprSecond.push_back(std::pair<size_t, Own<InterpreterNode>>(i, visit(hig)));
         }
         return indexOperation;
     }
@@ -756,7 +754,7 @@ private:
             }
 
             // Generic expression
-            superOp.exprFirst.push_back(std::pair<size_t, std::unique_ptr<InterpreterNode>>(i, visit(child)));
+            superOp.exprFirst.push_back(std::pair<size_t, Own<InterpreterNode>>(i, visit(child)));
         }
         return superOp;
     }
@@ -784,7 +782,7 @@ private:
             }
 
             // Generic expression
-            superOp.exprFirst.push_back(std::pair<size_t, std::unique_ptr<InterpreterNode>>(i, visit(child)));
+            superOp.exprFirst.push_back(std::pair<size_t, Own<InterpreterNode>>(i, visit(child)));
         }
         return superOp;
     }

@@ -37,8 +37,7 @@ namespace souffle {
  */
 class RamAbstractAggregate {
 public:
-    RamAbstractAggregate(
-            AggregateOp fun, std::unique_ptr<RamExpression> expr, std::unique_ptr<RamCondition> cond)
+    RamAbstractAggregate(AggregateOp fun, Own<RamExpression> expr, Own<RamCondition> cond)
             : function(fun), expression(std::move(expr)), condition(std::move(cond)) {
         assert(condition != nullptr && "Condition is a null-pointer");
         assert(expression != nullptr && "Expression is a null-pointer");
@@ -98,10 +97,10 @@ protected:
     AggregateOp function;
 
     /** Aggregation expression */
-    std::unique_ptr<RamExpression> expression;
+    Own<RamExpression> expression;
 
     /** Aggregation tuple condition */
-    std::unique_ptr<RamCondition> condition;
+    Own<RamCondition> condition;
 };
 
 }  // namespace souffle

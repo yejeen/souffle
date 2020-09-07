@@ -33,8 +33,7 @@ namespace souffle {
  */
 class RamAbstractOperator : public RamExpression {
 public:
-    explicit RamAbstractOperator(std::vector<std::unique_ptr<RamExpression>> args)
-            : arguments(std::move(args)) {
+    explicit RamAbstractOperator(VecOwn<RamExpression> args) : arguments(std::move(args)) {
         for (auto const& arg : arguments) {
             assert(arg != nullptr && "argument is null-pointer");
         }
@@ -66,7 +65,7 @@ protected:
     }
 
     /** Arguments of user defined operator */
-    std::vector<std::unique_ptr<RamExpression>> arguments;
+    VecOwn<RamExpression> arguments;
 };
 
 }  // end of namespace souffle

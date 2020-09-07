@@ -30,7 +30,7 @@ namespace souffle {
  */
 class RamTupleOperation : public RamNestedOperation {
 public:
-    RamTupleOperation(int ident, std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamTupleOperation(int ident, Own<RamOperation> nested, std::string profileText = "")
             : RamNestedOperation(std::move(nested), std::move(profileText)), identifier(ident) {}
 
     RamTupleOperation* clone() const override = 0;

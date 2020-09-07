@@ -32,12 +32,11 @@ namespace souffle {
 class RamListStatement : public RamStatement {
 public:
     RamListStatement() = default;
-    RamListStatement(std::vector<std::unique_ptr<RamStatement>> statements)
-            : statements(std::move(statements)) {}
+    RamListStatement(VecOwn<RamStatement> statements) : statements(std::move(statements)) {}
 
     template <typename... Stmts>
-    RamListStatement(std::unique_ptr<Stmts>&&... stmts) {
-        std::unique_ptr<RamStatement> tmp[] = {std::move(stmts)...};
+    RamListStatement(Own<Stmts>&&... stmts) {
+        Own<RamStatement> tmp[] = {std::move(stmts)...};
         for (auto& cur : tmp) {
             assert(cur.get() != nullptr && "statement is a null-pointer");
             statements.emplace_back(std::move(cur));
@@ -71,7 +70,7 @@ protected:
 
 protected:
     /** ordered list of RAM statements */
-    std::vector<std::unique_ptr<RamStatement>> statements;
+    VecOwn<RamStatement> statements;
 };
 
 }  // end of namespace souffle

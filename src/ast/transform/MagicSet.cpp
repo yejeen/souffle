@@ -238,7 +238,7 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
 
         // New relation I' should be input, original should not
         std::set<const AstDirective*> iosToDelete;
-        std::set<std::unique_ptr<AstDirective>> iosToAdd;
+        std::set<Own<AstDirective>> iosToAdd;
         for (const auto* io : program.getDirectives()) {
             if (io->getQualifiedName() == relName && io->getType() == AstDirectiveType::input) {
                 // New relation inherits the old input rules
@@ -408,22 +408,22 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     // Replace all non-variable-arguments nested inside the node with named variables
     // Also, keeps track of constraints to add to keep the clause semantically equivalent
     struct argument_normaliser : public AstNodeMapper {
-        std::set<std::unique_ptr<AstBinaryConstraint>>& constraints;
+        std::set<Own<AstBinaryConstraint>>& constraints;
         int& changeCount;
 
-        argument_normaliser(std::set<std::unique_ptr<AstBinaryConstraint>>& constraints, int& changeCount)
+        argument_normaliser(std::set<Own<AstBinaryConstraint>>& constraints, int& changeCount)
                 : constraints(constraints), changeCount(changeCount) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* aggr = dynamic_cast<AstAggregator*>(node.get())) {
                 // Aggregator variable scopes should be maintained, so changes shouldn't propagate
                 // above this level.
-                std::set<std::unique_ptr<AstBinaryConstraint>> subConstraints;
+                std::set<Own<AstBinaryConstraint>> subConstraints;
                 argument_normaliser aggrUpdate(subConstraints, changeCount);
                 aggr->apply(aggrUpdate);
 
                 // Add the constraints to this level
-                std::vector<std::unique_ptr<AstLiteral>> newBodyLiterals;
+                std::vector<Own<AstLiteral>> newBodyLiterals;
                 for (const auto* lit : aggr->getBodyLiterals()) {
                     newBodyLiterals.push_back(souffle::clone(lit));
                 }
@@ -470,7 +470,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
     bool changed = false;
     for (auto* clause : program.getClauses()) {
         int changeCount = 0;
-        std::set<std::unique_ptr<AstBinaryConstraint>> constraintsToAdd;
+        std::set<Own<AstBinaryConstraint>> constraintsToAdd;
         argument_normaliser update(constraintsToAdd, changeCount);
 
         // Apply to each clause head
@@ -514,7 +514,7 @@ AstQualifiedName AdornDatabaseTransformer::getAdornmentID(
     return adornmentID;
 }
 
-std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
+Own<AstClause> AdornDatabaseTransformer::adornClause(
         const AstClause* clause, const std::string& adornmentMarker) {
     const auto& relName = clause->getHead()->getQualifiedName();
     const auto& headArgs = clause->getHead()->getArguments();
@@ -567,7 +567,7 @@ std::unique_ptr<AstClause> AdornDatabaseTransformer::adornClause(
     adornedClause->setHead(std::move(adornedHeadAtom));
 
     // Add in adorned body literals
-    std::vector<std::unique_ptr<AstLiteral>> adornedBodyLiterals;
+    std::vector<Own<AstLiteral>> adornedBodyLiterals;
     for (const auto* lit : clause->getBodyLiterals()) {
         if (const auto* negation = dynamic_cast<const AstNegation*>(lit)) {
             // Negated atoms should not be adorned, but their clauses should be anyway
@@ -693,7 +693,7 @@ bool NegativeLabellingTransformer::transform(AstTranslationUnit& translationUnit
     auto& program = *translationUnit.getProgram();
 
     std::set<AstQualifiedName> relationsToLabel;
-    std::set<std::unique_ptr<AstClause>> clausesToAdd;
+    std::set<Own<AstClause>> clausesToAdd;
     auto ignoredRelations = getIgnoredRelations(translationUnit);
 
     // Negatively label all relations that might affect stratification after MST
@@ -916,7 +916,7 @@ AstQualifiedName MagicSetCoreTransformer::getMagicName(const AstQualifiedName& n
     return magicRelName;
 }
 
-std::unique_ptr<AstAtom> MagicSetCoreTransformer::createMagicAtom(const AstAtom* atom) {
+Own<AstAtom> MagicSetCoreTransformer::createMagicAtom(const AstAtom* atom) {
     auto origRelName = atom->getQualifiedName();
     auto args = atom->getArguments();
 
@@ -985,8 +985,8 @@ void MagicSetCoreTransformer::addRelevantVariables(
     }
 }
 
-std::unique_ptr<AstClause> MagicSetCoreTransformer::createMagicClause(const AstAtom* atom,
-        const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
+Own<AstClause> MagicSetCoreTransformer::createMagicClause(const AstAtom* atom,
+        const std::vector<Own<AstAtom>>& constrainingAtoms,
         const std::vector<const AstBinaryConstraint*> eqConstraints) {
     auto magicHead = createMagicAtom(atom);
     auto magicClause = std::make_unique<AstClause>();
@@ -1038,8 +1038,8 @@ std::vector<const AstBinaryConstraint*> MagicSetCoreTransformer::getBindingEqual
 
 bool MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    std::set<std::unique_ptr<AstClause>> clausesToRemove;
-    std::set<std::unique_ptr<AstClause>> clausesToAdd;
+    std::set<Own<AstClause>> clausesToRemove;
+    std::set<Own<AstClause>> clausesToAdd;
 
     /** Perform the Magic Set Transformation */
     for (const auto* clause : program.getClauses()) {
@@ -1066,7 +1066,7 @@ bool MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
 
         // (2) Add the associated magic rules
         std::vector<const AstBinaryConstraint*> eqConstraints = getBindingEqualityConstraints(clause);
-        std::vector<std::unique_ptr<AstAtom>> atomsToTheLeft;
+        std::vector<Own<AstAtom>> atomsToTheLeft;
         if (isAdorned(relName)) {
             // Add the specialising head atom
             // Output relations are not specialised, and so the head will not contribute to specialisation

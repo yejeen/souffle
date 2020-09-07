@@ -70,7 +70,7 @@ inline AstQualifiedName makeRelationName(
     return newName;
 }
 
-std::unique_ptr<AstRelation> makeInfoRelation(
+Own<AstRelation> makeInfoRelation(
         AstClause& originalClause, size_t originalClauseNum, AstTranslationUnit& translationUnit) {
     AstQualifiedName name =
             makeRelationName(originalClause.getHead()->getQualifiedName(), "@info", originalClauseNum);
@@ -188,10 +188,10 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     infoClauseHead->addArgument(std::make_unique<AstStringConstant>(toString(originalClause)));
 
     // set clause head and add clause to info relation
-    infoClause->setHead(std::unique_ptr<AstAtom>(infoClauseHead));
-    translationUnit.getProgram()->addClause(std::unique_ptr<AstClause>(infoClause));
+    infoClause->setHead(Own<AstAtom>(infoClauseHead));
+    translationUnit.getProgram()->addClause(Own<AstClause>(infoClause));
 
-    return std::unique_ptr<AstRelation>(infoRelation);
+    return Own<AstRelation>(infoRelation);
 }
 
 /** Transform eqrel relations to explicitly define equivalence relations */
@@ -217,10 +217,10 @@ void transformEqrelRelation(AstProgram& program, AstRelation& rel) {
     transitiveClauseBody2->addArgument(std::make_unique<AstVariable>("y"));
     transitiveClauseBody2->addArgument(std::make_unique<AstVariable>("z"));
 
-    transitiveClause->setHead(std::unique_ptr<AstAtom>(transitiveClauseHead));
-    transitiveClause->addToBody(std::unique_ptr<AstLiteral>(transitiveClauseBody));
-    transitiveClause->addToBody(std::unique_ptr<AstLiteral>(transitiveClauseBody2));
-    program.addClause(std::unique_ptr<AstClause>(transitiveClause));
+    transitiveClause->setHead(Own<AstAtom>(transitiveClauseHead));
+    transitiveClause->addToBody(Own<AstLiteral>(transitiveClauseBody));
+    transitiveClause->addToBody(Own<AstLiteral>(transitiveClauseBody2));
+    program.addClause(Own<AstClause>(transitiveClause));
 
     // symmetric
     // symmetric clause: A(x, y) :- A(y, x).
@@ -233,9 +233,9 @@ void transformEqrelRelation(AstProgram& program, AstRelation& rel) {
     symClauseBody->addArgument(std::make_unique<AstVariable>("y"));
     symClauseBody->addArgument(std::make_unique<AstVariable>("x"));
 
-    symClause->setHead(std::unique_ptr<AstAtom>(symClauseHead));
-    symClause->addToBody(std::unique_ptr<AstLiteral>(symClauseBody));
-    program.addClause(std::unique_ptr<AstClause>(symClause));
+    symClause->setHead(Own<AstAtom>(symClauseHead));
+    symClause->addToBody(Own<AstLiteral>(symClauseBody));
+    program.addClause(Own<AstClause>(symClause));
 
     // reflexivity
     // reflexive clause: A(x, x) :- A(x, _).
@@ -248,19 +248,18 @@ void transformEqrelRelation(AstProgram& program, AstRelation& rel) {
     reflexiveClauseBody->addArgument(std::make_unique<AstVariable>("x"));
     reflexiveClauseBody->addArgument(std::make_unique<AstUnnamedVariable>());
 
-    reflexiveClause->setHead(std::unique_ptr<AstAtom>(reflexiveClauseHead));
-    reflexiveClause->addToBody(std::unique_ptr<AstLiteral>(reflexiveClauseBody));
-    program.addClause(std::unique_ptr<AstClause>(reflexiveClause));
+    reflexiveClause->setHead(Own<AstAtom>(reflexiveClauseHead));
+    reflexiveClause->addToBody(Own<AstLiteral>(reflexiveClauseBody));
+    program.addClause(Own<AstClause>(reflexiveClause));
 }
 
 namespace {
-std::unique_ptr<AstArgument> getNextLevelNumber(const std::vector<AstArgument*>& levels) {
+Own<AstArgument> getNextLevelNumber(const std::vector<AstArgument*>& levels) {
     if (levels.empty()) return mk<AstNumericConstant>(0);
 
-    auto max = levels.size() == 1
-                       ? std::unique_ptr<AstArgument>(levels[0])
-                       : mk<AstIntrinsicFunctor>("max",
-                                 map(levels, [](auto&& x) { return std::unique_ptr<AstArgument>(x); }));
+    auto max = levels.size() == 1 ? Own<AstArgument>(levels[0])
+                                  : mk<AstIntrinsicFunctor>(
+                                            "max", map(levels, [](auto&& x) { return Own<AstArgument>(x); }));
 
     return mk<AstIntrinsicFunctor>("+", std::move(max), mk<AstNumericConstant>(1));
 }
@@ -300,7 +299,7 @@ bool ProvenanceTransformer::transformMaxHeight(AstTranslationUnit& translationUn
             struct M : public AstNodeMapper {
                 using AstNodeMapper::operator();
 
-                std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+                Own<AstNode> operator()(Own<AstNode> node) const override {
                     // add provenance columns
                     if (auto atom = dynamic_cast<AstAtom*>(node.get())) {
                         atom->addArgument(std::make_unique<AstUnnamedVariable>());

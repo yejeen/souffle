@@ -107,10 +107,10 @@ public:
             return c;
         }
 
-        std::unique_ptr<Stream::Source> clone() override {
+        Own<Stream::Source> clone() override {
             auto* source = new Source(cur, end);
             source->buffer = this->buffer;
-            return std::unique_ptr<Stream::Source>(source);
+            return Own<Stream::Source>(source);
         }
     };
 
@@ -217,7 +217,7 @@ private:
     size_t arity;
 };
 
-std::unique_ptr<InterpreterIndex> createIndirectIndex(const Order& order) {
+Own<InterpreterIndex> createIndirectIndex(const Order& order) {
     assert(order.size() != 0 && "IndirectIndex does not work with nullary relation\n");
     return std::make_unique<IndirectIndex>(order.getOrder());
 }

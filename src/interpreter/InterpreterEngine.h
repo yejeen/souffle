@@ -47,7 +47,7 @@ class InterpreterProgInterface;
  * @brief This class translate the RAM Program into executable format and interpreter it.
  */
 class InterpreterEngine {
-    using RelationHandle = std::unique_ptr<InterpreterRelation>;
+    using RelationHandle = Own<InterpreterRelation>;
     friend InterpreterProgInterface;
 
 public:
@@ -102,14 +102,14 @@ private:
     /** @brief Increment the counter */
     int incCounter();
     /** @brief Return the relation map. */
-    std::vector<std::unique_ptr<RelationHandle>>& getRelationMap();
+    VecOwn<RelationHandle>& getRelationMap();
 
     /** If profile is enable in this program */
     const bool profileEnabled;
     /** subroutines */
-    std::vector<std::unique_ptr<InterpreterNode>> subroutine;
+    VecOwn<InterpreterNode> subroutine;
     /** main program */
-    std::unique_ptr<InterpreterNode> main;
+    Own<InterpreterNode> main;
     /** Number of threads enabled for this program */
     size_t numOfThreads;
     /** Profile counter */

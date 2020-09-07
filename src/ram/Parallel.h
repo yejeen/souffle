@@ -44,11 +44,10 @@ namespace souffle {
  */
 class RamParallel : public RamListStatement {
 public:
-    RamParallel(std::vector<std::unique_ptr<RamStatement>> statements)
-            : RamListStatement(std::move(statements)) {}
+    RamParallel(VecOwn<RamStatement> statements) : RamListStatement(std::move(statements)) {}
     RamParallel() : RamListStatement() {}
     template <typename... Stmts>
-    RamParallel(std::unique_ptr<RamStatement> first, std::unique_ptr<Stmts>... rest)
+    RamParallel(Own<RamStatement> first, Own<Stmts>... rest)
             : RamListStatement(std::move(first), std::move(rest)...) {}
 
     RamParallel* clone() const override {

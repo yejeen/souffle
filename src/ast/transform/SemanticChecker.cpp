@@ -816,8 +816,7 @@ void AstSemanticCheckerImpl::checkIO() {
 }
 
 static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
-        const std::vector<AstLiteral*>& literals,
-        const std::set<std::unique_ptr<AstArgument>>& groundedArguments) {
+        const std::vector<AstLiteral*>& literals, const std::set<Own<AstArgument>>& groundedArguments) {
     // Node-mapper that replaces aggregators with new (unique) variables
     struct M : public AstNodeMapper {
         // Variables introduced to replace aggregators
@@ -827,7 +826,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
             return aggregatorVariables;
         }
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             static int numReplaced = 0;
             if (isA<AstAggregator>(node.get())) {
                 // Replace the aggregator with a variable
@@ -894,7 +893,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     }
 
     // Force the given grounded arguments to be grounded in both clauses
-    for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
+    for (const Own<AstArgument>& arg : groundedArguments) {
         groundingAtomAggregatorless->addArgument(souffle::clone(arg));
         groundingAtomOriginal->addArgument(souffle::clone(arg));
     }
@@ -908,7 +907,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     //   - The argument is also ungrounded in Clause 1 - handled by another check
     //   - The argument is grounded in Clause 1 => the argument was grounded in the
     //     first clause somewhere along the line by an aggregator-body - not allowed!
-    std::set<std::unique_ptr<AstArgument>> newlyGroundedArguments;
+    std::set<Own<AstArgument>> newlyGroundedArguments;
     auto originalGrounded = getGroundedTerms(tu, *originalClause);
     for (auto&& pair : getGroundedTerms(tu, *aggregatorlessClause)) {
         if (!pair.second && originalGrounded[identicalSubnodeMap[pair.first]]) {
@@ -920,7 +919,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     }
 
     // All previously grounded are still grounded
-    for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
+    for (const Own<AstArgument>& arg : groundedArguments) {
         newlyGroundedArguments.insert(souffle::clone(arg));
     }
 
@@ -951,7 +950,7 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
         bodyLiterals.push_back(headNegation.get());
 
         // Perform the check
-        std::set<std::unique_ptr<AstArgument>> groundedArguments;
+        std::set<Own<AstArgument>> groundedArguments;
         for (auto&& invalidArgument : usesInvalidWitness(tu, bodyLiterals, groundedArguments)) {
             report.addError(
                     "Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in "

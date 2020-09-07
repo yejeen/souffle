@@ -71,9 +71,8 @@ bool FoldAnonymousRecords::containsValidRecordConstraint(const AstClause& clause
     return contains;
 }
 
-std::vector<std::unique_ptr<AstLiteral>> FoldAnonymousRecords::expandRecordBinaryConstraint(
-        const AstBinaryConstraint& constraint) {
-    std::vector<std::unique_ptr<AstLiteral>> replacedContraint;
+VecOwn<AstLiteral> FoldAnonymousRecords::expandRecordBinaryConstraint(const AstBinaryConstraint& constraint) {
+    VecOwn<AstLiteral> replacedContraint;
 
     const auto* left = dynamic_cast<AstRecordInit*>(constraint.getLHS());
     const auto* right = dynamic_cast<AstRecordInit*>(constraint.getRHS());
@@ -104,13 +103,12 @@ std::vector<std::unique_ptr<AstLiteral>> FoldAnonymousRecords::expandRecordBinar
     return replacedContraint;
 }
 
-void FoldAnonymousRecords::transformClause(
-        const AstClause& clause, std::vector<std::unique_ptr<AstClause>>& newClauses) {
+void FoldAnonymousRecords::transformClause(const AstClause& clause, VecOwn<AstClause>& newClauses) {
     // If we have an inequality constraint, we need to create new clauses
     // At most one inequality constraint will be expanded in a single pass.
     AstBinaryConstraint* neqConstraint = nullptr;
 
-    std::vector<std::unique_ptr<AstLiteral>> newBody;
+    VecOwn<AstLiteral> newBody;
     for (auto* literal : clause.getBodyLiterals()) {
         if (isValidRecordConstraint(literal)) {
             const AstBinaryConstraint& constraint = dynamic_cast<AstBinaryConstraint&>(*literal);
@@ -163,7 +161,7 @@ bool FoldAnonymousRecords::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
     AstProgram& program = *translationUnit.getProgram();
 
-    std::vector<std::unique_ptr<AstClause>> newClauses;
+    VecOwn<AstClause> newClauses;
 
     for (const auto* clause : program.getClauses()) {
         if (containsValidRecordConstraint(*clause)) {

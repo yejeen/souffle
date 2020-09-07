@@ -44,7 +44,7 @@ public:
     using GenericIndex<btree_set<t_tuple<Arity>, comparator<Arity>>>::GenericIndex;
 };
 
-std::unique_ptr<InterpreterIndex> createBTreeIndex(const Order& order) {
+Own<InterpreterIndex> createBTreeIndex(const Order& order) {
     switch (order.size()) {
         case 0: return std::make_unique<NullaryIndex>();
         case 1: return std::make_unique<BTreeIndex<1>>(order);

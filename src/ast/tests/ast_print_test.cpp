@@ -37,19 +37,19 @@
 
 namespace souffle::test {
 
-inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
+inline Own<AstTranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
     ErrorReport e;
     DebugReport d;
     return ParserDriver::parseTranslationUnit(program, e, d);
 }
 
-inline std::unique_ptr<AstTranslationUnit> makePrintedATU(std::unique_ptr<AstTranslationUnit>& tu) {
+inline Own<AstTranslationUnit> makePrintedATU(Own<AstTranslationUnit>& tu) {
     std::stringstream ss;
     ss << *tu->getProgram();
     return makeATU(ss.str());
 }
 
-inline std::unique_ptr<AstClause> makeClauseA(std::unique_ptr<AstArgument> headArgument) {
+inline Own<AstClause> makeClauseA(Own<AstArgument> headArgument) {
     auto headAtom = std::make_unique<AstAtom>("A");
     headAtom->addArgument(std::move(headArgument));
     auto clause = std::make_unique<AstClause>();
@@ -120,7 +120,7 @@ TEST(AstPrint, AggregatorMin) {
     atom->addArgument(std::make_unique<AstVariable>("x"));
     auto min = std::make_unique<AstAggregator>(AggregateOp::MIN, std::make_unique<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::make_unique<AstAtom>("B"));
 
     min->setBody(std::move(body));
@@ -137,7 +137,7 @@ TEST(AstPrint, AggregatorMax) {
     atom->addArgument(std::make_unique<AstVariable>("x"));
     auto max = std::make_unique<AstAggregator>(AggregateOp::MAX, std::make_unique<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     max->setBody(std::move(body));
 
@@ -153,7 +153,7 @@ TEST(AstPrint, AggregatorCount) {
     atom->addArgument(std::make_unique<AstVariable>("x"));
     auto count = std::make_unique<AstAggregator>(AggregateOp::COUNT);
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     count->setBody(std::move(body));
 
@@ -169,7 +169,7 @@ TEST(AstPrint, AggregatorSum) {
     atom->addArgument(std::make_unique<AstVariable>("x"));
     auto sum = std::make_unique<AstAggregator>(AggregateOp::SUM, std::make_unique<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     sum->setBody(std::move(body));
 

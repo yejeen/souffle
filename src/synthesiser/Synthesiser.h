@@ -17,6 +17,7 @@
 #pragma once
 
 #include "souffle/RecordTable.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -69,7 +70,7 @@ protected:
     const std::string getOpContextName(const RamRelation& rel);
 
     /** Get relation struct definition */
-    void generateRelationTypeStruct(std::ostream& out, std::unique_ptr<SynthesiserRelation> relationType);
+    void generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType);
 
     /** Get referenced relations */
     std::set<const RamRelation*> getReferencedRelations(const RamOperation& op);

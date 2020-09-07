@@ -37,10 +37,10 @@ class AstTranslationUnit;
  */
 class ConditionalTransformer : public MetaTransformer {
 public:
-    ConditionalTransformer(std::function<bool()> cond, std::unique_ptr<AstTransformer> transformer)
+    ConditionalTransformer(std::function<bool()> cond, Own<AstTransformer> transformer)
             : condition(std::move(cond)), transformer(std::move(transformer)) {}
 
-    ConditionalTransformer(bool cond, std::unique_ptr<AstTransformer> transformer)
+    ConditionalTransformer(bool cond, Own<AstTransformer> transformer)
             : condition([=]() { return cond; }), transformer(std::move(transformer)) {}
 
     std::vector<AstTransformer*> getSubtransformers() const override {
@@ -80,7 +80,7 @@ public:
 
 private:
     std::function<bool()> condition;
-    std::unique_ptr<AstTransformer> transformer;
+    Own<AstTransformer> transformer;
 
     bool transform(AstTranslationUnit& translationUnit) override {
         return condition() ? applySubtransformer(translationUnit, transformer.get()) : false;

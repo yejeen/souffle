@@ -34,7 +34,7 @@ namespace souffle {
  */
 class RamAbstractLog {
 public:
-    RamAbstractLog(std::unique_ptr<RamStatement> stmt, std::string msg)
+    RamAbstractLog(Own<RamStatement> stmt, std::string msg)
             : statement(std::move(stmt)), message(std::move(msg)) {
         assert(statement && "log statement is a nullptr");
     }
@@ -65,7 +65,7 @@ protected:
 
 protected:
     /** logging statement */
-    std::unique_ptr<RamStatement> statement;
+    Own<RamStatement> statement;
 
     /** logging message */
     std::string message;

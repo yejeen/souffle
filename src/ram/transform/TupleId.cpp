@@ -42,8 +42,7 @@ bool TupleIdTransformer::reorderOperations(RamProgram& program) {
             ctr++;
         });
 
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> elementRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> elementRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* element = dynamic_cast<RamTupleElement*>(node.get())) {
                 if (reorder[element->getTupleId()] != element->getTupleId()) {
                     changed = true;

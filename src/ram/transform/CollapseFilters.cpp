@@ -31,14 +31,13 @@ namespace souffle {
 bool CollapseFiltersTransformer::collapseFilters(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamFilter* filter = dynamic_cast<RamFilter*>(node.get())) {
                 // true if two consecutive filters in loop nest found
                 bool canCollapse = false;
 
                 // storing conditions for collapsing
-                std::vector<std::unique_ptr<RamCondition>> conditions;
+                VecOwn<RamCondition> conditions;
 
                 const RamFilter* prevFilter = filter;
                 conditions.emplace_back(filter->getCondition().clone());

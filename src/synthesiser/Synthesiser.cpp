@@ -125,8 +125,7 @@ const std::string Synthesiser::getOpContextName(const RamRelation& rel) {
 }
 
 /** Get relation type struct */
-void Synthesiser::generateRelationTypeStruct(
-        std::ostream& out, std::unique_ptr<SynthesiserRelation> relationType) {
+void Synthesiser::generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType) {
     // If this type has been generated already, use the cached version
     if (typeCache.find(relationType->getTypeName()) != typeCache.end()) {
         return;
@@ -322,8 +321,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // into terms that require a context and terms that
             // do not require a context
             const RamOperation* next = &query.getOperation();
-            std::vector<std::unique_ptr<RamCondition>> requireCtx;
-            std::vector<std::unique_ptr<RamCondition>> freeOfCtx;
+            VecOwn<RamCondition> requireCtx;
+            VecOwn<RamCondition> freeOfCtx;
             if (const auto* filter = dynamic_cast<const RamFilter*>(&query.getOperation())) {
                 next = &filter->getOperation();
                 // Check terms of outer filter operation whether they can be pushed before
@@ -2353,7 +2352,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         // defining table
         os << "// -- Table: " << datalogName << "\n";
 
-        os << "std::unique_ptr<" << type << "> " << cppName << " = std::make_unique<" << type << ">();\n";
+        os << "Own<" << type << "> " << cppName << " = std::make_unique<" << type << ">();\n";
         if (!rel->isTemp()) {
             os << "souffle::RelationWrapper<";
             os << relCtr++ << ",";

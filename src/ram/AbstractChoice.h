@@ -33,7 +33,7 @@ namespace souffle {
  */
 class RamAbstractChoice {
 public:
-    RamAbstractChoice(std::unique_ptr<RamCondition> cond) : condition(std::move(cond)) {
+    RamAbstractChoice(Own<RamCondition> cond) : condition(std::move(cond)) {
         assert(condition != nullptr && "Condition is a null-pointer");
     }
 
@@ -58,6 +58,6 @@ protected:
     }
 
     /** Condition for which a tuple in the relation may hold */
-    std::unique_ptr<RamCondition> condition;
+    Own<RamCondition> condition;
 };
 }  // namespace souffle

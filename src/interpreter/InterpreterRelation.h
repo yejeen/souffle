@@ -52,7 +52,7 @@ public:
      * Support for-each iteration for InterpreterRelation.
      */
     class Iterator : public std::iterator<std::forward_iterator_tag, RamDomain*> {
-        std::unique_ptr<Stream> stream;
+        Own<Stream> stream;
 
     public:
         Iterator() : stream(std::make_unique<Stream>()) {}
@@ -227,7 +227,7 @@ protected:
     std::vector<std::string> attributeTypes;
 
     // a map of managed indexes
-    std::vector<std::unique_ptr<InterpreterIndex>> indexes;
+    VecOwn<InterpreterIndex> indexes;
 
     // a pointer to the main index within the managed index
     InterpreterIndex* main;
@@ -267,7 +267,7 @@ private:
     /** Size of blocks containing tuples */
     static const int BLOCK_SIZE = 1024;
 
-    std::deque<std::unique_ptr<RamDomain[]>> blockList;
+    std::deque<Own<RamDomain[]>> blockList;
 
     size_t numTuples = 0;
 };

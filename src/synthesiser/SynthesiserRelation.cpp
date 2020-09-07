@@ -38,7 +38,7 @@ std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::s
     return type.str();
 }
 
-std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
+Own<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
         const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance) {
     SynthesiserRelation* rel;
 
@@ -68,7 +68,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
     // generate index set
     rel->computeIndices();
 
-    return std::unique_ptr<SynthesiserRelation>(rel);
+    return Own<SynthesiserRelation>(rel);
 }
 
 // -------- Info Relation --------

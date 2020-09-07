@@ -327,7 +327,7 @@ bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedNam
         mutable bool changed{false};
         const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
         rename_atoms(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 if (contains(oldToNew, atom->getQualifiedName())) {

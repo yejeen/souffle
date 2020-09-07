@@ -36,7 +36,7 @@ class AstTranslationUnit;
  */
 class FixpointTransformer : public MetaTransformer {
 public:
-    FixpointTransformer(std::unique_ptr<AstTransformer> transformer) : transformer(std::move(transformer)) {}
+    FixpointTransformer(Own<AstTransformer> transformer) : transformer(std::move(transformer)) {}
 
     void setDebugReport() override {
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
@@ -74,7 +74,7 @@ public:
     }
 
 private:
-    std::unique_ptr<AstTransformer> transformer;
+    Own<AstTransformer> transformer;
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;
         while (applySubtransformer(translationUnit, transformer.get())) {

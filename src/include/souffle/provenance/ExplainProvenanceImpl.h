@@ -81,7 +81,7 @@ public:
         }
     }
 
-    std::unique_ptr<TreeNode> explain(
+    Own<TreeNode> explain(
             std::string relName, std::vector<RamDomain> tuple, int ruleNum, int levelNum, size_t depthLimit) {
         std::stringstream joinedArgs;
         joinedArgs << join(decodeArguments(relName, tuple), ", ");
@@ -205,8 +205,7 @@ public:
         return internalNode;
     }
 
-    std::unique_ptr<TreeNode> explain(
-            std::string relName, std::vector<std::string> args, size_t depthLimit) override {
+    Own<TreeNode> explain(std::string relName, std::vector<std::string> args, size_t depthLimit) override {
         auto tuple = argsToNums(relName, args);
         if (tuple.empty()) {
             return std::make_unique<LeafNode>("Relation not found");
@@ -224,8 +223,7 @@ public:
         return explain(relName, tuple, ruleNum, levelNum, depthLimit);
     }
 
-    std::unique_ptr<TreeNode> explainSubproof(
-            std::string relName, RamDomain subproofNum, size_t depthLimit) override {
+    Own<TreeNode> explainSubproof(std::string relName, RamDomain subproofNum, size_t depthLimit) override {
         if (subproofNum >= (int)subproofs.size()) {
             return std::make_unique<LeafNode>("Subproof not found");
         }
@@ -310,8 +308,7 @@ public:
         return uniqueBodyVariables;
     }
 
-    std::unique_ptr<TreeNode> explainNegation(std::string relName, size_t ruleNum,
-            const std::vector<std::string>& tuple,
+    Own<TreeNode> explainNegation(std::string relName, size_t ruleNum, const std::vector<std::string>& tuple,
             std::map<std::string, std::string>& bodyVariables) override {
         // construct a vector of unique variables that occur in the rule
         std::vector<std::string> uniqueVariables;

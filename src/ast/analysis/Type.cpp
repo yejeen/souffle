@@ -484,7 +484,7 @@ TypeConstraint isSubtypeOfComponent(
 }  // namespace
 
 /* Return a new clause with type-annotated variables */
-std::unique_ptr<AstClause> createAnnotatedClause(
+Own<AstClause> createAnnotatedClause(
         const AstClause* clause, const std::map<const AstArgument*, TypeSet> argumentTypes) {
     // Annotates each variable with its type based on a given type analysis result
     struct TypeAnnotator : public AstNodeMapper {
@@ -492,7 +492,7 @@ std::unique_ptr<AstClause> createAnnotatedClause(
 
         TypeAnnotator(const std::map<const AstArgument*, TypeSet>& types) : types(types) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 std::stringstream newVarName;
                 newVarName << var->getName() << "&isin;" << types.find(var)->second;

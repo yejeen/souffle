@@ -18,6 +18,7 @@
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"
+#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <set>
@@ -36,7 +37,7 @@ class AstTranslationUnit;
  */
 class DebugReporter : public MetaTransformer {
 public:
-    DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
+    DebugReporter(Own<AstTransformer> wrappedTransformer)
             : wrappedTransformer(std::move(wrappedTransformer)) {}
 
     std::vector<AstTransformer*> getSubtransformers() const override {
@@ -69,7 +70,7 @@ public:
     }
 
 private:
-    std::unique_ptr<AstTransformer> wrappedTransformer;
+    Own<AstTransformer> wrappedTransformer;
 
     bool transform(AstTranslationUnit& translationUnit) override;
 

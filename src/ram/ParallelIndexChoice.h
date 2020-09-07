@@ -54,9 +54,8 @@ namespace souffle {
  */
 class RamParallelIndexChoice : public RamIndexChoice, public RamAbstractParallel {
 public:
-    RamParallelIndexChoice(std::unique_ptr<RamRelationReference> r, int ident,
-            std::unique_ptr<RamCondition> cond, RamPattern queryPattern, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamParallelIndexChoice(Own<RamRelationReference> r, int ident, Own<RamCondition> cond,
+            RamPattern queryPattern, Own<RamOperation> nested, std::string profileText = "")
             : RamIndexChoice(std::move(r), ident, std::move(cond), std::move(queryPattern), std::move(nested),
                       profileText) {}
 

@@ -41,7 +41,7 @@ class ErrorReport;
  */
 class RamTranslationUnit {
 public:
-    RamTranslationUnit(std::unique_ptr<RamProgram> prog, SymbolTable sym, ErrorReport& e, DebugReport& d)
+    RamTranslationUnit(Own<RamProgram> prog, SymbolTable sym, ErrorReport& e, DebugReport& d)
             : program(std::move(prog)), symbolTable(std::move(sym)), errorReport(e), debugReport(d) {
         assert(program != nullptr && "program is a null-pointer");
     }
@@ -127,10 +127,10 @@ public:
 
 protected:
     /* cached analyses */
-    mutable std::map<std::string, std::unique_ptr<RamAnalysis>> analyses;
+    mutable std::map<std::string, Own<RamAnalysis>> analyses;
 
     /* Program RAM */
-    std::unique_ptr<RamProgram> program;
+    Own<RamProgram> program;
 
     /* The table of symbols encountered in the input program */
     souffle::SymbolTable symbolTable;

@@ -62,7 +62,7 @@ public:
 
 private:
     std::map<const AstArgument*, TypeSet> argumentTypes;
-    std::vector<std::unique_ptr<AstClause>> annotatedClauses;
+    VecOwn<AstClause> annotatedClauses;
     std::stringstream analysisLogs;
 };
 

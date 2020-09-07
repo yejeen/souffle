@@ -71,7 +71,7 @@ public:
     virtual void generateTypeStruct(std::ostream& out) = 0;
 
     /** Factory method to generate a SynthesiserRelation */
-    static std::unique_ptr<SynthesiserRelation> getSynthesiserRelation(
+    static Own<SynthesiserRelation> getSynthesiserRelation(
             const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance);
 
 protected:

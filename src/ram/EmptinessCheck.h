@@ -44,7 +44,7 @@ namespace souffle {
  */
 class RamEmptinessCheck : public RamCondition {
 public:
-    RamEmptinessCheck(std::unique_ptr<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
+    RamEmptinessCheck(Own<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "Relation reference is a nullptr");
     }
 
@@ -76,7 +76,7 @@ protected:
     }
 
     /** Relation */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 };
 
 }  // end of namespace souffle

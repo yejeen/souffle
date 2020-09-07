@@ -177,7 +177,7 @@ void* InterpreterEngine::getMethodHandle(const std::string& method) {
     return nullptr;
 }
 
-std::vector<std::unique_ptr<InterpreterEngine::RelationHandle>>& InterpreterEngine::getRelationMap() {
+VecOwn<InterpreterEngine::RelationHandle>& InterpreterEngine::getRelationMap() {
     return generator.getRelations();
 }
 

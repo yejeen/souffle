@@ -31,11 +31,10 @@ namespace souffle {
 bool EliminateDuplicatesTransformer::eliminateDuplicates(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamFilter* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition* condition = &filter->getCondition();
-                std::vector<std::unique_ptr<RamCondition>> conds = toConjunctionList(condition);
+                VecOwn<RamCondition> conds = toConjunctionList(condition);
                 bool eliminatedDuplicate = false;
                 for (std::size_t i = 0; i < conds.size(); i++) {
                     for (std::size_t j = i + 1; j < conds.size(); j++) {
@@ -49,8 +48,8 @@ bool EliminateDuplicatesTransformer::eliminateDuplicates(RamProgram& program) {
                 }
                 if (eliminatedDuplicate) {
                     changed = true;
-                    node = std::make_unique<RamFilter>(std::unique_ptr<RamCondition>(toCondition(conds)),
-                            souffle::clone(&filter->getOperation()));
+                    node = std::make_unique<RamFilter>(
+                            Own<RamCondition>(toCondition(conds)), souffle::clone(&filter->getOperation()));
                 }
             }
             node->apply(makeLambdaRamMapper(filterRewriter));
