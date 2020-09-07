@@ -37,6 +37,7 @@
 #include "ast/utility/BindingStore.h"
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
+#include "ast/utility/Visitor.h"
 #include "parser/SrcLocation.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"

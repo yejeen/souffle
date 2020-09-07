@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
@@ -28,8 +29,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformer that repeatedly executes a sub-transformer until no changes are made

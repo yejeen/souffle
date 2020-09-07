@@ -14,11 +14,11 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-class AstTranslationUnit;
 
 class ComponentInstantiationTransformer : public AstTransformer {
 public:

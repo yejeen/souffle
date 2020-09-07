@@ -14,15 +14,14 @@
 
 #pragma once
 
+#include "ast/Clause.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <string>
 
 namespace souffle {
-
-class AstClause;
-class AstTranslationUnit;
 
 /**
  * Transformation pass to eliminate grounded aliases.

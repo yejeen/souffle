@@ -18,6 +18,7 @@
 #pragma once
 
 #include "ram/Condition.h"
+#include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Relation.h"
 #include "souffle/utility/ContainerUtil.h"

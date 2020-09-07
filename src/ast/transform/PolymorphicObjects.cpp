@@ -15,6 +15,7 @@
 #include "ast/transform/PolymorphicObjects.h"
 #include "AggregateOp.h"
 #include "ast/Aggregator.h"
+#include "ast/Argument.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Node.h"
@@ -26,7 +27,7 @@
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "souffle/BinaryConstraintOps.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include <memory>
@@ -35,8 +36,6 @@
 #include <vector>
 
 namespace souffle {
-class AstArgument;
-class ErrorReport;
 
 bool PolymorphicObjectsTransformer::transform(AstTranslationUnit& translationUnit) {
     struct TypeRewriter : public AstNodeMapper {

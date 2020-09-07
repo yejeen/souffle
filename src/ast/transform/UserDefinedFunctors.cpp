@@ -19,9 +19,9 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/utility/NodeMapper.h"
-#include "ast/utility/Utils.h"
 #include "reports/ErrorReport.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <vector>
 

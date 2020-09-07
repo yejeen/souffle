@@ -16,20 +16,18 @@
 
 #pragma once
 
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Constraint.h"
 #include "ast/Literal.h"
-#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <iosfwd>
-#include <memory>
 #include <utility>
 #include <vector>
 
 namespace souffle {
 
 class AstConstraint;
-class AstClause;
-class AstAtom;
-
 class RuleBody {
 public:
     RuleBody() = default;

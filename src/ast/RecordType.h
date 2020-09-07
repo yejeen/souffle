@@ -23,6 +23,7 @@
 #include "parser/SrcLocation.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>

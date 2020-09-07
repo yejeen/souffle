@@ -16,14 +16,13 @@
 
 #pragma once
 
+#include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
 #include <memory>
 #include <string>
 #include <utility>
 
 namespace souffle {
-
-class RamTranslationUnit;
 
 /**
  * @Class RamLoopTransformer

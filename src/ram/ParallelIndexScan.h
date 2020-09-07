@@ -19,6 +19,7 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/IndexOperation.h"
+#include "ram/IndexScan.h"
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"

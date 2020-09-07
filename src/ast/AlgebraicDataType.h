@@ -17,9 +17,19 @@
 #pragma once
 
 #include "ast/BranchDeclaration.h"
+#include "ast/Node.h"
+#include "ast/QualifiedName.h"
 #include "ast/Type.h"
 #include "parser/SrcLocation.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/tinyformat.h"
+#include <cassert>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace souffle {
 

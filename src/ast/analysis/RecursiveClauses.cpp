@@ -21,6 +21,7 @@
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/RelationDetailCache.h"
 #include "ast/utility/Utils.h"
@@ -32,7 +33,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 void RecursiveClausesAnalysis::run(const AstTranslationUnit& translationUnit) {
     visitDepthFirst(*translationUnit.getProgram(), [&](const AstClause& clause) {

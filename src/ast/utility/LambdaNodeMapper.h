@@ -21,7 +21,6 @@
 #include <utility>
 
 namespace souffle {
-class AstNode;
 
 namespace detail {
 

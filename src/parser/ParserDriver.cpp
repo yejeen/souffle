@@ -35,7 +35,6 @@
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/tinyformat.h"
-#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>

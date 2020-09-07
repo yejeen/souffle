@@ -17,13 +17,12 @@
 
 #pragma once
 
+#include "interpreter/InterpreterNode.h"
 #include <array>
 #include <memory>
 #include <vector>
 
 namespace souffle {
-
-class InterpreterNode;
 
 /**
  * @class InterpreterPreamble

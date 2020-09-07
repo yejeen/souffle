@@ -14,16 +14,15 @@
 
 #pragma once
 
+#include "ram/IndexScan.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/Transformer.h"
 #include <memory>
 #include <string>
 
 namespace souffle {
-
-class RamProgram;
-class RamIndexScan;
-class RamOperation;
 
 /**
  * @class IfConversionTransformer

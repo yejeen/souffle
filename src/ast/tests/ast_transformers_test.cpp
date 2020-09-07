@@ -19,6 +19,8 @@
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/transform/MagicSet.h"
@@ -30,9 +32,11 @@
 #include "parser/ParserDriver.h"
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
+#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 

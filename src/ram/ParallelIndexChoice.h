@@ -16,9 +16,9 @@
 
 #include "AggregateOp.h"
 #include "ram/AbstractParallel.h"
-#include "ram/Choice.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
+#include "ram/IndexChoice.h"
 #include "ram/IndexOperation.h"
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"

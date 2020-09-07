@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ast/transform/GroundedTermsChecker.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"

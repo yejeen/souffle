@@ -14,15 +14,14 @@
 
 #pragma once
 
+#include "ast/Clause.h"
+#include "ast/RecordInit.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <map>
 #include <string>
 
 namespace souffle {
-
-class AstClause;
-class AstRecordInit;
-class AstTranslationUnit;
 
 /**
  * Transformer resolving aliases for anonymous records.

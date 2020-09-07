@@ -24,6 +24,7 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <memory>

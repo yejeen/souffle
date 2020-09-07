@@ -24,6 +24,7 @@
 #include "ast/Variable.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <ostream>

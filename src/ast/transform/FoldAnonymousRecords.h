@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include "ast/BinaryConstraint.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <memory>
@@ -23,11 +27,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstBinaryConstraint;
-class AstClause;
-class AstLiteral;
-class AstTranslationUnit;
 
 /**
  * Transformation pass that removes (binary) constraints on the anonymous records.

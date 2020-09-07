@@ -21,11 +21,15 @@
 #include "GraphUtils.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
+#include "ast/BranchDeclaration.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
+#include "ast/Constant.h"
 #include "ast/Counter.h"
 #include "ast/Directive.h"
 #include "ast/ExecutionOrder.h"
@@ -68,7 +72,7 @@
 #include "parser/SrcLocation.h"
 #include "reports/ErrorReport.h"
 #include "souffle/BinaryConstraintOps.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -89,7 +93,6 @@
 #include <vector>
 
 namespace souffle {
-class AstConstant;
 
 struct AstSemanticCheckerImpl {
     AstTranslationUnit& tu;

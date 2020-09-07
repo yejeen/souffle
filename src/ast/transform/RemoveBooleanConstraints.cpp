@@ -21,6 +21,7 @@
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
@@ -33,7 +34,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();

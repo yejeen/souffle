@@ -22,6 +22,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
 #include "ast/Directive.h"
+#include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/RecordType.h"
@@ -43,8 +44,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstNode;
 
 namespace {
 
