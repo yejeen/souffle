@@ -16,14 +16,13 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <set>
 #include <string>
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformer that coordinates other sub-transformations

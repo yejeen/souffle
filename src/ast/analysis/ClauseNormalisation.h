@@ -17,20 +17,20 @@
 
 #pragma once
 
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
 #include "ast/QualifiedName.h"
 #include "ast/analysis/Analysis.h"
+#include <cstddef>
+#include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
 namespace souffle {
-
-class AstArgument;
-class AstAtom;
-class AstClause;
-class AstLiteral;
-class AstTranslationUnit;
 
 class NormalisedClause {
 public:

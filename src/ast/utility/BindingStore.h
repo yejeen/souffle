@@ -17,16 +17,16 @@
 
 #pragma once
 
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
 #include "souffle/utility/ContainerUtil.h"
+#include <cstddef>
 #include <map>
 #include <set>
 #include <string>
 
 namespace souffle {
-
-class AstArgument;
-class AstAtom;
-class AstClause;
 
 class BindingStore {
 public:

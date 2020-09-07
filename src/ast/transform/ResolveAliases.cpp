@@ -25,6 +25,7 @@
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/utility/NodeMapper.h"
@@ -48,7 +49,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 namespace {
 

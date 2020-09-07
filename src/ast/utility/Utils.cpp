@@ -24,7 +24,6 @@
 #include "ast/Constraint.h"
 #include "ast/Directive.h"
 #include "ast/ExecutionPlan.h"
-#include "ast/FunctorDeclaration.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -33,18 +32,20 @@
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/Type.h"
 #include "ast/analysis/RelationDetailCache.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
+#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
+#include <memory>
 
 namespace souffle {
 

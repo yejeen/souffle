@@ -19,7 +19,6 @@
 #pragma once
 
 #include "ast/analysis/Analysis.h"
-#include <iostream>
 #include <set>
 #include <string>
 

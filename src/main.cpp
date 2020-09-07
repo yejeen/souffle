@@ -38,7 +38,6 @@
 #include "ast/transform/MaterializeSingletonAggregation.h"
 #include "ast/transform/MinimiseProgram.h"
 #include "ast/transform/NameUnnamedVariables.h"
-#include "ast/transform/NormaliseConstraints.h"
 #include "ast/transform/PartitionBodyLiterals.h"
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/PolymorphicObjects.h"
@@ -82,6 +81,7 @@
 #include "ram/transform/ReorderFilterBreak.h"
 #include "ram/transform/ReportIndex.h"
 #include "ram/transform/Sequence.h"
+#include "ram/transform/Transformer.h"
 #include "ram/transform/TupleId.h"
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
@@ -90,6 +90,7 @@
 #include "souffle/provenance/Explain.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FileUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include "synthesiser/Synthesiser.h"
@@ -98,6 +99,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>

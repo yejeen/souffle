@@ -15,36 +15,25 @@
  ***********************************************************************/
 
 #include "ast/transform/MinimiseProgram.h"
-#include "ast/Aggregator.h"
-#include "ast/Argument.h"
 #include "ast/Atom.h"
-#include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Literal.h"
-#include "ast/Negation.h"
-#include "ast/NilConstant.h"
 #include "ast/Node.h"
-#include "ast/NumericConstant.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
-#include "ast/StringConstant.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/UnnamedVariable.h"
-#include "ast/Variable.h"
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/analysis/IOType.h"
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
-#include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
-#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <stack>
 #include <string>
@@ -52,8 +41,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstRelation;
 
 bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& left,
         const NormalisedClause& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {

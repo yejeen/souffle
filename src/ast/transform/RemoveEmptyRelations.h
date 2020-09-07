@@ -14,13 +14,12 @@
 
 #pragma once
 
+#include "ast/QualifiedName.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class AstQualifiedName;
-class AstTranslationUnit;
 
 /**
  * Transformation pass to remove all empty relations and rules that use empty relations.

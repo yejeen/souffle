@@ -16,15 +16,13 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/ClauseNormalisation.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 #include <vector>
 
 namespace souffle {
-
-class AstClause;
-class AstTranslationUnit;
-class NormalisedClause;
 
 /**
  * Transformation pass to remove equivalent rules.

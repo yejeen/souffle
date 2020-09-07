@@ -14,13 +14,12 @@
 
 #pragma once
 
+#include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class RamProgram;
 
 /**
  * @class EliminateDuplicatesTransformer

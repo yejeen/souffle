@@ -23,6 +23,7 @@
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/StreamUtil.h"
+#include <cassert>
 #include <ostream>
 #include <vector>
 

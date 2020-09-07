@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "ram/Program.h"
+#include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
 #include "ram/transform/Transformer.h"
 #include <functional>
@@ -24,8 +26,6 @@
 #include <utility>
 
 namespace souffle {
-
-class RamTranslationUnit;
 
 /**
  * @Class RamConditionalTransformer

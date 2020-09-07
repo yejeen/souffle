@@ -24,7 +24,6 @@
 #include "ast/analysis/IOType.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include <cstddef>
-#include <iostream>
 #include <map>
 #include <set>
 #include <stack>
