@@ -21,7 +21,6 @@
 #include "GraphUtils.h"
 #include "ast/Relation.h"
 #include "ast/analysis/Analysis.h"
-#include <iostream>
 #include <string>
 
 namespace souffle {

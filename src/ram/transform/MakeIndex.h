@@ -15,10 +15,13 @@
 #pragma once
 
 #include "ram/Aggregate.h"
+#include "ram/Condition.h"
 #include "ram/Constraint.h"
+#include "ram/Expression.h"
 #include "ram/IndexOperation.h"
 #include "ram/IndexScan.h"
 #include "ram/Operation.h"
+#include "ram/Program.h"
 #include "ram/Scan.h"
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/Level.h"
@@ -30,10 +33,6 @@
 #include <vector>
 
 namespace souffle {
-
-class RamProgram;
-class RamCondition;
-class RamExpression;
 
 /**
  * @class MakeIndexTransformer

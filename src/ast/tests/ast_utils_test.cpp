@@ -25,6 +25,7 @@
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
@@ -42,13 +43,12 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 namespace test {
 
 TEST(AstUtils, Grounded) {
     // create an example clause:
-    auto clause = std::make_unique<AstClause>();
+    auto clause = mk<AstClause>();
 
     // something like:
     //   r(X,Y,Z) :- a(X), X = Y, !b(Z).
@@ -80,7 +80,7 @@ TEST(AstUtils, Grounded) {
     // check construction
     EXPECT_EQ("r(X,Y,Z) :- \n   a(X),\n   X = Y,\n   !b(Z).", toString(*clause));
 
-    auto program = std::make_unique<AstProgram>();
+    auto program = mk<AstProgram>();
     program->addClause(std::move(clause));
     DebugReport dbgReport;
     ErrorReport errReport;

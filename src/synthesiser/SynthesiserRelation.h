@@ -11,10 +11,13 @@
 #include "ram/Relation.h"
 #include "ram/analysis/Index.h"
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <set>
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace souffle {
 

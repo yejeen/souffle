@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ast/Argument.h"
 #include "ast/Node.h"
 #include "ast/Term.h"
 #include "parser/SrcLocation.h"

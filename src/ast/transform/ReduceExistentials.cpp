@@ -129,7 +129,7 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
         std::stringstream newRelationName;
         newRelationName << "+?exists_" << relationName;
 
-        auto newRelation = std::make_unique<AstRelation>();
+        auto newRelation = mk<AstRelation>();
         newRelation->setQualifiedName(newRelationName.str());
         newRelation->setSrcLoc(originalRelation->getSrcLoc());
 
@@ -141,13 +141,13 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
         // Keep all non-recursive clauses
         for (AstClause* clause : getClauses(program, *originalRelation)) {
             if (!isRecursiveClause(*clause)) {
-                auto newClause = std::make_unique<AstClause>();
+                auto newClause = mk<AstClause>();
 
                 newClause->setSrcLoc(clause->getSrcLoc());
                 if (const AstExecutionPlan* plan = clause->getExecutionPlan()) {
                     newClause->setExecutionPlan(souffle::clone(plan));
                 }
-                newClause->setHead(std::make_unique<AstAtom>(newRelationName.str()));
+                newClause->setHead(mk<AstAtom>(newRelationName.str()));
                 for (AstLiteral* lit : clause->getBodyLiterals()) {
                     newClause->addToBody(souffle::clone(lit));
                 }
@@ -177,7 +177,7 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
                     // Relation is now existential, so rename it
                     std::stringstream newName;
                     newName << "+?exists_" << atom->getQualifiedName();
-                    return std::make_unique<AstAtom>(newName.str());
+                    return mk<AstAtom>(newName.str());
                 }
             }
             node->apply(*this);

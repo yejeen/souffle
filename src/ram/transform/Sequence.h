@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
 #include <cassert>
 #include <memory>
@@ -23,8 +24,6 @@
 #include <vector>
 
 namespace souffle {
-
-class RamTranslationUnit;
 
 /**
  * @Class RamTransformerSequence

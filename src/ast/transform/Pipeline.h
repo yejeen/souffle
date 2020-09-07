@@ -16,10 +16,14 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
+#include "ast/transform/Null.h"
+#include "ast/transform/Transformer.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <string>
@@ -27,8 +31,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformer that holds an arbitrary number of sub-transformations
@@ -55,7 +57,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->setDebugReport();
             } else {
-                i = std::make_unique<DebugReporter>(std::move(i));
+                i = mk<DebugReporter>(std::move(i));
             }
         }
     }
@@ -74,7 +76,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->disableTransformers(transforms);
             } else if (transforms.find(i->getName()) != transforms.end()) {
-                i = std::make_unique<NullTransformer>();
+                i = mk<NullTransformer>();
             }
         }
     }

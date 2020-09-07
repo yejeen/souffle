@@ -16,8 +16,13 @@
 
 #include "ram/analysis/Complexity.h"
 #include "ram/Condition.h"
+#include "ram/Conjunction.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
+#include "ram/Negation.h"
 #include "ram/Node.h"
+#include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/Visitor.h"
 #include <cassert>

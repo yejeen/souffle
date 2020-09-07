@@ -56,7 +56,7 @@ public:
         auto it = analyses.find(name);
         if (it == analyses.end()) {
             // analysis does not exist yet, create instance and run it.
-            auto analysis = std::make_unique<Analysis>(Analysis::name);
+            auto analysis = mk<Analysis>(Analysis::name);
             analysis->run(*this);
             // output analysis in debug report
             if (debug) {

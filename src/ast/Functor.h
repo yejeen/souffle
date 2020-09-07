@@ -17,7 +17,6 @@
 #pragma once
 
 #include "ast/Term.h"
-#include "souffle/RamTypes.h"
 #include "souffle/TypeAttribute.h"
 #include <cstddef>
 

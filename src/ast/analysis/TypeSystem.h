@@ -23,19 +23,20 @@
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
-#include <cassert>
+#include "souffle/utility/tinyformat.h"
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace souffle {
 
-// forward declaration
 class TypeEnvironment;
 
 /**

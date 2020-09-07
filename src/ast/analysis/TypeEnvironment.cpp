@@ -18,6 +18,7 @@
 #include "GraphUtils.h"
 #include "ast/AlgebraicDataType.h"
 #include "ast/Attribute.h"
+#include "ast/BranchDeclaration.h"
 #include "ast/Program.h"
 #include "ast/RecordType.h"
 #include "ast/SubsetType.h"

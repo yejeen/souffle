@@ -24,6 +24,7 @@
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -46,16 +47,16 @@ bool AddNullariesToAtomlessAggregatesTransformer::transform(AstTranslationUnit& 
         // We will add in the Tautology atom to the body of this aggregate now
         changed = true;
         // +Tautology()
-        auto nullaryAtom = std::make_unique<AstAtom>();
+        auto nullaryAtom = mk<AstAtom>();
         std::string relName = "+Tautology";
         nullaryAtom->setQualifiedName(relName);
 
         if (getRelation(program, relName) == nullptr) {
             // +Tautology().
-            auto fact = std::make_unique<AstClause>();
+            auto fact = mk<AstClause>();
             fact->setHead(souffle::clone(nullaryAtom));
             // .decl +Tautology()
-            auto tautologyRel = std::make_unique<AstRelation>();
+            auto tautologyRel = mk<AstRelation>();
             tautologyRel->setQualifiedName(relName);
             program.addRelation(std::move(tautologyRel));
             program.addClause(std::move(fact));

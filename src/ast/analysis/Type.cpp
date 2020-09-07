@@ -24,7 +24,9 @@
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
+#include "ast/Constant.h"
 #include "ast/Counter.h"
 #include "ast/Functor.h"
 #include "ast/IntrinsicFunctor.h"
@@ -47,7 +49,7 @@
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -61,11 +63,11 @@
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 namespace souffle {
-class AstConstant;
 
 namespace {
 
@@ -496,12 +498,12 @@ std::unique_ptr<AstClause> createAnnotatedClause(
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 std::stringstream newVarName;
                 newVarName << var->getName() << "&isin;" << types.find(var)->second;
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             } else if (auto* var = dynamic_cast<AstUnnamedVariable*>(node.get())) {
                 std::stringstream newVarName;
                 newVarName << "_"
                            << "&isin;" << types.find(var)->second;
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             }
             node->apply(*this);
             return node;

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
@@ -27,8 +28,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformer that repeatedly executes a sub-transformer while a condition is met
@@ -48,7 +47,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
             mt->setDebugReport();
         } else {
-            transformer = std::make_unique<DebugReporter>(std::move(transformer));
+            transformer = mk<DebugReporter>(std::move(transformer));
         }
     }
 
@@ -63,7 +62,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(transformer->getName()) != transforms.end()) {
-            transformer = std::make_unique<NullTransformer>();
+            transformer = mk<NullTransformer>();
         }
     }
 

@@ -19,6 +19,8 @@
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/transform/MagicSet.h"
@@ -30,9 +32,11 @@
 #include "parser/ParserDriver.h"
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
+#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -116,7 +120,7 @@ TEST(AstTransformers, ResolveGroundedAliases) {
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
             toString(*getClauses(program, "p")[0]));
 
-    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
+    mk<ResolveAliasesTransformer>()->apply(*tu);
 
     EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*getClauses(program, "p")[0]));
 }
@@ -139,7 +143,7 @@ TEST(AstTransformers, ResolveAliasesWithTermsInAtoms) {
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
             toString(*getClauses(program, "p")[0]));
 
-    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
+    mk<ResolveAliasesTransformer>()->apply(*tu);
 
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
             toString(*getClauses(program, "p")[0]));
@@ -263,7 +267,7 @@ TEST(AstTransformers, CheckClausalEquivalence) {
     const auto& program = *tu->getProgram();
 
     // Resolve aliases to remove trivial equalities
-    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
+    mk<ResolveAliasesTransformer>()->apply(*tu);
     auto aClauses = getClauses(program, "A");
     auto bClauses = getClauses(program, "B");
     auto cClauses = getClauses(program, "C");
@@ -305,7 +309,7 @@ TEST(AstTransformers, CheckClausalEquivalence) {
     EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(normC2, normC1));
 
     // Make sure equivalent (and only equivalent) clauses are removed by the minimiser
-    std::make_unique<MinimiseProgramTransformer>()->apply(*tu);
+    mk<MinimiseProgramTransformer>()->apply(*tu);
     auto aMinClauses = getClauses(program, "A");
     auto bMinClauses = getClauses(program, "B");
     auto cMinClauses = getClauses(program, "C");
@@ -361,7 +365,7 @@ TEST(AstTransformers, CheckAggregatorEquivalence) {
             errorReport, debugReport);
 
     const auto& program = *tu->getProgram();
-    std::make_unique<MinimiseProgramTransformer>()->apply(*tu);
+    mk<MinimiseProgramTransformer>()->apply(*tu);
 
     // A, B, C, D should still be the relations
     EXPECT_EQ(4, program.getRelations().size());
@@ -419,7 +423,7 @@ TEST(AstTransformers, RemoveClauseRedundancies) {
     // Invoking the `RemoveRelationCopiesTransformer` to create some extra redundancy
     // In particular: The relation `c` will be replaced with `b` throughout, creating
     // the clause b(x) :- b(x).
-    std::make_unique<RemoveRelationCopiesTransformer>()->apply(*tu);
+    mk<RemoveRelationCopiesTransformer>()->apply(*tu);
     EXPECT_EQ(nullptr, getRelation(program, "c"));
     auto bIntermediateClauses = getClauses(program, "b");
     EXPECT_EQ(2, bIntermediateClauses.size());
@@ -427,7 +431,7 @@ TEST(AstTransformers, RemoveClauseRedundancies) {
     EXPECT_EQ("b(X) :- \n   b(X).", toString(*bIntermediateClauses[1]));
 
     // Attempt to minimise the program
-    std::make_unique<MinimiseProgramTransformer>()->apply(*tu);
+    mk<MinimiseProgramTransformer>()->apply(*tu);
     EXPECT_EQ(3, program.getRelations().size());
 
     auto aClauses = getClauses(program, "a");
@@ -514,7 +518,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     /* Stage 1: Database normalisation */
     // Constants should now be extracted from the inequality constraints
-    std::make_unique<MagicSetTransformer::NormaliseDatabaseTransformer>()->apply(*tu);
+    mk<MagicSetTransformer::NormaliseDatabaseTransformer>()->apply(*tu);
     const auto relations1 = program.getRelations();
     EXPECT_EQ(8, program.getRelations().size());
     EXPECT_EQ(7, program.getClauses().size());
@@ -533,8 +537,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     /* Stage 2: Database negative and positive labelling, keeping only the relevant ones */
     /* Stage 2.1: Negative labelling */
-    std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(
-            *tu);
+    mk<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(*tu);
     EXPECT_EQ(14, program.getRelations().size());
     EXPECT_EQ(14, program.getClauses().size());
 
@@ -564,8 +567,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     checkRelMapEq(expectedNegLabelling, mappifyRelations(program));
 
     /* Stage 2.2: Positive labelling */
-    std::make_unique<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(
-            *tu);
+    mk<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(*tu);
     EXPECT_EQ(33, program.getRelations().size());
     EXPECT_EQ(27, program.getClauses().size());
 
@@ -629,7 +631,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     checkRelMapEq(expectedPosLabelling, mappifyRelations(program));
 
     /* Stage 2.3: Remove unnecessary labelled relations */
-    std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
+    mk<RemoveRedundantRelationsTransformer>()->apply(*tu);
     EXPECT_EQ(12, program.getRelations().size());
     EXPECT_EQ(13, program.getClauses().size());
 
@@ -662,7 +664,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     /* Stage 3: Database adornment */
     /* Stage 3.1: Adornment algorithm */
-    std::make_unique<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
+    mk<MagicSetTransformer::AdornDatabaseTransformer>()->apply(*tu);
     EXPECT_EQ(19, program.getRelations().size());
     EXPECT_EQ(23, program.getClauses().size());
 
@@ -700,7 +702,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     checkRelMapEq(expectedAdornment, mappifyRelations(program));
 
     /* Stage 2.3: Remove no longer necessary relations */
-    std::make_unique<RemoveRedundantRelationsTransformer>()->apply(*tu);
+    mk<RemoveRedundantRelationsTransformer>()->apply(*tu);
     EXPECT_EQ(12, program.getRelations().size());
     EXPECT_EQ(13, program.getClauses().size());
 
@@ -727,7 +729,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     checkRelMapEq(expectedFinalAdornment, mappifyRelations(program));
 
     /* Stage 4: MST core transformation */
-    std::make_unique<MagicSetTransformer::MagicSetCoreTransformer>()->apply(*tu);
+    mk<MagicSetTransformer::MagicSetCoreTransformer>()->apply(*tu);
     EXPECT_EQ(19, program.getRelations().size());
     EXPECT_EQ(26, program.getClauses().size());
 

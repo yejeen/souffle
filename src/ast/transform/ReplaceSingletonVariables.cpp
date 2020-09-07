@@ -18,6 +18,7 @@
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
@@ -29,7 +30,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool ReplaceSingletonVariablesTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
@@ -45,7 +45,7 @@ bool ReplaceSingletonVariablesTransformer::transform(AstTranslationUnit& transla
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 if (singletons.find(var->getName()) != singletons.end()) {
-                    return std::make_unique<AstUnnamedVariable>();
+                    return mk<AstUnnamedVariable>();
                 }
             }
             node->apply(*this);

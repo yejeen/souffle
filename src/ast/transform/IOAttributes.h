@@ -18,17 +18,31 @@
 #pragma once
 
 #include "Global.h"
+#include "ast/AlgebraicDataType.h"
+#include "ast/Attribute.h"
 #include "ast/Directive.h"
 #include "ast/Program.h"
+#include "ast/QualifiedName.h"
 #include "ast/RecordType.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
+#include "ast/Type.h"
 #include "ast/analysis/AuxArity.h"
 #include "ast/analysis/TypeEnvironment.h"
+#include "ast/analysis/TypeSystem.h"
 #include "ast/transform/Transformer.h"
+#include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/json11.h"
+#include <algorithm>
+#include <cstddef>
+#include <map>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace souffle {

@@ -19,10 +19,13 @@
 #include "Global.h"
 #include "ast/Directive.h"
 #include "ast/Program.h"
+#include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <string>
+#include <vector>
 
 namespace souffle {
 

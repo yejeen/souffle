@@ -16,21 +16,18 @@
 
 #pragma once
 
-#include "ast/Argument.h"
 #include "ast/Atom.h"
+#include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
-#include "ast/Literal.h"
 #include "ast/QualifiedName.h"
-#include "ast/Variable.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/Transformer.h"
-#include "ast/utility/Visitor.h"
-#include "souffle/utility/MiscUtil.h"
-#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include <algorithm>
+#include <cassert>
 #include <cstddef>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -38,8 +35,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Magic Set Transformation.
@@ -57,12 +52,9 @@ public:
     class MagicSetCoreTransformer;
 
     MagicSetTransformer()
-            : PipelineTransformer(std::make_unique<NormaliseDatabaseTransformer>(),
-                      std::make_unique<LabelDatabaseTransformer>(),
-                      std::make_unique<RemoveRedundantRelationsTransformer>(),
-                      std::make_unique<AdornDatabaseTransformer>(),
-                      std::make_unique<RemoveRedundantRelationsTransformer>(),
-                      std::make_unique<MagicSetCoreTransformer>()) {}
+            : PipelineTransformer(mk<NormaliseDatabaseTransformer>(), mk<LabelDatabaseTransformer>(),
+                      mk<RemoveRedundantRelationsTransformer>(), mk<AdornDatabaseTransformer>(),
+                      mk<RemoveRedundantRelationsTransformer>(), mk<MagicSetCoreTransformer>()) {}
 
     std::string getName() const override {
         return "MagicSetTransformer";
@@ -147,8 +139,7 @@ public:
     class PositiveLabellingTransformer;
 
     LabelDatabaseTransformer()
-            : PipelineTransformer(std::make_unique<NegativeLabellingTransformer>(),
-                      std::make_unique<PositiveLabellingTransformer>()) {}
+            : PipelineTransformer(mk<NegativeLabellingTransformer>(), mk<PositiveLabellingTransformer>()) {}
 
     std::string getName() const override {
         return "LabelDatabaseTransformer";

@@ -21,6 +21,7 @@
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
@@ -33,7 +34,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();
@@ -82,9 +82,8 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
                         // If the body is still empty and the original body contains true add it now.
                         if (containsTrue && isEmpty) {
-                            newBody.push_back(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                    std::make_unique<AstNumericConstant>(1),
-                                    std::make_unique<AstNumericConstant>(1)));
+                            newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                                    mk<AstNumericConstant>(1), mk<AstNumericConstant>(1)));
 
                             isEmpty = false;
                         }
@@ -94,9 +93,8 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                         // Empty aggregator body!
                         // Not currently handled, so add in a false literal in the body
                         // E.g. max x : { } =becomes=> max 1 : {0 = 1}
-                        newBody.push_back(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                std::make_unique<AstNumericConstant>(0),
-                                std::make_unique<AstNumericConstant>(1)));
+                        newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                                mk<AstNumericConstant>(0), mk<AstNumericConstant>(1)));
                     }
 
                     replacementAggregator->setBody(std::move(newBody));

@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/RemoveRedundantRelations.h"
-#include "ast/Program.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/RedundantRelations.h"

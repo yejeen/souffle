@@ -22,7 +22,6 @@
 #include "ast/Relation.h"
 #include "ast/analysis/Analysis.h"
 #include <cassert>
-#include <iostream>
 #include <map>
 #include <set>
 #include <string>

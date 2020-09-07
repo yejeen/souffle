@@ -25,6 +25,7 @@
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/utility/NodeMapper.h"
@@ -48,7 +49,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 namespace {
 
@@ -414,7 +414,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
     for (const AstArgument* arg : terms) {
         // create a new mapping for this term
         auto term = souffle::clone(arg);
-        auto newVariable = std::make_unique<AstVariable>(" _tmp_" + toString(varCounter++));
+        auto newVariable = mk<AstVariable>(" _tmp_" + toString(varCounter++));
         termToVar.push_back(std::make_pair(std::move(term), std::move(newVariable)));
     }
 
@@ -452,7 +452,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
         auto& term = pair.first;
         auto& variable = pair.second;
 
-        res->addToBody(std::make_unique<AstBinaryConstraint>(
+        res->addToBody(mk<AstBinaryConstraint>(
                 BinaryConstraintOp::EQ, souffle::clone(variable), souffle::clone(term)));
     }
 

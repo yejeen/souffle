@@ -17,12 +17,11 @@
 
 #pragma once
 
+#include "ram/Node.h"
+#include "ram/TranslationUnit.h"
 #include "ram/analysis/Analysis.h"
 
 namespace souffle {
-
-class RamNode;
-class RamTranslationUnit;
 
 /**
  * @class RamComplexityAnalysis

@@ -138,7 +138,7 @@ bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(AstClause& clause) {
                 bool hasRecord = isRecord(left) || isRecord(right);
                 auto op = constraint->getOperator();
                 if (hasUnnamed && hasRecord && isEqConstraint(op)) {
-                    return std::make_unique<AstBooleanConstraint>(true);
+                    return mk<AstBooleanConstraint>(true);
                 }
             }
 
