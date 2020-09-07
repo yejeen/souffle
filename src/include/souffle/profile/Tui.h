@@ -40,7 +40,6 @@
 #include <utility>
 #include <vector>
 #include <dirent.h>
-#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
