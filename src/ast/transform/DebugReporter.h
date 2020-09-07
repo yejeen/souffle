@@ -18,8 +18,8 @@
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"
-#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <set>
 #include <string>

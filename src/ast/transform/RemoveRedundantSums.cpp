@@ -53,8 +53,7 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
                         count->setBody(std::move(newBody));
                         auto number = souffle::clone(constant);
                         // Now it's constant * count : { ... }
-                        auto result = mk<AstIntrinsicFunctor>(
-                                "*", std::move(number), std::move(count));
+                        auto result = mk<AstIntrinsicFunctor>("*", std::move(number), std::move(count));
 
                         return result;
                     }

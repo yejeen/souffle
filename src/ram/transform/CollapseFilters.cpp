@@ -50,8 +50,8 @@ bool CollapseFiltersTransformer::collapseFilters(RamProgram& program) {
 
                 if (canCollapse) {
                     changed = true;
-                    node = mk<RamFilter>(toCondition(conditions),
-                            souffle::clone(&prevFilter->getOperation()), prevFilter->getProfileText());
+                    node = mk<RamFilter>(toCondition(conditions), souffle::clone(&prevFilter->getOperation()),
+                            prevFilter->getProfileText());
                 }
             }
             node->apply(makeLambdaRamMapper(filterRewriter));

@@ -92,24 +92,20 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
 
                 if (condition) {
                     auto nestedOp = souffle::clone(&indexOperation->getOperation());
-                    auto filter =
-                            mk<RamFilter>(souffle::clone(condition), souffle::clone(nestedOp));
+                    auto filter = mk<RamFilter>(souffle::clone(condition), souffle::clone(nestedOp));
 
                     // need to rewrite the node with the same index operation
                     if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
-                        node = mk<RamIndexScan>(
-                                mk<RamRelationReference>(&iscan->getRelation()),
+                        node = mk<RamIndexScan>(mk<RamRelationReference>(&iscan->getRelation()),
                                 iscan->getTupleId(), std::move(updatedPattern), std::move(filter),
                                 iscan->getProfileText());
                     } else if (const RamParallelIndexScan* pscan =
                                        dynamic_cast<RamParallelIndexScan*>(node.get())) {
-                        node = mk<RamParallelIndexScan>(
-                                mk<RamRelationReference>(&pscan->getRelation()),
+                        node = mk<RamParallelIndexScan>(mk<RamRelationReference>(&pscan->getRelation()),
                                 pscan->getTupleId(), std::move(updatedPattern), std::move(filter),
                                 pscan->getProfileText());
                     } else if (const RamIndexChoice* ichoice = dynamic_cast<RamIndexChoice*>(node.get())) {
-                        node = mk<RamIndexChoice>(
-                                mk<RamRelationReference>(&ichoice->getRelation()),
+                        node = mk<RamIndexChoice>(mk<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(), souffle::clone(&ichoice->getCondition()),
                                 std::move(updatedPattern), std::move(filter), ichoice->getProfileText());
                     } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
@@ -157,24 +153,20 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                     // need to rewrite the node with a semantically equivalent operation to get rid of the
                     // index operation i.e. RamIndexScan with no indexable attributes -> RamScan
                     if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
-                        node = mk<RamScan>(
-                                mk<RamRelationReference>(&iscan->getRelation()),
+                        node = mk<RamScan>(mk<RamRelationReference>(&iscan->getRelation()),
                                 iscan->getTupleId(), souffle::clone(&iscan->getOperation()),
                                 iscan->getProfileText());
                     } else if (const RamParallelIndexScan* pscan =
                                        dynamic_cast<RamParallelIndexScan*>(node.get())) {
-                        node = mk<RamParallelScan>(
-                                mk<RamRelationReference>(&pscan->getRelation()),
+                        node = mk<RamParallelScan>(mk<RamRelationReference>(&pscan->getRelation()),
                                 pscan->getTupleId(), souffle::clone(&pscan->getOperation()),
                                 pscan->getProfileText());
                     } else if (const RamIndexChoice* ichoice = dynamic_cast<RamIndexChoice*>(node.get())) {
-                        node = mk<RamChoice>(
-                                mk<RamRelationReference>(&ichoice->getRelation()),
+                        node = mk<RamChoice>(mk<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(), souffle::clone(&ichoice->getCondition()),
                                 souffle::clone(&ichoice->getOperation()), ichoice->getProfileText());
                     } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
-                        node = mk<RamAggregate>(souffle::clone(&iagg->getOperation()),
-                                iagg->getFunction(),
+                        node = mk<RamAggregate>(souffle::clone(&iagg->getOperation()), iagg->getFunction(),
                                 mk<RamRelationReference>(&iagg->getRelation()),
                                 souffle::clone(&iagg->getExpression()), souffle::clone(&iagg->getCondition()),
                                 iagg->getTupleId());

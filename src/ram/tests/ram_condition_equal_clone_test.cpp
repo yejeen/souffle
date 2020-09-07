@@ -75,10 +75,8 @@ TEST(RamConjunction, CloneAndEquals) {
     EXPECT_NE(a, c);
 
     // true /\ (false /\ true)
-    auto d = mk<RamConjunction>(mk<RamTrue>(),
-            mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
-    auto e = mk<RamConjunction>(mk<RamTrue>(),
-            mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
+    auto d = mk<RamConjunction>(mk<RamTrue>(), mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
+    auto e = mk<RamConjunction>(mk<RamTrue>(), mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
     EXPECT_EQ(*d, *e);
     EXPECT_NE(d, e);
 

@@ -393,10 +393,9 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
         std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern,
                 indexable, toConjunctionList(&agg->getCondition()), identifier);
         if (indexable) {
-            return mk<RamIndexAggregate>(souffle::clone(&agg->getOperation()),
-                    agg->getFunction(), mk<RamRelationReference>(&rel),
-                    souffle::clone(&agg->getExpression()), std::move(condition), std::move(queryPattern),
-                    agg->getTupleId());
+            return mk<RamIndexAggregate>(souffle::clone(&agg->getOperation()), agg->getFunction(),
+                    mk<RamRelationReference>(&rel), souffle::clone(&agg->getExpression()),
+                    std::move(condition), std::move(queryPattern), agg->getTupleId());
         }
     }
     return nullptr;
@@ -420,8 +419,8 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* s
             if (!isRamTrue(condition.get())) {
                 op = mk<RamFilter>(std::move(condition), std::move(op));
             }
-            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern), std::move(op), scan->getProfileText());
+            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier, std::move(queryPattern),
+                    std::move(op), scan->getProfileText());
         }
     }
     return nullptr;

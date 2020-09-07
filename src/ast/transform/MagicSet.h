@@ -57,12 +57,9 @@ public:
     class MagicSetCoreTransformer;
 
     MagicSetTransformer()
-            : PipelineTransformer(mk<NormaliseDatabaseTransformer>(),
-                      mk<LabelDatabaseTransformer>(),
-                      mk<RemoveRedundantRelationsTransformer>(),
-                      mk<AdornDatabaseTransformer>(),
-                      mk<RemoveRedundantRelationsTransformer>(),
-                      mk<MagicSetCoreTransformer>()) {}
+            : PipelineTransformer(mk<NormaliseDatabaseTransformer>(), mk<LabelDatabaseTransformer>(),
+                      mk<RemoveRedundantRelationsTransformer>(), mk<AdornDatabaseTransformer>(),
+                      mk<RemoveRedundantRelationsTransformer>(), mk<MagicSetCoreTransformer>()) {}
 
     std::string getName() const override {
         return "MagicSetTransformer";
@@ -147,8 +144,7 @@ public:
     class PositiveLabellingTransformer;
 
     LabelDatabaseTransformer()
-            : PipelineTransformer(mk<NegativeLabellingTransformer>(),
-                      mk<PositiveLabellingTransformer>()) {}
+            : PipelineTransformer(mk<NegativeLabellingTransformer>(), mk<PositiveLabellingTransformer>()) {}
 
     std::string getName() const override {
         return "LabelDatabaseTransformer";

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/json11.h"
 #include <cassert>
 #include <chrono>
@@ -306,8 +306,7 @@ protected:
             assert(!key.empty() && "Key is empty!");
             DirectoryEntry* newDir = dir->readDirectoryEntry(key);
             if (newDir == nullptr) {
-                newDir =
-                        dynamic_cast<DirectoryEntry*>(dir->writeEntry(mk<DirectoryEntry>(key)));
+                newDir = dynamic_cast<DirectoryEntry*>(dir->writeEntry(mk<DirectoryEntry>(key)));
             }
             assert(newDir != nullptr && "Attempting to overwrite an existing entry");
             dir = newDir;

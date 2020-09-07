@@ -130,8 +130,7 @@ public:
         }
 
         Stream range(const TupleRef& low, const TupleRef& high) const override {
-            return mk<Source>(
-                    index.set.lower_bound(low, hints), index.set.upper_bound(high, hints));
+            return mk<Source>(index.set.lower_bound(low, hints), index.set.upper_bound(high, hints));
         }
 
         size_t getArity() const override {

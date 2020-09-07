@@ -66,8 +66,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
             // insert new filter operation at outer-most level of the query
             changed = true;
             auto* nestedOp = const_cast<RamOperation*>(&mQuery->getOperation());
-            mQuery->rewrite(
-                    nestedOp, mk<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
+            mQuery->rewrite(nestedOp, mk<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
         }
     });
 
@@ -95,8 +94,8 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
         if (newCondition != nullptr) {
             // insert new filter operation after the search operation
             changed = true;
-            tupleOp->rewrite(&tupleOp->getOperation(), mk<RamFilter>(std::move(newCondition),
-                                                               souffle::clone(&tupleOp->getOperation())));
+            tupleOp->rewrite(&tupleOp->getOperation(),
+                    mk<RamFilter>(std::move(newCondition), souffle::clone(&tupleOp->getOperation())));
         }
     });
     return changed;

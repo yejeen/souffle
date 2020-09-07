@@ -533,8 +533,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
 
     /* Stage 2: Database negative and positive labelling, keeping only the relevant ones */
     /* Stage 2.1: Negative labelling */
-    mk<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(
-            *tu);
+    mk<MagicSetTransformer::LabelDatabaseTransformer::NegativeLabellingTransformer>()->apply(*tu);
     EXPECT_EQ(14, program.getRelations().size());
     EXPECT_EQ(14, program.getClauses().size());
 
@@ -564,8 +563,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     checkRelMapEq(expectedNegLabelling, mappifyRelations(program));
 
     /* Stage 2.2: Positive labelling */
-    mk<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(
-            *tu);
+    mk<MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer>()->apply(*tu);
     EXPECT_EQ(33, program.getRelations().size());
     EXPECT_EQ(27, program.getClauses().size());
 

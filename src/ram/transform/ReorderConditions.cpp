@@ -51,8 +51,7 @@ bool ReorderConditionsTransformer::reorderConditions(RamProgram& program) {
                                 return *a == *b;
                             })) {
                     changed = true;
-                    node = mk<RamFilter>(
-                            std::unique_ptr<RamCondition>(toCondition(sortedConds)),
+                    node = mk<RamFilter>(std::unique_ptr<RamCondition>(toCondition(sortedConds)),
                             souffle::clone(&filter->getOperation()));
                 }
             }

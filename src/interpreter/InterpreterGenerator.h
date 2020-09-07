@@ -112,8 +112,7 @@ public:
         for (const auto& arg : op.getArguments()) {
             children.push_back(visit(arg));
         }
-        return mk<InterpreterUserDefinedOperator>(
-                I_UserDefinedOperator, &op, std::move(children));
+        return mk<InterpreterUserDefinedOperator>(I_UserDefinedOperator, &op, std::move(children));
     }
 
     NodePtr visitNestedIntrinsicOperator(const RamNestedIntrinsicOperator& op) override {
@@ -122,8 +121,7 @@ public:
             children.push_back(visit(arg));
         }
         children.push_back(visitTupleOperation(op));
-        return mk<InterpreterNestedIntrinsicOperator>(
-                I_NestedIntrinsicOperator, &op, std::move(children));
+        return mk<InterpreterNestedIntrinsicOperator>(I_NestedIntrinsicOperator, &op, std::move(children));
     }
 
     NodePtr visitPackRecord(const RamPackRecord& pr) override {
@@ -148,8 +146,7 @@ public:
     }
 
     NodePtr visitConjunction(const RamConjunction& conj) override {
-        return mk<InterpreterConjunction>(
-                I_Conjunction, &conj, visit(conj.getLHS()), visit(conj.getRHS()));
+        return mk<InterpreterConjunction>(I_Conjunction, &conj, visit(conj.getLHS()), visit(conj.getRHS()));
     }
 
     NodePtr visitNegation(const RamNegation& neg) override {
@@ -189,8 +186,7 @@ public:
 
     // -- comparison operators --
     NodePtr visitConstraint(const RamConstraint& relOp) override {
-        return mk<InterpreterConstraint>(
-                I_Constraint, &relOp, visit(relOp.getLHS()), visit(relOp.getRHS()));
+        return mk<InterpreterConstraint>(I_Constraint, &relOp, visit(relOp.getLHS()), visit(relOp.getRHS()));
     }
 
     NodePtr visitNestedOperation(const RamNestedOperation& nested) override {
@@ -199,8 +195,7 @@ public:
 
     NodePtr visitTupleOperation(const RamTupleOperation& search) override {
         if (profileEnabled) {
-            return mk<InterpreterTupleOperation>(
-                    I_TupleOperation, &search, visit(search.getOperation()));
+            return mk<InterpreterTupleOperation>(I_TupleOperation, &search, visit(search.getOperation()));
         }
         return visit(search.getOperation());
     }
@@ -214,8 +209,7 @@ public:
     NodePtr visitParallelScan(const RamParallelScan& pScan) override {
         size_t relId = encodeRelation(pScan.getRelation());
         auto rel = relations[relId].get();
-        auto res = mk<InterpreterParallelScan>(
-                I_ParallelScan, &pScan, rel, visitTupleOperation(pScan));
+        auto res = mk<InterpreterParallelScan>(I_ParallelScan, &pScan, rel, visitTupleOperation(pScan));
         res->setPreamble(parentQueryPreamble);
         return res;
     }
@@ -256,9 +250,8 @@ public:
 
     NodePtr visitIndexChoice(const RamIndexChoice& choice) override {
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(choice);
-        return mk<InterpreterIndexChoice>(I_IndexChoice, &choice, nullptr,
-                visit(choice.getCondition()), visitTupleOperation(choice), encodeView(&choice),
-                std::move(indexOperation));
+        return mk<InterpreterIndexChoice>(I_IndexChoice, &choice, nullptr, visit(choice.getCondition()),
+                visitTupleOperation(choice), encodeView(&choice), std::move(indexOperation));
     }
 
     NodePtr visitParallelIndexChoice(const RamParallelIndexChoice& ichoice) override {
@@ -280,9 +273,8 @@ public:
     NodePtr visitAggregate(const RamAggregate& aggregate) override {
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        return mk<InterpreterAggregate>(I_Aggregate, &aggregate, rel,
-                visit(aggregate.getExpression()), visit(aggregate.getCondition()),
-                visitTupleOperation(aggregate));
+        return mk<InterpreterAggregate>(I_Aggregate, &aggregate, rel, visit(aggregate.getExpression()),
+                visit(aggregate.getCondition()), visitTupleOperation(aggregate));
     }
 
     NodePtr visitParallelAggregate(const RamParallelAggregate& aggregate) override {
@@ -308,8 +300,8 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(aggregate);
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
-        auto res = mk<InterpreterParallelIndexAggregate>(I_ParallelIndexAggregate, &aggregate,
-                rel, visit(aggregate.getExpression()), visit(aggregate.getCondition()),
+        auto res = mk<InterpreterParallelIndexAggregate>(I_ParallelIndexAggregate, &aggregate, rel,
+                visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate), encodeView(&aggregate), std::move(indexOperation));
         res->setPreamble(parentQueryPreamble);
         return res;
@@ -382,8 +374,7 @@ public:
         auto rel = relations[relId].get();
         NodePtrVec children;
         children.push_back(visit(timer.getStatement()));
-        return mk<InterpreterLogRelationTimer>(
-                I_LogRelationTimer, &timer, visit(timer.getStatement()), rel);
+        return mk<InterpreterLogRelationTimer>(I_LogRelationTimer, &timer, visit(timer.getStatement()), rel);
     }
 
     NodePtr visitLogTimer(const RamLogTimer& timer) override {
@@ -652,11 +643,11 @@ private:
                     std::vector<std::string>(), orderSet);
         } else {
             if (isProvenance) {
-                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
-                        id.getName(), std::vector<std::string>(), orderSet, createBTreeProvenanceIndex);
+                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(), id.getName(),
+                        std::vector<std::string>(), orderSet, createBTreeProvenanceIndex);
             } else {
-                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(),
-                        id.getName(), std::vector<std::string>(), orderSet);
+                res = mk<InterpreterRelation>(id.getArity(), id.getAuxiliaryArity(), id.getName(),
+                        std::vector<std::string>(), orderSet);
             }
         }
         relations[idx] = mk<RelationHandle>(std::move(res));

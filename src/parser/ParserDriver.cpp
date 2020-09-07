@@ -50,8 +50,7 @@ namespace souffle {
 
 std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
         const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport) {
-    translationUnit =
-            mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
+    translationUnit = mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
     yyscan_t scanner;
     scanner_data data;
     data.yyfilename = filename;
@@ -68,8 +67,7 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
 
 std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
         const std::string& code, ErrorReport& errorReport, DebugReport& debugReport) {
-    translationUnit =
-            mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
+    translationUnit = mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
 
     scanner_data data;
     data.yyfilename = "<in-memory>";

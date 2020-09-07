@@ -41,8 +41,7 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
                 if (scan->getTupleId() == 0 && scan->getRelation().getArity() > 0) {
                     if (!isA<RamProject>(&scan->getOperation())) {
                         changed = true;
-                        return mk<RamParallelScan>(
-                                mk<RamRelationReference>(&scan->getRelation()),
+                        return mk<RamParallelScan>(mk<RamRelationReference>(&scan->getRelation()),
                                 scan->getTupleId(), souffle::clone(&scan->getOperation()),
                                 scan->getProfileText());
                     }
@@ -50,8 +49,7 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
             } else if (const RamChoice* choice = dynamic_cast<RamChoice*>(node.get())) {
                 if (choice->getTupleId() == 0) {
                     changed = true;
-                    return mk<RamParallelChoice>(
-                            mk<RamRelationReference>(&choice->getRelation()),
+                    return mk<RamParallelChoice>(mk<RamRelationReference>(&choice->getRelation()),
                             choice->getTupleId(), souffle::clone(&choice->getCondition()),
                             souffle::clone(&choice->getOperation()), choice->getProfileText());
                 }
@@ -60,8 +58,7 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
                     changed = true;
                     const RamRelation& rel = indexScan->getRelation();
                     RamPattern queryPattern = clone(indexScan->getRangePattern());
-                    return mk<RamParallelIndexScan>(
-                            mk<RamRelationReference>(&rel), indexScan->getTupleId(),
+                    return mk<RamParallelIndexScan>(mk<RamRelationReference>(&rel), indexScan->getTupleId(),
                             std::move(queryPattern), souffle::clone(&indexScan->getOperation()),
                             indexScan->getProfileText());
                 }
@@ -70,10 +67,10 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
                     changed = true;
                     const RamRelation& rel = indexChoice->getRelation();
                     RamPattern queryPattern = clone(indexChoice->getRangePattern());
-                    return mk<RamParallelIndexChoice>(
-                            mk<RamRelationReference>(&rel), indexChoice->getTupleId(),
-                            souffle::clone(&indexChoice->getCondition()), std::move(queryPattern),
-                            souffle::clone(&indexChoice->getOperation()), indexChoice->getProfileText());
+                    return mk<RamParallelIndexChoice>(mk<RamRelationReference>(&rel),
+                            indexChoice->getTupleId(), souffle::clone(&indexChoice->getCondition()),
+                            std::move(queryPattern), souffle::clone(&indexChoice->getOperation()),
+                            indexChoice->getProfileText());
                 }
             } else if (const RamAggregate* aggregate = dynamic_cast<RamAggregate*>(node.get())) {
                 if (aggregate->getTupleId() == 0 && !aggregate->getRelation().isNullary()) {

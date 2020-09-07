@@ -436,8 +436,7 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
                                ? mk<AstAggregator>(aggr->getOperator(),
                                          souffle::clone(aggr->getTargetExpression()),
                                          std::move(newBodyLiterals))
-                               : mk<AstAggregator>(
-                                         aggr->getOperator(), nullptr, std::move(newBodyLiterals));
+                               : mk<AstAggregator>(aggr->getOperator(), nullptr, std::move(newBodyLiterals));
             } else {
                 // Otherwise, just normalise children as usual.
                 node->apply(*this);
@@ -455,8 +454,8 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
                     }
 
                     // Link other variables back to their original value with a `<var> = <arg>` constraint
-                    constraints.insert(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                            mk<AstVariable>(name.str()), souffle::clone(arg)));
+                    constraints.insert(mk<AstBinaryConstraint>(
+                            BinaryConstraintOp::EQ, mk<AstVariable>(name.str()), souffle::clone(arg)));
                     return mk<AstVariable>(name.str());
                 }
             }

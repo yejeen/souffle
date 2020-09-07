@@ -233,8 +233,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 }
                 args.emplace_back(arg->clone());
             }
-            auto aggAtom =
-                    mk<AstAtom>(head->getQualifiedName(), std::move(args), head->getSrcLoc());
+            auto aggAtom = mk<AstAtom>(head->getQualifiedName(), std::move(args), head->getSrcLoc());
 
             std::vector<std::unique_ptr<AstLiteral>> newBody;
             newBody.push_back(std::move(aggAtom));

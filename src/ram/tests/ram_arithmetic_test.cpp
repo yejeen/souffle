@@ -54,14 +54,12 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
     returnValues.emplace_back(std::move(expression));
 
     Global::config().set("jobs", "1");
-    std::unique_ptr<RamStatement> query =
-            mk<RamQuery>(mk<RamSubroutineReturn>(std::move(returnValues)));
+    std::unique_ptr<RamStatement> query = mk<RamQuery>(mk<RamSubroutineReturn>(std::move(returnValues)));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
     subs.insert(std::make_pair("test", std::move(query)));
     std::vector<std::unique_ptr<RamRelation>> rels;
 
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), mk<RamSequence>(), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), mk<RamSequence>(), std::move(subs));
 
     ErrorReport errReport;
     DebugReport debugReport;

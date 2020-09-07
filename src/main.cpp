@@ -446,26 +446,19 @@ int main(int argc, char** argv) {
     /* construct the transformation pipeline */
 
     // Equivalence pipeline
-    auto equivalencePipeline =
-            mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
-                    mk<FixpointTransformer>(mk<MinimiseProgramTransformer>()),
-                    mk<ReplaceSingletonVariablesTransformer>(),
-                    mk<RemoveRelationCopiesTransformer>(),
-                    mk<RemoveEmptyRelationsTransformer>(),
-                    mk<RemoveRedundantRelationsTransformer>());
+    auto equivalencePipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
+            mk<FixpointTransformer>(mk<MinimiseProgramTransformer>()),
+            mk<ReplaceSingletonVariablesTransformer>(), mk<RemoveRelationCopiesTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<RemoveRedundantRelationsTransformer>());
 
     // Magic-Set pipeline
-    auto magicPipeline = mk<PipelineTransformer>(mk<MagicSetTransformer>(),
-            mk<ResolveAliasesTransformer>(),
-            mk<RemoveRelationCopiesTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(),
+    auto magicPipeline = mk<PipelineTransformer>(mk<MagicSetTransformer>(), mk<ResolveAliasesTransformer>(),
+            mk<RemoveRelationCopiesTransformer>(), mk<RemoveEmptyRelationsTransformer>(),
             mk<RemoveRedundantRelationsTransformer>(), souffle::clone(equivalencePipeline));
 
     // Partitioning pipeline
-    auto partitionPipeline =
-            mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
-                    mk<PartitionBodyLiteralsTransformer>(),
-                    mk<ReplaceSingletonVariablesTransformer>());
+    auto partitionPipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
+            mk<PartitionBodyLiteralsTransformer>(), mk<ReplaceSingletonVariablesTransformer>());
 
     // Provenance pipeline
     auto provenancePipeline = mk<ConditionalTransformer>(Global::config().has("provenance"),
@@ -474,37 +467,26 @@ int main(int argc, char** argv) {
     // Main pipeline
     auto pipeline = mk<PipelineTransformer>(mk<AstComponentChecker>(),
             mk<ComponentInstantiationTransformer>(), mk<IODefaultsTransformer>(),
-            mk<UniqueAggregationVariablesTransformer>(),
-            mk<AstUserDefinedFunctorsTransformer>(),
+            mk<UniqueAggregationVariablesTransformer>(), mk<AstUserDefinedFunctorsTransformer>(),
             mk<FixpointTransformer>(
-                    mk<PipelineTransformer>(mk<ResolveAnonymousRecordAliases>(),
-                            mk<FoldAnonymousRecords>())),
-            mk<PolymorphicObjectsTransformer>(), mk<AstSemanticChecker>(),
-            mk<ADTtoRecordsTransformer>(),
+                    mk<PipelineTransformer>(mk<ResolveAnonymousRecordAliases>(), mk<FoldAnonymousRecords>())),
+            mk<PolymorphicObjectsTransformer>(), mk<AstSemanticChecker>(), mk<ADTtoRecordsTransformer>(),
             mk<MaterializeSingletonAggregationTransformer>(),
-            mk<FixpointTransformer>(
-                    mk<MaterializeAggregationQueriesTransformer>()),
+            mk<FixpointTransformer>(mk<MaterializeAggregationQueriesTransformer>()),
             mk<ResolveAliasesTransformer>(), mk<RemoveTypecastsTransformer>(),
-            mk<RemoveBooleanConstraintsTransformer>(),
-            mk<ResolveAliasesTransformer>(), mk<MinimiseProgramTransformer>(),
-            mk<InlineRelationsTransformer>(), mk<PolymorphicObjectsTransformer>(),
-            mk<GroundedTermsChecker>(), mk<ResolveAliasesTransformer>(),
-            mk<RemoveRedundantRelationsTransformer>(),
-            mk<RemoveRelationCopiesTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(),
-            mk<ReplaceSingletonVariablesTransformer>(),
-            mk<FixpointTransformer>(
-                    mk<PipelineTransformer>(mk<ReduceExistentialsTransformer>(),
-                            mk<RemoveRedundantRelationsTransformer>())),
+            mk<RemoveBooleanConstraintsTransformer>(), mk<ResolveAliasesTransformer>(),
+            mk<MinimiseProgramTransformer>(), mk<InlineRelationsTransformer>(),
+            mk<PolymorphicObjectsTransformer>(), mk<GroundedTermsChecker>(), mk<ResolveAliasesTransformer>(),
+            mk<RemoveRedundantRelationsTransformer>(), mk<RemoveRelationCopiesTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<ReplaceSingletonVariablesTransformer>(),
+            mk<FixpointTransformer>(mk<PipelineTransformer>(
+                    mk<ReduceExistentialsTransformer>(), mk<RemoveRedundantRelationsTransformer>())),
             mk<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
-            std::move(equivalencePipeline), mk<RemoveRelationCopiesTransformer>(),
-            std::move(magicPipeline), mk<ReorderLiteralsTransformer>(),
-            mk<RemoveRedundantSumsTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(),
-            mk<AddNullariesToAtomlessAggregatesTransformer>(),
+            std::move(equivalencePipeline), mk<RemoveRelationCopiesTransformer>(), std::move(magicPipeline),
+            mk<ReorderLiteralsTransformer>(), mk<RemoveRedundantSumsTransformer>(),
+            mk<RemoveEmptyRelationsTransformer>(), mk<AddNullariesToAtomlessAggregatesTransformer>(),
             mk<PolymorphicObjectsTransformer>(), mk<ReorderLiteralsTransformer>(),
-            mk<AstExecutionPlanChecker>(), std::move(provenancePipeline),
-            mk<IOAttributesTransformer>());
+            mk<AstExecutionPlanChecker>(), std::move(provenancePipeline), mk<IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {
@@ -584,20 +566,16 @@ int main(int argc, char** argv) {
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
     std::unique_ptr<RamTransformer> ramTransform = mk<RamTransformerSequence>(
-            mk<RamLoopTransformer>(mk<RamTransformerSequence>(
-                    mk<ExpandFilterTransformer>(),
+            mk<RamLoopTransformer>(mk<RamTransformerSequence>(mk<ExpandFilterTransformer>(),
                     mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>()
                     // not sure if I need to move out the filter transform
                     )),
-            mk<RamLoopTransformer>(mk<IndexedInequalityTransformer>()),
-            mk<IfConversionTransformer>(), mk<ChoiceConversionTransformer>(),
-            mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
-            mk<RamLoopTransformer>(mk<RamTransformerSequence>(
-                    mk<HoistAggregateTransformer>(), mk<TupleIdTransformer>())),
-            mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(),
-            mk<CollapseFiltersTransformer>(),
-            mk<EliminateDuplicatesTransformer>(),
-            mk<ReorderConditionsTransformer>(),
+            mk<RamLoopTransformer>(mk<IndexedInequalityTransformer>()), mk<IfConversionTransformer>(),
+            mk<ChoiceConversionTransformer>(), mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
+            mk<RamLoopTransformer>(
+                    mk<RamTransformerSequence>(mk<HoistAggregateTransformer>(), mk<TupleIdTransformer>())),
+            mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(), mk<CollapseFiltersTransformer>(),
+            mk<EliminateDuplicatesTransformer>(), mk<ReorderConditionsTransformer>(),
             mk<RamLoopTransformer>(mk<ReorderFilterBreak>()),
             mk<RamConditionalTransformer>(
                     // job count of 0 means all cores are used.
@@ -628,8 +606,7 @@ int main(int argc, char** argv) {
             }
 
             // configure and execute interpreter
-            std::unique_ptr<InterpreterEngine> interpreter(
-                    mk<InterpreterEngine>(*ramTranslationUnit));
+            std::unique_ptr<InterpreterEngine> interpreter(mk<InterpreterEngine>(*ramTranslationUnit));
             interpreter->executeMain();
             // If the profiler was started, join back here once it exits.
             if (profiler.joinable()) {

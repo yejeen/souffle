@@ -127,8 +127,7 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     headVariableString << join(headVariables, ",");
 
     // add an attribute to infoRelation for the head of clause
-    infoRelation->addAttribute(
-            mk<AstAttribute>(std::string("head_vars"), AstQualifiedName("symbol")));
+    infoRelation->addAttribute(mk<AstAttribute>(std::string("head_vars"), AstQualifiedName("symbol")));
     infoClauseHead->addArgument(mk<AstStringConstant>(toString(join(headVariables, ","))));
 
     // visit all body literals and add to info clause head
@@ -146,8 +145,8 @@ std::unique_ptr<AstRelation> makeInfoRelation(
 
         // add an attribute for atoms and binary constraints
         if (atom != nullptr || isA<AstBinaryConstraint>(lit)) {
-            infoRelation->addAttribute(mk<AstAttribute>(
-                    std::string("rel_") + std::to_string(i), AstQualifiedName("symbol")));
+            infoRelation->addAttribute(
+                    mk<AstAttribute>(std::string("rel_") + std::to_string(i), AstQualifiedName("symbol")));
         }
 
         if (atom != nullptr) {
@@ -288,10 +287,8 @@ bool ProvenanceTransformer::transformMaxHeight(AstTranslationUnit& translationUn
             }
         }
 
-        relation->addAttribute(
-                mk<AstAttribute>(std::string("@rule_number"), AstQualifiedName("number")));
-        relation->addAttribute(
-                mk<AstAttribute>(std::string("@level_number"), AstQualifiedName("number")));
+        relation->addAttribute(mk<AstAttribute>(std::string("@rule_number"), AstQualifiedName("number")));
+        relation->addAttribute(mk<AstAttribute>(std::string("@level_number"), AstQualifiedName("number")));
 
         for (auto clause : getClauses(*program, *relation)) {
             size_t clauseNum = getClauseNum(program, clause);

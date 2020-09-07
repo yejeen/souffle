@@ -44,8 +44,8 @@ bool ExpandFilterTransformer::expandFilters(RamProgram& program) {
                             filters.emplace_back(mk<RamFilter>(
                                     souffle::clone(cond), souffle::clone(&filter->getOperation())));
                         } else {
-                            filters.emplace_back(mk<RamFilter>(
-                                    souffle::clone(cond), std::move(filters.back())));
+                            filters.emplace_back(
+                                    mk<RamFilter>(souffle::clone(cond), std::move(filters.back())));
                         }
                     }
                     node = std::move(filters.back());

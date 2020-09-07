@@ -83,8 +83,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                         // If the body is still empty and the original body contains true add it now.
                         if (containsTrue && isEmpty) {
                             newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                    mk<AstNumericConstant>(1),
-                                    mk<AstNumericConstant>(1)));
+                                    mk<AstNumericConstant>(1), mk<AstNumericConstant>(1)));
 
                             isEmpty = false;
                         }
@@ -95,8 +94,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                         // Not currently handled, so add in a false literal in the body
                         // E.g. max x : { } =becomes=> max 1 : {0 = 1}
                         newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                mk<AstNumericConstant>(0),
-                                mk<AstNumericConstant>(1)));
+                                mk<AstNumericConstant>(0), mk<AstNumericConstant>(1)));
                     }
 
                     replacementAggregator->setBody(std::move(newBody));

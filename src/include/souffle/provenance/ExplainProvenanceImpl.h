@@ -114,8 +114,8 @@ public:
 
         tuple.push_back(levelNum);
 
-        auto internalNode = mk<InnerNode>(
-                relName + "(" + joinedArgsStr + ")", "(R" + std::to_string(ruleNum) + ")");
+        auto internalNode =
+                mk<InnerNode>(relName + "(" + joinedArgsStr + ")", "(R" + std::to_string(ruleNum) + ")");
 
         // make return vector pointer
         std::vector<RamDomain> ret;

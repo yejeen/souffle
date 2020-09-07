@@ -258,11 +258,9 @@ std::unique_ptr<RamExpression> AstToRamTranslator::translateValue(
 
             switch (*c.getType()) {
                 case AstNumericConstant::Type::Int:
-                    return mk<RamSignedConstant>(
-                            RamSignedFromString(c.getConstant(), nullptr, 0));
+                    return mk<RamSignedConstant>(RamSignedFromString(c.getConstant(), nullptr, 0));
                 case AstNumericConstant::Type::Uint:
-                    return mk<RamUnsignedConstant>(
-                            RamUnsignedFromString(c.getConstant(), nullptr, 0));
+                    return mk<RamUnsignedConstant>(RamUnsignedFromString(c.getConstant(), nullptr, 0));
                 case AstNumericConstant::Type::Float:
                     return mk<RamFloatConstant>(RamFloatFromString(c.getConstant()));
             }
@@ -302,8 +300,8 @@ std::unique_ptr<RamExpression> AstToRamTranslator::translateValue(
                 values.push_back(translator.translateValue(cur, index));
             }
 
-            return mk<RamUserDefinedOperator>(udf.getName(), udf.getArgsTypes(),
-                    udf.getReturnType(), udf.isStateful(), std::move(values));
+            return mk<RamUserDefinedOperator>(udf.getName(), udf.getArgsTypes(), udf.getReturnType(),
+                    udf.isStateful(), std::move(values));
         }
 
         std::unique_ptr<RamExpression> visitCounter(const AstCounter&) override {
@@ -350,8 +348,7 @@ std::unique_ptr<RamCondition> AstToRamTranslator::translateConstraint(
         std::unique_ptr<RamCondition> visitBinaryConstraint(const AstBinaryConstraint& binRel) override {
             auto valLHS = translator.translateValue(binRel.getLHS(), index);
             auto valRHS = translator.translateValue(binRel.getRHS(), index);
-            return mk<RamConstraint>(
-                    binRel.getOperator(), std::move(valLHS), std::move(valRHS));
+            return mk<RamConstraint>(binRel.getOperator(), std::move(valLHS), std::move(valRHS));
         }
 
         /** for provenance negation */
@@ -375,8 +372,8 @@ std::unique_ptr<RamCondition> AstToRamTranslator::translateConstraint(
                     values.push_back(translator.translateValue(args[arity + height], index));
                 }
             }
-            return mk<RamNegation>(mk<RamProvenanceExistenceCheck>(
-                    translator.translateRelation(atom), std::move(values)));
+            return mk<RamNegation>(
+                    mk<RamProvenanceExistenceCheck>(translator.translateRelation(atom), std::move(values)));
         }
 
         /** for negations */
@@ -400,8 +397,8 @@ std::unique_ptr<RamCondition> AstToRamTranslator::translateConstraint(
             for (size_t i = 0; i < auxiliaryArity; i++) {
                 values.push_back(mk<RamUndefValue>());
             }
-            return mk<RamNegation>(mk<RamExistenceCheck>(
-                    translator.translateRelation(atom), std::move(values)));
+            return mk<RamNegation>(
+                    mk<RamExistenceCheck>(translator.translateRelation(atom), std::move(values)));
         }
     };
     return ConstraintTranslator(*this, index)(*lit);
@@ -564,8 +561,8 @@ std::unique_ptr<RamOperation> AstToRamTranslator::ClauseTranslator::createOperat
             mk<RamProject>(translator.translateRelation(head), std::move(values));
 
     if (head->getArity() == 0) {
-        project = mk<RamFilter>(
-                mk<RamEmptinessCheck>(translator.translateRelation(head)), std::move(project));
+        project =
+                mk<RamFilter>(mk<RamEmptinessCheck>(translator.translateRelation(head)), std::move(project));
     }
 
     // build up insertion call
@@ -626,9 +623,8 @@ std::unique_ptr<RamOperation> AstToRamTranslator::ClauseTranslator::filterByCons
     size_t pos = 0;
 
     auto mkFilter = [&](bool isFloatArg, std::unique_ptr<RamExpression> rhs) {
-        return mk<RamFilter>(
-                mk<RamConstraint>(isFloatArg ? BinaryConstraintOp::FEQ : BinaryConstraintOp::EQ,
-                        mk<RamTupleElement>(level, pos), std::move(rhs)),
+        return mk<RamFilter>(mk<RamConstraint>(isFloatArg ? BinaryConstraintOp::FEQ : BinaryConstraintOp::EQ,
+                                     mk<RamTupleElement>(level, pos), std::move(rhs)),
                 std::move(op));
     };
 
@@ -671,8 +667,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
         }
 
         // create a fact statement
-        return mk<RamQuery>(
-                mk<RamProject>(translator.translateRelation(head), std::move(values)));
+        return mk<RamQuery>(mk<RamProject>(translator.translateRelation(head), std::move(values)));
     }
 
     // the rest should be rules
@@ -692,9 +687,8 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
         for (const Location& loc : cur.second) {
             if (first != loc && !valueIndex.isGenerator(loc.identifier)) {
                 // FIXME: equiv' for float types (`FEQ`)
-                op = mk<RamFilter>(
-                        mk<RamConstraint>(
-                                BinaryConstraintOp::EQ, makeRamTupleElement(first), makeRamTupleElement(loc)),
+                op = mk<RamFilter>(mk<RamConstraint>(BinaryConstraintOp::EQ, makeRamTupleElement(first),
+                                           makeRamTupleElement(loc)),
                         std::move(op));
             }
         }
@@ -720,8 +714,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                     auto loc = valueIndex.getGeneratorLoc(*agg);
                     // FIXME: equiv' for float types (`FEQ`)
                     op = mk<RamFilter>(mk<RamConstraint>(BinaryConstraintOp::EQ,
-                                                             mk<RamTupleElement>(curLevel, pos),
-                                                             makeRamTupleElement(loc)),
+                                               mk<RamTupleElement>(curLevel, pos), makeRamTupleElement(loc)),
                             std::move(op));
                 }
                 ++pos;
@@ -736,8 +729,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
             // condition for aggregate and helper function to add terms
             std::unique_ptr<RamCondition> aggCond;
             auto addAggCondition = [&](std::unique_ptr<RamCondition> arg) {
-                aggCond = aggCond ? mk<RamConjunction>(std::move(aggCond), std::move(arg))
-                                  : std::move(arg);
+                aggCond = aggCond ? mk<RamConjunction>(std::move(aggCond), std::move(arg)) : std::move(arg);
             };
 
             // translate constraints of sub-clause
@@ -765,8 +757,8 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                     if (isRamUndefValue(value.get())) return;
 
                     // FIXME: equiv' for float types (`FEQ`)
-                    addAggCondition(mk<RamConstraint>(BinaryConstraintOp::EQ,
-                            mk<RamTupleElement>(level, pos), std::move(value)));
+                    addAggCondition(mk<RamConstraint>(
+                            BinaryConstraintOp::EQ, mk<RamTupleElement>(level, pos), std::move(value)));
                 };
                 for (auto* arg : atom->getArguments()) {
                     // variable bindings are issued differently since we don't want self
@@ -789,8 +781,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
             auto expr = translator.translateValue(agg->getTargetExpression(), valueIndex);
 
             // add Ram-Aggregation layer
-            op = mk<RamAggregate>(std::move(op), agg->getOperator(),
-                    translator.translateRelation(atom),
+            op = mk<RamAggregate>(std::move(op), agg->getOperator(), translator.translateRelation(atom),
                     expr ? std::move(expr) : mk<RamUndefValue>(),
                     aggCond ? std::move(aggCond) : mk<RamTrue>(), level);
         } else if (const auto* func = dynamic_cast<const AstIntrinsicFunctor*>(cur)) {
@@ -811,8 +802,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                 }
             };
 
-            op = mk<RamNestedIntrinsicOperator>(
-                    func_op(), std::move(args), std::move(op), level);
+            op = mk<RamNestedIntrinsicOperator>(func_op(), std::move(args), std::move(op), level);
         }
 
         --level;
@@ -841,17 +831,14 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
             }
 
             // add check for emptiness for an atom
-            op = mk<RamFilter>(
-                    mk<RamNegation>(
-                            mk<RamEmptinessCheck>(translator.translateRelation(atom))),
+            op = mk<RamFilter>(mk<RamNegation>(mk<RamEmptinessCheck>(translator.translateRelation(atom))),
                     std::move(op));
 
             // add a scan level
             if (atom->getArity() != 0 && !isAllArgsUnnamed) {
                 if (head->getArity() == 0) {
                     op = mk<RamBreak>(
-                            mk<RamNegation>(
-                                    mk<RamEmptinessCheck>(translator.translateRelation(head))),
+                            mk<RamNegation>(mk<RamEmptinessCheck>(translator.translateRelation(head))),
                             std::move(op));
                 }
                 if (Global::config().has("profile")) {
@@ -865,8 +852,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                     ss << stringify(toString(*atom)) << ';';
                     ss << stringify(toString(originalClause)) << ';';
                     ss << level << ';';
-                    op = mk<RamScan>(
-                            translator.translateRelation(atom), level, std::move(op), ss.str());
+                    op = mk<RamScan>(translator.translateRelation(atom), level, std::move(op), ss.str());
                 } else {
                     op = mk<RamScan>(translator.translateRelation(atom), level, std::move(op));
                 }
@@ -937,8 +923,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
                     LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
             const std::string logSizeStatement =
                     LogStatement::nNonrecursiveRule(relationName, srcLocation, clauseText);
-            rule = mk<RamLogRelationTimer>(
-                    std::move(rule), logTimerStatement, souffle::clone(rrel));
+            rule = mk<RamLogRelationTimer>(std::move(rule), logTimerStatement, souffle::clone(rrel));
         }
 
         // add debug info
@@ -1020,18 +1005,16 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
                             const RamRelationReference* src) -> std::unique_ptr<RamStatement> {
         std::vector<std::unique_ptr<RamExpression>> values;
         if (src->get()->getArity() == 0) {
-            return mk<RamQuery>(mk<RamFilter>(
-                    mk<RamNegation>(mk<RamEmptinessCheck>(souffle::clone(src))),
+            return mk<RamQuery>(mk<RamFilter>(mk<RamNegation>(mk<RamEmptinessCheck>(souffle::clone(src))),
                     mk<RamProject>(souffle::clone(dest), std::move(values))));
         }
         for (std::size_t i = 0; i < dest->get()->getArity(); i++) {
             values.push_back(mk<RamTupleElement>(0, i));
         }
-        auto stmt = mk<RamQuery>(mk<RamScan>(souffle::clone(src), 0,
-                mk<RamProject>(souffle::clone(dest), std::move(values))));
+        auto stmt = mk<RamQuery>(
+                mk<RamScan>(souffle::clone(src), 0, mk<RamProject>(souffle::clone(dest), std::move(values))));
         if (dest->get()->getRepresentation() == RelationRepresentation::EQREL) {
-            return mk<RamSequence>(
-                    mk<RamExtend>(souffle::clone(dest), souffle::clone(src)), std::move(stmt));
+            return mk<RamSequence>(mk<RamExtend>(souffle::clone(dest), souffle::clone(src)), std::move(stmt));
         }
         return stmt;
     };
@@ -1042,10 +1025,10 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
        the results in their delta tables. */
     for (const AstRelation* rel : scc) {
         /* create update statements for fixpoint (even iteration) */
-        std::unique_ptr<RamStatement> updateRelTable = mk<RamSequence>(
-                genMerge(translateRelation(rel).get(), translateNewRelation(rel).get()),
-                mk<RamSwap>(translateDeltaRelation(rel), translateNewRelation(rel)),
-                mk<RamClear>(translateNewRelation(rel)));
+        std::unique_ptr<RamStatement> updateRelTable =
+                mk<RamSequence>(genMerge(translateRelation(rel).get(), translateNewRelation(rel).get()),
+                        mk<RamSwap>(translateDeltaRelation(rel), translateNewRelation(rel)),
+                        mk<RamClear>(translateNewRelation(rel)));
 
         /* measure update time for each relation */
         if (Global::config().has("profile")) {
@@ -1177,8 +1160,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
             const std::string logTimerStatement = LogStatement::tRecursiveRelation(relationName, srcLocation);
             const std::string logSizeStatement = LogStatement::nRecursiveRelation(relationName, srcLocation);
             auto newStmt = mk<RamLogRelationTimer>(
-                    mk<RamSequence>(std::move(loopRelSeq)), logTimerStatement,
-                    translateNewRelation(rel));
+                    mk<RamSequence>(std::move(loopRelSeq)), logTimerStatement, translateNewRelation(rel));
             loopRelSeq.clear();
             appendStmt(loopRelSeq, std::move(newStmt));
         }
@@ -1190,8 +1172,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
 
     /* construct exit conditions for odd and even iteration */
     auto addCondition = [](std::unique_ptr<RamCondition>& cond, std::unique_ptr<RamCondition> clause) {
-        cond = ((cond) ? mk<RamConjunction>(std::move(cond), std::move(clause))
-                       : std::move(clause));
+        cond = ((cond) ? mk<RamConjunction>(std::move(cond), std::move(clause)) : std::move(clause));
     };
 
     std::unique_ptr<RamCondition> exitCond;
@@ -1199,9 +1180,9 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
     for (const AstRelation* rel : scc) {
         addCondition(exitCond, mk<RamEmptinessCheck>(translateNewRelation(rel)));
         if (ioType->isLimitSize(rel)) {
-            std::unique_ptr<RamCondition> limit = mk<RamConstraint>(BinaryConstraintOp::GE,
-                    mk<RamRelationSize>(translateRelation(rel)),
-                    mk<RamSignedConstant>(ioType->getLimitSize(rel)));
+            std::unique_ptr<RamCondition> limit =
+                    mk<RamConstraint>(BinaryConstraintOp::GE, mk<RamRelationSize>(translateRelation(rel)),
+                            mk<RamSignedConstant>(ioType->getLimitSize(rel)));
             appendStmt(exitStmts, mk<RamExit>(std::move(limit)));
         }
     }
@@ -1212,10 +1193,9 @@ std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
         appendStmt(res, mk<RamSequence>(std::move(preamble)));
     }
     if (!loop->getStatements().empty() && exitCond && updateTable.size() > 0) {
-        appendStmt(res, mk<RamLoop>(mk<RamSequence>(std::move(loop),
-                                mk<RamExit>(std::move(exitCond)),
-                                mk<RamSequence>(std::move(exitStmts)),
-                                mk<RamSequence>(std::move(updateTable)))));
+        appendStmt(res,
+                mk<RamLoop>(mk<RamSequence>(std::move(loop), mk<RamExit>(std::move(exitCond)),
+                        mk<RamSequence>(std::move(exitStmts)), mk<RamSequence>(std::move(updateTable)))));
     }
     if (postamble.size() > 0) {
         appendStmt(res, mk<RamSequence>(std::move(postamble)));
@@ -1261,8 +1241,8 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeSubproofSubroutine(const A
         } else if (auto func = dynamic_cast<AstFunctor*>(arg)) {
             auto opEq = func->getReturnType() == TypeAttribute::Float ? BinaryConstraintOp::FEQ
                                                                       : BinaryConstraintOp::EQ;
-            intermediateClause->addToBody(mk<AstBinaryConstraint>(
-                    opEq, souffle::clone(func), mk<AstSubroutineArgument>(i)));
+            intermediateClause->addToBody(
+                    mk<AstBinaryConstraint>(opEq, souffle::clone(func), mk<AstSubroutineArgument>(i)));
         } else if (auto rec = dynamic_cast<AstRecordInit*>(arg)) {
             intermediateClause->addToBody(mk<AstBinaryConstraint>(
                     BinaryConstraintOp::EQ, souffle::clone(rec), mk<AstSubroutineArgument>(i)));
@@ -1280,8 +1260,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeSubproofSubroutine(const A
             auto atomArgs = atom->getArguments();
             // arity - 1 is the level number in body atoms
             intermediateClause->addToBody(mk<AstBinaryConstraint>(BinaryConstraintOp::LT,
-                    souffle::clone(atomArgs[arity - 1]),
-                    mk<AstSubroutineArgument>(levelIndex)));
+                    souffle::clone(atomArgs[arity - 1]), mk<AstSubroutineArgument>(levelIndex)));
         }
     }
     return ProvenanceClauseTranslator(*this).translateClause(*intermediateClause, clause);
@@ -1414,8 +1393,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
             assert(query.size() == atom->getArity() && "wrong query tuple size");
 
             // create existence checks to check if the tuple exists or not
-            auto existenceCheck =
-                    mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
+            auto existenceCheck = mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
             auto negativeExistenceCheck = mk<RamNegation>(souffle::clone(existenceCheck));
 
             // return true if the tuple exists
@@ -1427,12 +1405,10 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
             returnFalse.push_back(mk<RamSignedConstant>(0));
 
             // create a RamQuery to return true/false
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
-                            mk<RamSubroutineReturn>(std::move(returnTrue)))));
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
-                            mk<RamSubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
+                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
+                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
         } else if (auto neg = dynamic_cast<AstNegation*>(lit)) {
             auto atom = neg->getAtom();
 
@@ -1462,8 +1438,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
             assert(query.size() == atom->getArity() && "wrong query tuple size");
 
             // create existence checks to check if the tuple exists or not
-            auto existenceCheck =
-                    mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
+            auto existenceCheck = mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
             auto negativeExistenceCheck = mk<RamNegation>(souffle::clone(existenceCheck));
 
             // return true if the tuple exists
@@ -1475,12 +1450,10 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
             returnFalse.push_back(mk<RamSignedConstant>(0));
 
             // create a RamQuery to return true/false
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
-                            mk<RamSubroutineReturn>(std::move(returnFalse)))));
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
-                            mk<RamSubroutineReturn>(std::move(returnTrue)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
+                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
+                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
 
         } else if (auto con = dynamic_cast<AstConstraint*>(lit)) {
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1498,12 +1471,10 @@ std::unique_ptr<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine
             std::vector<std::unique_ptr<RamExpression>> returnFalse;
             returnFalse.push_back(mk<RamSignedConstant>(0));
 
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(condition),
-                            mk<RamSubroutineReturn>(std::move(returnTrue)))));
-            appendStmt(searchSequence,
-                    mk<RamQuery>(mk<RamFilter>(std::move(negativeCondition),
-                            mk<RamSubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(condition),
+                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
+            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeCondition),
+                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
         }
 
         litNumber++;
@@ -1542,8 +1513,8 @@ void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationU
     const auto& makeRamLoad = [&](std::vector<std::unique_ptr<RamStatement>>& current,
                                       const AstRelation* relation) {
         for (auto directives : getInputDirectives(relation)) {
-            std::unique_ptr<RamStatement> statement = mk<RamIO>(
-                    std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
+            std::unique_ptr<RamStatement> statement =
+                    mk<RamIO>(std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
                 const std::string logTimerStatement = LogStatement::tRelationLoadTime(
                         toString(relation->getQualifiedName()), relation->getSrcLoc());
@@ -1558,8 +1529,8 @@ void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationU
     const auto& makeRamStore = [&](std::vector<std::unique_ptr<RamStatement>>& current,
                                        const AstRelation* relation) {
         for (auto directives : getOutputDirectives(relation)) {
-            std::unique_ptr<RamStatement> statement = mk<RamIO>(
-                    std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
+            std::unique_ptr<RamStatement> statement =
+                    mk<RamIO>(std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
                 const std::string logTimerStatement = LogStatement::tRelationSaveTime(
                         toString(relation->getQualifiedName()), relation->getSrcLoc());
@@ -1603,10 +1574,10 @@ void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationU
             if (isRecursive) {
                 std::string deltaName = "@delta_" + name;
                 std::string newName = "@new_" + name;
-                ramRels[deltaName] = mk<RamRelation>(deltaName, arity, auxiliaryArity,
-                        attributeNames, attributeTypeQualifiers, representation);
-                ramRels[newName] = mk<RamRelation>(newName, arity, auxiliaryArity,
-                        attributeNames, attributeTypeQualifiers, representation);
+                ramRels[deltaName] = mk<RamRelation>(deltaName, arity, auxiliaryArity, attributeNames,
+                        attributeTypeQualifiers, representation);
+                ramRels[newName] = mk<RamRelation>(newName, arity, auxiliaryArity, attributeNames,
+                        attributeTypeQualifiers, representation);
             }
         }
     }
@@ -1665,8 +1636,7 @@ void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationU
 
     // add main timer if profiling
     if (res.size() > 0 && Global::config().has("profile")) {
-        auto newStmt = mk<RamLogTimer>(
-                mk<RamSequence>(std::move(res)), LogStatement::runtime());
+        auto newStmt = mk<RamLogTimer>(mk<RamSequence>(std::move(res)), LogStatement::runtime());
         res.clear();
         appendStmt(res, std::move(newStmt));
     }
@@ -1723,8 +1693,7 @@ std::unique_ptr<RamTranslationUnit> AstToRamTranslator::translateUnit(AstTransla
             debugReport.addSection("ram-program", "RAM Program " + runtimeStr, ramProgStr.str());
         }
     }
-    return mk<RamTranslationUnit>(
-            std::move(ramProg), std::move(symTab), errReport, debugReport);
+    return mk<RamTranslationUnit>(std::move(ramProg), std::move(symTab), errReport, debugReport);
 }
 
 }  // end of namespace souffle

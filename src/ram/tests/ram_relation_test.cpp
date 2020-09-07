@@ -59,8 +59,8 @@ const std::string testInterpreterStore(std::vector<std::string> attribs,
     const size_t arity = attribs.size();
 
     std::vector<std::unique_ptr<RamRelation>> rels;
-    std::unique_ptr<RamRelation> myrel = mk<RamRelation>(
-            "test", arity, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+    std::unique_ptr<RamRelation> myrel =
+            mk<RamRelation>("test", arity, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
 
     std::unique_ptr<RamRelationReference> ref1 = mk<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = mk<RamRelationReference>(myrel.get());
@@ -74,14 +74,13 @@ const std::string testInterpreterStore(std::vector<std::string> attribs,
 
     std::map<std::string, std::string> ioDirs = std::map<std::string, std::string>(dirs);
 
-    std::unique_ptr<RamStatement> main = mk<RamSequence>(
-            mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
-            mk<RamIO>(std::move(ref2), ioDirs));
+    std::unique_ptr<RamStatement> main =
+            mk<RamSequence>(mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
+                    mk<RamIO>(std::move(ref2), ioDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;
@@ -249,8 +248,8 @@ TEST(IO_store, SignedChangedDelimiter) {
 
     std::vector<std::string> attribsTypes(RANDOM_TESTS, "i");
 
-    std::unique_ptr<RamRelation> myrel = mk<RamRelation>(
-            "test", RANDOM_TESTS, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+    std::unique_ptr<RamRelation> myrel =
+            mk<RamRelation>("test", RANDOM_TESTS, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
     std::unique_ptr<RamRelationReference> ref1 = mk<RamRelationReference>(myrel.get());
     std::unique_ptr<RamRelationReference> ref2 = mk<RamRelationReference>(myrel.get());
 
@@ -269,14 +268,13 @@ TEST(IO_store, SignedChangedDelimiter) {
         exprs.push_back(mk<RamSignedConstant>(i));
     }
 
-    std::unique_ptr<RamStatement> main = mk<RamSequence>(
-            mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
-            mk<RamIO>(std::move(ref2), ioDirs));
+    std::unique_ptr<RamStatement> main =
+            mk<RamSequence>(mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
+                    mk<RamIO>(std::move(ref2), ioDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;
@@ -349,14 +347,13 @@ TEST(IO_store, MixedTypes) {
     exprs.push_back(mk<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(floatValue))));
     exprs.push_back(mk<RamSignedConstant>(symbolTable.lookup("meow")));
 
-    std::unique_ptr<RamStatement> main = mk<RamSequence>(
-            mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
-            mk<RamIO>(std::move(ref2), ioDirs));
+    std::unique_ptr<RamStatement> main =
+            mk<RamSequence>(mk<RamQuery>(mk<RamProject>(std::move(ref1), std::move(exprs))),
+                    mk<RamIO>(std::move(ref2), ioDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     RamTranslationUnit translationUnit(std::move(prog), symbolTable, errReport, debugReport);
 
@@ -418,13 +415,11 @@ TEST(IO_load, Signed) {
     std::map<std::string, std::string> writeIoDirs = std::map<std::string, std::string>(writeDirs);
 
     std::unique_ptr<RamStatement> main =
-            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs),
-                    mk<RamIO>(std::move(ref2), writeIoDirs));
+            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs), mk<RamIO>(std::move(ref2), writeIoDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;
@@ -484,13 +479,11 @@ TEST(IO_load, Float) {
     std::map<std::string, std::string> writeIoDirs = std::map<std::string, std::string>(writeDirs);
 
     std::unique_ptr<RamStatement> main =
-            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs),
-                    mk<RamIO>(std::move(ref2), writeIoDirs));
+            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs), mk<RamIO>(std::move(ref2), writeIoDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;
@@ -550,13 +543,11 @@ TEST(IO_load, Unsigned) {
     std::map<std::string, std::string> writeIoDirs = std::map<std::string, std::string>(writeDirs);
 
     std::unique_ptr<RamStatement> main =
-            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs),
-                    mk<RamIO>(std::move(ref2), writeIoDirs));
+            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs), mk<RamIO>(std::move(ref2), writeIoDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;
@@ -616,13 +607,11 @@ TEST(IO_load, MixedTypesLoad) {
     std::map<std::string, std::string> writeIoDirs = std::map<std::string, std::string>(writeDirs);
 
     std::unique_ptr<RamStatement> main =
-            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs),
-                    mk<RamIO>(std::move(ref2), writeIoDirs));
+            mk<RamSequence>(mk<RamIO>(std::move(ref1), readIoDirs), mk<RamIO>(std::move(ref2), writeIoDirs));
 
     rels.push_back(std::move(myrel));
     std::map<std::string, std::unique_ptr<RamStatement>> subs;
-    std::unique_ptr<RamProgram> prog =
-            mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
+    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), std::move(main), std::move(subs));
 
     SymbolTable symTab;
     ErrorReport errReport;

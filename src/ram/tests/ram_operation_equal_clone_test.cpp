@@ -85,14 +85,12 @@ TEST(RamParallelScan, CloneAndEquals) {
     std::vector<std::unique_ptr<RamExpression>> a_return_args;
     a_return_args.emplace_back(new RamSignedConstant(0));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    RamParallelScan a(
-            mk<RamRelationReference>(&A), 0, std::move(a_return), "RamParallelScan test");
+    RamParallelScan a(mk<RamRelationReference>(&A), 0, std::move(a_return), "RamParallelScan test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamSignedConstant(0));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    RamParallelScan b(
-            mk<RamRelationReference>(&A), 0, std::move(b_return), "RamParallelScan test");
+    RamParallelScan b(mk<RamRelationReference>(&A), 0, std::move(b_return), "RamParallelScan test");
 
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
@@ -111,29 +109,27 @@ TEST(RamIndexScan, CloneAndEquals) {
     //  PROJECT (t1.0) INTO vertex
     std::vector<std::unique_ptr<RamExpression>> a_project_args;
     a_project_args.emplace_back(new RamTupleElement(1, 0));
-    auto a_project = mk<RamProject>(
-            mk<RamRelationReference>(&vertex), std::move(a_project_args));
+    auto a_project = mk<RamProject>(mk<RamRelationReference>(&vertex), std::move(a_project_args));
     RamPattern a_criteria;
     a_criteria.first.emplace_back(new RamTupleElement(1, 1));
     a_criteria.first.emplace_back(new RamUndefValue);
     a_criteria.second.emplace_back(new RamTupleElement(1, 1));
     a_criteria.second.emplace_back(new RamUndefValue);
 
-    RamIndexScan a(mk<RamRelationReference>(&edge), 1, std::move(a_criteria),
-            std::move(a_project), "RamIndexScan test");
+    RamIndexScan a(mk<RamRelationReference>(&edge), 1, std::move(a_criteria), std::move(a_project),
+            "RamIndexScan test");
 
     std::vector<std::unique_ptr<RamExpression>> b_project_args;
     b_project_args.emplace_back(new RamTupleElement(1, 0));
-    auto b_project = mk<RamProject>(
-            mk<RamRelationReference>(&vertex), std::move(b_project_args));
+    auto b_project = mk<RamProject>(mk<RamRelationReference>(&vertex), std::move(b_project_args));
     RamPattern b_criteria;
     b_criteria.first.emplace_back(new RamTupleElement(1, 1));
     b_criteria.first.emplace_back(new RamUndefValue);
     b_criteria.second.emplace_back(new RamTupleElement(1, 1));
     b_criteria.second.emplace_back(new RamUndefValue);
 
-    RamIndexScan b(mk<RamRelationReference>(&edge), 1, std::move(b_criteria),
-            std::move(b_project), "RamIndexScan test");
+    RamIndexScan b(mk<RamRelationReference>(&edge), 1, std::move(b_criteria), std::move(b_project),
+            "RamIndexScan test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -152,30 +148,28 @@ TEST(RamParallelIndexScan, CloneAndEquals) {
     std::vector<std::unique_ptr<RamExpression>> a_project_args;
     a_project_args.emplace_back(new RamTupleElement(1, 0));
     a_project_args.emplace_back(new RamTupleElement(1, 1));
-    auto a_project = mk<RamProject>(
-            mk<RamRelationReference>(&new_edge), std::move(a_project_args));
+    auto a_project = mk<RamProject>(mk<RamRelationReference>(&new_edge), std::move(a_project_args));
     RamPattern a_criteria;
     a_criteria.first.emplace_back(new RamUndefValue);
     a_criteria.first.emplace_back(new RamSignedConstant(5));
     a_criteria.second.emplace_back(new RamUndefValue);
     a_criteria.second.emplace_back(new RamSignedConstant(5));
 
-    RamParallelIndexScan a(mk<RamRelationReference>(&edge), 1, std::move(a_criteria),
-            std::move(a_project), "RamParallelIndexScan test");
+    RamParallelIndexScan a(mk<RamRelationReference>(&edge), 1, std::move(a_criteria), std::move(a_project),
+            "RamParallelIndexScan test");
 
     std::vector<std::unique_ptr<RamExpression>> b_project_args;
     b_project_args.emplace_back(new RamTupleElement(1, 0));
     b_project_args.emplace_back(new RamTupleElement(1, 1));
-    auto b_project = mk<RamProject>(
-            mk<RamRelationReference>(&new_edge), std::move(b_project_args));
+    auto b_project = mk<RamProject>(mk<RamRelationReference>(&new_edge), std::move(b_project_args));
     RamPattern b_criteria;
     b_criteria.first.emplace_back(new RamUndefValue);
     b_criteria.first.emplace_back(new RamSignedConstant(5));
     b_criteria.second.emplace_back(new RamUndefValue);
     b_criteria.second.emplace_back(new RamSignedConstant(5));
 
-    RamParallelIndexScan b(mk<RamRelationReference>(&edge), 1, std::move(b_criteria),
-            std::move(b_project), "RamParallelIndexScan test");
+    RamParallelIndexScan b(mk<RamRelationReference>(&edge), 1, std::move(b_criteria), std::move(b_project),
+            "RamParallelIndexScan test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -194,29 +188,27 @@ TEST(RamChoice, CloneAndEquals) {
     a_return_args.emplace_back(new RamTupleElement(1, 0));
     a_return_args.emplace_back(new RamTupleElement(1, 1));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    auto a_constraint1 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
+    auto a_constraint1 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
     auto a_neg1 = mk<RamNegation>(std::move(a_constraint1));
-    auto a_constraint2 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto a_constraint2 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto a_neg2 = mk<RamNegation>(std::move(a_constraint2));
     auto a_cond = mk<RamConjunction>(std::move(a_neg1), std::move(a_neg2));
-    RamChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_cond), std::move(a_return),
-            "RamChoice test");
+    RamChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_cond), std::move(a_return), "RamChoice test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamTupleElement(1, 0));
     b_return_args.emplace_back(new RamTupleElement(1, 1));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    auto b_constraint1 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
+    auto b_constraint1 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
     auto b_neg1 = mk<RamNegation>(std::move(b_constraint1));
-    auto b_constraint2 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto b_constraint2 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto b_neg2 = mk<RamNegation>(std::move(b_constraint2));
     auto b_cond = mk<RamConjunction>(std::move(b_neg1), std::move(b_neg2));
-    RamChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_cond), std::move(b_return),
-            "RamChoice test");
+    RamChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_cond), std::move(b_return), "RamChoice test");
 
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
@@ -236,29 +228,29 @@ TEST(RamParallelChoice, CloneAndEquals) {
     a_return_args.emplace_back(new RamTupleElement(1, 0));
     a_return_args.emplace_back(new RamTupleElement(1, 1));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    auto a_constraint1 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
+    auto a_constraint1 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
     auto a_neg1 = mk<RamNegation>(std::move(a_constraint1));
-    auto a_constraint2 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto a_constraint2 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto a_neg2 = mk<RamNegation>(std::move(a_constraint2));
     auto a_cond = mk<RamConjunction>(std::move(a_neg1), std::move(a_neg2));
-    RamParallelChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_cond),
-            std::move(a_return), "RamParallelChoice test");
+    RamParallelChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_cond), std::move(a_return),
+            "RamParallelChoice test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamTupleElement(1, 0));
     b_return_args.emplace_back(new RamTupleElement(1, 1));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    auto b_constraint1 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
+    auto b_constraint1 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 0), mk<RamSignedConstant>(5));
     auto b_neg1 = mk<RamNegation>(std::move(b_constraint1));
-    auto b_constraint2 = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto b_constraint2 =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto b_neg2 = mk<RamNegation>(std::move(b_constraint2));
     auto b_cond = mk<RamConjunction>(std::move(b_neg1), std::move(b_neg2));
-    RamParallelChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_cond),
-            std::move(b_return), "RamParallelChoice test");
+    RamParallelChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_cond), std::move(b_return),
+            "RamParallelChoice test");
 
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
@@ -278,31 +270,31 @@ TEST(RamIndexChoice, CloneAndEquals) {
     a_return_args.emplace_back(new RamTupleElement(1, 0));
     a_return_args.emplace_back(new RamTupleElement(1, 1));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    auto a_constraint = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto a_constraint =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto a_neg = mk<RamNegation>(std::move(a_constraint));
     RamPattern a_criteria;
     a_criteria.first.emplace_back(new RamSignedConstant(5));
     a_criteria.first.emplace_back(new RamUndefValue);
     a_criteria.second.emplace_back(new RamSignedConstant(5));
     a_criteria.second.emplace_back(new RamUndefValue);
-    RamIndexChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_neg),
-            std::move(a_criteria), std::move(a_return), "RamIndexChoice test");
+    RamIndexChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_neg), std::move(a_criteria),
+            std::move(a_return), "RamIndexChoice test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamTupleElement(1, 0));
     b_return_args.emplace_back(new RamTupleElement(1, 1));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    auto b_constraint = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto b_constraint =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto b_neg = mk<RamNegation>(std::move(b_constraint));
     RamPattern b_criteria;
     b_criteria.first.emplace_back(new RamSignedConstant(5));
     b_criteria.first.emplace_back(new RamUndefValue);
     b_criteria.second.emplace_back(new RamSignedConstant(5));
     b_criteria.second.emplace_back(new RamUndefValue);
-    RamIndexChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_neg),
-            std::move(b_criteria), std::move(b_return), "RamIndexChoice test");
+    RamIndexChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_neg), std::move(b_criteria),
+            std::move(b_return), "RamIndexChoice test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -321,31 +313,31 @@ TEST(RamiParallelIndexChoice, CloneAndEquals) {
     a_return_args.emplace_back(new RamTupleElement(1, 0));
     a_return_args.emplace_back(new RamTupleElement(1, 1));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    auto a_constraint = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto a_constraint =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto a_neg = mk<RamNegation>(std::move(a_constraint));
     RamPattern a_criteria;
     a_criteria.first.emplace_back(new RamSignedConstant(5));
     a_criteria.first.emplace_back(new RamUndefValue);
     a_criteria.second.emplace_back(new RamSignedConstant(5));
     a_criteria.second.emplace_back(new RamUndefValue);
-    RamParallelIndexChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_neg),
-            std::move(a_criteria), std::move(a_return), "RamIndexChoice test");
+    RamParallelIndexChoice a(mk<RamRelationReference>(&edge), 1, std::move(a_neg), std::move(a_criteria),
+            std::move(a_return), "RamIndexChoice test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamTupleElement(1, 0));
     b_return_args.emplace_back(new RamTupleElement(1, 1));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    auto b_constraint = mk<RamConstraint>(BinaryConstraintOp::EQ,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
+    auto b_constraint =
+            mk<RamConstraint>(BinaryConstraintOp::EQ, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(5));
     auto b_neg = mk<RamNegation>(std::move(b_constraint));
     RamPattern b_criteria;
     b_criteria.first.emplace_back(new RamSignedConstant(5));
     b_criteria.first.emplace_back(new RamUndefValue);
     b_criteria.second.emplace_back(new RamSignedConstant(5));
     b_criteria.second.emplace_back(new RamUndefValue);
-    RamParallelIndexChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_neg),
-            std::move(b_criteria), std::move(b_return), "RamIndexChoice test");
+    RamParallelIndexChoice b(mk<RamRelationReference>(&edge), 1, std::move(b_neg), std::move(b_criteria),
+            std::move(b_return), "RamIndexChoice test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -387,8 +379,8 @@ TEST(RamIndexAggregate, CloneAndEquals) {
     std::vector<std::unique_ptr<RamExpression>> a_return_args;
     a_return_args.emplace_back(new RamTupleElement(0, 0));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    auto a_cond = mk<RamConstraint>(BinaryConstraintOp::GE,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(80));
+    auto a_cond =
+            mk<RamConstraint>(BinaryConstraintOp::GE, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(80));
     RamPattern a_criteria;
     a_criteria.first.emplace_back(new RamUndefValue);
     a_criteria.first.emplace_back(new RamUndefValue);
@@ -400,8 +392,8 @@ TEST(RamIndexAggregate, CloneAndEquals) {
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamTupleElement(0, 0));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    auto b_cond = mk<RamConstraint>(BinaryConstraintOp::GE,
-            mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(80));
+    auto b_cond =
+            mk<RamConstraint>(BinaryConstraintOp::GE, mk<RamTupleElement>(1, 1), mk<RamSignedConstant>(80));
     RamPattern b_criteria;
     b_criteria.first.emplace_back(new RamUndefValue);
     b_criteria.first.emplace_back(new RamUndefValue);
@@ -456,20 +448,18 @@ TEST(RamFilter, CloneAndEquals) {
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
     std::vector<std::unique_ptr<RamExpression>> a_existence_check_args;
     a_existence_check_args.emplace_back(new RamTupleElement(0, 1));
-    auto a_existence_check = mk<RamExistenceCheck>(
-            mk<RamRelationReference>(&A), std::move(a_existence_check_args));
-    RamFilter a(mk<RamNegation>(std::move(a_existence_check)), std::move(a_return),
-            "RamFilter test");
+    auto a_existence_check =
+            mk<RamExistenceCheck>(mk<RamRelationReference>(&A), std::move(a_existence_check_args));
+    RamFilter a(mk<RamNegation>(std::move(a_existence_check)), std::move(a_return), "RamFilter test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamSignedConstant(0));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
     std::vector<std::unique_ptr<RamExpression>> b_existence_check_args;
     b_existence_check_args.emplace_back(new RamTupleElement(0, 1));
-    auto b_existence_check = mk<RamExistenceCheck>(
-            mk<RamRelationReference>(&A), std::move(b_existence_check_args));
-    RamFilter b(mk<RamNegation>(std::move(b_existence_check)), std::move(b_return),
-            "RamFilter test");
+    auto b_existence_check =
+            mk<RamExistenceCheck>(mk<RamRelationReference>(&A), std::move(b_existence_check_args));
+    RamFilter b(mk<RamNegation>(std::move(b_existence_check)), std::move(b_return), "RamFilter test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -486,14 +476,12 @@ TEST(RamBreak, CloneAndEquals) {
     std::vector<std::unique_ptr<RamExpression>> a_return_args;
     a_return_args.emplace_back(new RamSignedConstant(0));
     auto a_return = mk<RamSubroutineReturn>(std::move(a_return_args));
-    RamBreak a(mk<RamEmptinessCheck>(mk<RamRelationReference>(&A)),
-            std::move(a_return), "RamBreak test");
+    RamBreak a(mk<RamEmptinessCheck>(mk<RamRelationReference>(&A)), std::move(a_return), "RamBreak test");
 
     std::vector<std::unique_ptr<RamExpression>> b_return_args;
     b_return_args.emplace_back(new RamSignedConstant(0));
     auto b_return = mk<RamSubroutineReturn>(std::move(b_return_args));
-    RamBreak b(mk<RamEmptinessCheck>(mk<RamRelationReference>(&A)),
-            std::move(b_return), "RamBreak test");
+    RamBreak b(mk<RamEmptinessCheck>(mk<RamRelationReference>(&A)), std::move(b_return), "RamBreak test");
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 

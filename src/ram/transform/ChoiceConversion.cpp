@@ -55,8 +55,8 @@ std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteScan(const Ram
         const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation());
         const int identifier = scan->getTupleId();
 
-        return mk<RamChoice>(mk<RamRelationReference>(&scan->getRelation()),
-                identifier, souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
+        return mk<RamChoice>(mk<RamRelationReference>(&scan->getRelation()), identifier,
+                souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
                 scan->getProfileText());
     }
     return nullptr;
