@@ -16,6 +16,7 @@
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
@@ -27,7 +28,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool NameUnnamedVariablesTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;

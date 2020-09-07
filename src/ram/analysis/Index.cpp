@@ -15,16 +15,17 @@
  ***********************************************************************/
 
 #include "ram/analysis/Index.h"
-#include "ram/Condition.h"
+#include "Global.h"
+#include "RelationTag.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
-#include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Relation.h"
-#include "ram/Statement.h"
+#include "ram/Swap.h"
 #include "ram/TranslationUnit.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>

@@ -20,7 +20,6 @@
 #include "souffle/datastructure/BTree.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
-#include <cstddef>
 #include <memory>
 #include <ostream>
 #include <vector>

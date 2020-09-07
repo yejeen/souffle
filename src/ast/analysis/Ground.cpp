@@ -15,11 +15,11 @@
  ***********************************************************************/
 
 #include "ast/analysis/Ground.h"
-#include "ConstraintSystem.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
 #include "ast/Constant.h"
 #include "ast/Functor.h"
@@ -29,6 +29,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/TypeCast.h"
 #include "ast/analysis/Constraint.h"
+#include "ast/analysis/ConstraintSystem.h"
 #include "ast/analysis/RelationDetailCache.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/StreamUtil.h"

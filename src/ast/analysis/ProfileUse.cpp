@@ -26,8 +26,6 @@
 
 namespace souffle {
 
-class AstTranslationUnit;
-
 /**
  * Run analysis, i.e., retrieve profile information
  */

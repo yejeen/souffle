@@ -26,7 +26,6 @@
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "ram/UserDefinedOperator.h"
-#include "souffle/RamTypes.h"
 #include "souffle/TypeAttribute.h"
 #include <memory>
 #include <string>

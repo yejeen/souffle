@@ -18,12 +18,15 @@
 
 #include "ast/analysis/PrecedenceGraph.h"
 #include "GraphUtils.h"
+#include "ast/Argument.h"
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/RelationDetailCache.h"
-#include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include <set>
 #include <string>

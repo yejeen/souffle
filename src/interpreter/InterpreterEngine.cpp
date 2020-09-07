@@ -82,6 +82,7 @@
 #include "souffle/RecordTable.h"
 #include "souffle/SignalHandler.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/io/IOSystem.h"
 #include "souffle/io/ReadStream.h"
 #include "souffle/io/WriteStream.h"
@@ -91,12 +92,10 @@
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #include "souffle/utility/StringUtil.h"
-#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <cassert>
-#include <csignal>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>

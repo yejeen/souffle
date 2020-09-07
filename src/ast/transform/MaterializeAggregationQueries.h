@@ -17,13 +17,12 @@
 
 #pragma once
 
+#include "ast/Aggregator.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class AstAggregator;
-class AstTranslationUnit;
 
 /**
  * Transformation pass to create artificial relations for bodies of

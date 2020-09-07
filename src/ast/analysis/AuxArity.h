@@ -17,14 +17,14 @@
 #pragma once
 
 #include "ast/Atom.h"
+#include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/Analysis.h"
 #include "ast/utility/Utils.h"
 #include <string>
 
 namespace souffle {
-class AstRelation;
-class AstProgram;
 
 /**
  * Determine the auxiliary arity for relations

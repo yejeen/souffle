@@ -16,7 +16,12 @@
 
 #pragma once
 
+#include "ram/Operation.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
+#include "ram/TranslationUnit.h"
 #include "souffle/RecordTable.h"
+#include "synthesiser/SynthesiserRelation.h"
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -25,12 +30,6 @@
 #include <string>
 
 namespace souffle {
-
-class RamOperation;
-class RamTranslationUnit;
-class SynthesiserRelation;
-class RamRelation;
-class RamStatement;
 
 /**
  * A RAM synthesiser: synthesises a C++ program from a RAM program.

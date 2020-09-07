@@ -17,6 +17,7 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
+#include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"

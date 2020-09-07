@@ -24,7 +24,6 @@
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
-#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <memory>

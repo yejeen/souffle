@@ -38,7 +38,6 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Operation.h"
-#include "ram/Relation.h"
 #include "ram/Statement.h"
 #include "ram/TranslationUnit.h"
 #include "ram/TupleElement.h"
@@ -48,7 +47,6 @@
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
-#include "souffle/utility/json11.h"
 #include <cassert>
 #include <cstddef>
 #include <map>

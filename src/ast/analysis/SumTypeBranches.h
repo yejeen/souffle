@@ -15,10 +15,11 @@
  ***********************************************************************/
 
 #pragma once
-
-#include "ast/TranslationUnit.h"
 #include "ast/analysis/Analysis.h"
 #include "ast/analysis/TypeSystem.h"
+#include "souffle/utility/ContainerUtil.h"
+#include <map>
+#include <string>
 
 namespace souffle {
 

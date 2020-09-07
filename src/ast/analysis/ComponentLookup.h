@@ -14,9 +14,10 @@
 
 #pragma once
 
+#include "ast/Component.h"
 #include "ast/QualifiedName.h"
+#include "ast/TranslationUnit.h"
 #include "ast/analysis/Analysis.h"
-#include <cstddef>
 #include <map>
 #include <set>
 #include <string>
@@ -24,9 +25,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstComponent;
-class AstTranslationUnit;
 
 /**
  * Class that encapsulates std::map of types binding that comes from .init c = Comp<MyType>

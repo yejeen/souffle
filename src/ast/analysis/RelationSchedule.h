@@ -18,19 +18,18 @@
 
 #pragma once
 
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
 #include "ast/analysis/Analysis.h"
-#include <iostream>
+#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/TopologicallySortedSCCGraph.h"
+#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
-class PrecedenceGraphAnalysis;
-class TopologicallySortedSCCGraphAnalysis;
-class AstRelation;
 
 /**
  * A single step in a relation schedule, consisting of the relations computed in the step
