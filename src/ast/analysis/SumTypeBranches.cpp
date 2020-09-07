@@ -16,10 +16,14 @@
 
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/AlgebraicDataType.h"
+#include "ast/BranchDeclaration.h"
+#include "ast/Program.h"
 #include "ast/TranslationUnit.h"
+#include "ast/Type.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
 #include "ast/utility/Visitor.h"
+#include <vector>
 
 namespace souffle {
 

@@ -19,7 +19,6 @@
 #include "ram/analysis/Index.h"
 #include <cstddef>
 #include <cstdint>
-#include <set>
 #include <string>
 
 namespace souffle {

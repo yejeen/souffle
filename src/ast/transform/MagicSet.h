@@ -16,21 +16,18 @@
 
 #pragma once
 
-#include "ast/Argument.h"
 #include "ast/Atom.h"
+#include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
-#include "ast/Literal.h"
 #include "ast/QualifiedName.h"
-#include "ast/Variable.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Pipeline.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/Transformer.h"
-#include "ast/utility/Visitor.h"
-#include "souffle/utility/MiscUtil.h"
-#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include <algorithm>
+#include <cassert>
 #include <cstddef>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -38,8 +35,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Magic Set Transformation.

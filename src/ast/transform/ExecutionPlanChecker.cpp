@@ -19,6 +19,7 @@
 #include "ast/Clause.h"
 #include "ast/ExecutionOrder.h"
 #include "ast/ExecutionPlan.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
@@ -31,7 +32,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
     auto* relationSchedule = translationUnit.getAnalysis<RelationScheduleAnalysis>();

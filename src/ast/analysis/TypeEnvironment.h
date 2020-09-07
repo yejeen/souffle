@@ -17,16 +17,17 @@
 #pragma once
 
 #include "ast/QualifiedName.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Type.h"
 #include "ast/analysis/Analysis.h"
 #include "ast/analysis/TypeSystem.h"
 #include "souffle/utility/ContainerUtil.h"
+#include <iosfwd>
+#include <map>
 #include <set>
 #include <string>
 
 namespace souffle {
-
-class AstTranslationUnit;
-class AstType;
 
 class TypeEnvironmentAnalysis : public AstAnalysis {
 public:

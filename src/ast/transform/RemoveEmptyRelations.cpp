@@ -27,6 +27,7 @@
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 

@@ -16,10 +16,14 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
+#include "ast/transform/Null.h"
+#include "ast/transform/Transformer.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <string>
@@ -27,8 +31,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformer that holds an arbitrary number of sub-transformations

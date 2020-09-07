@@ -16,19 +16,21 @@
 
 #pragma once
 
-#include "Global.h"
+#include "ram/AbstractExistenceCheck.h"
+#include "ram/ExistenceCheck.h"
+#include "ram/IndexOperation.h"
+#include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
+#include "ram/TranslationUnit.h"
 #include "ram/analysis/Analysis.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <list>
 #include <map>
 #include <memory>
-#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -40,13 +42,6 @@
 #define M_UNIT_TEST
 
 namespace souffle {
-
-class RamAbstractExistenceCheck;
-class RamExistenceCheck;
-class RamIndexOperation;
-class RamProvenanceExistenceCheck;
-class RamRelation;
-class RamTranslationUnit;
 
 enum class AttributeConstraint { None, Equal, Inequal };
 

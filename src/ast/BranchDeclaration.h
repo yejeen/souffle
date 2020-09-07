@@ -18,11 +18,13 @@
 
 #include "ast/Attribute.h"
 #include "ast/Node.h"
-#include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/tinyformat.h"
+#include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace souffle {
