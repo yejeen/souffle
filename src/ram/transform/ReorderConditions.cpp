@@ -48,7 +48,7 @@ bool ReorderConditionsTransformer::reorderConditions(RamProgram& program) {
                 if (!std::equal(sortedConds.begin(), sortedConds.end(), condList.begin(),
                             [](Own<RamCondition>& a, Own<RamCondition>& b) { return *a == *b; })) {
                     changed = true;
-                    node = std::make_unique<RamFilter>(Own<RamCondition>(toCondition(sortedConds)),
+                    node = mk<RamFilter>(Own<RamCondition>(toCondition(sortedConds)),
                             souffle::clone(&filter->getOperation()));
                 }
             }

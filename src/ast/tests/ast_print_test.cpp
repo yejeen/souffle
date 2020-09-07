@@ -56,15 +56,15 @@ inline Own<AstTranslationUnit> makePrintedATU(Own<AstTranslationUnit>& tu) {
 }
 
 inline Own<AstClause> makeClauseA(Own<AstArgument> headArgument) {
-    auto headAtom = std::make_unique<AstAtom>("A");
+    auto headAtom = mk<AstAtom>("A");
     headAtom->addArgument(std::move(headArgument));
-    auto clause = std::make_unique<AstClause>();
+    auto clause = mk<AstClause>();
     clause->setHead(std::move(headAtom));
     return clause;
 }
 
 TEST(AstPrint, NilConstant) {
-    auto testArgument = std::make_unique<AstNilConstant>();
+    auto testArgument = mk<AstNilConstant>();
 
     auto tu1 = makeATU();
     tu1->getProgram()->addClause(makeClauseA(std::move(testArgument)));
@@ -73,7 +73,7 @@ TEST(AstPrint, NilConstant) {
 }
 
 TEST(AstPrint, NumberConstant) {
-    auto testArgument = std::make_unique<AstNumericConstant>("2");
+    auto testArgument = mk<AstNumericConstant>("2");
 
     EXPECT_EQ(testArgument, testArgument);
 
@@ -86,7 +86,7 @@ TEST(AstPrint, NumberConstant) {
 TEST(AstPrint, StringConstant) {
     ErrorReport e;
     DebugReport d;
-    auto testArgument = std::make_unique<AstStringConstant>("test string");
+    auto testArgument = mk<AstStringConstant>("test string");
 
     auto tu1 = ParserDriver::parseTranslationUnit(".decl A,B,C(x:number)", e, d);
     tu1->getProgram()->addClause(makeClauseA(std::move(testArgument)));
@@ -95,7 +95,7 @@ TEST(AstPrint, StringConstant) {
 }
 
 TEST(AstPrint, Variable) {
-    auto testArgument = std::make_unique<AstVariable>("testVar");
+    auto testArgument = mk<AstVariable>("testVar");
 
     auto tu1 = makeATU();
     tu1->getProgram()->addClause(makeClauseA(std::move(testArgument)));
@@ -104,7 +104,7 @@ TEST(AstPrint, Variable) {
 }
 
 TEST(AstPrint, UnnamedVariable) {
-    auto testArgument = std::make_unique<AstUnnamedVariable>();
+    auto testArgument = mk<AstUnnamedVariable>();
 
     auto tu1 = makeATU();
     tu1->getProgram()->addClause(makeClauseA(std::move(testArgument)));
@@ -113,7 +113,7 @@ TEST(AstPrint, UnnamedVariable) {
 }
 
 TEST(AstPrint, Counter) {
-    auto testArgument = std::make_unique<AstCounter>();
+    auto testArgument = mk<AstCounter>();
 
     auto tu1 = makeATU();
     tu1->getProgram()->addClause(makeClauseA(std::move(testArgument)));
@@ -122,12 +122,12 @@ TEST(AstPrint, Counter) {
 }
 
 TEST(AstPrint, AggregatorMin) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto min = std::make_unique<AstAggregator>(AggregateOp::MIN, std::make_unique<AstVariable>("x"));
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto min = mk<AstAggregator>(AggregateOp::MIN, mk<AstVariable>("x"));
 
     VecOwn<AstLiteral> body;
-    body.push_back(std::make_unique<AstAtom>("B"));
+    body.push_back(mk<AstAtom>("B"));
 
     min->setBody(std::move(body));
 
@@ -139,9 +139,9 @@ TEST(AstPrint, AggregatorMin) {
 }
 
 TEST(AstPrint, AggregatorMax) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto max = std::make_unique<AstAggregator>(AggregateOp::MAX, std::make_unique<AstVariable>("x"));
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto max = mk<AstAggregator>(AggregateOp::MAX, mk<AstVariable>("x"));
 
     VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
@@ -155,9 +155,9 @@ TEST(AstPrint, AggregatorMax) {
 }
 
 TEST(AstPrint, AggregatorCount) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto count = std::make_unique<AstAggregator>(AggregateOp::COUNT);
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto count = mk<AstAggregator>(AggregateOp::COUNT);
 
     VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
@@ -171,9 +171,9 @@ TEST(AstPrint, AggregatorCount) {
 }
 
 TEST(AstPrint, AggregatorSum) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto sum = std::make_unique<AstAggregator>(AggregateOp::SUM, std::make_unique<AstVariable>("x"));
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto sum = mk<AstAggregator>(AggregateOp::SUM, mk<AstVariable>("x"));
 
     VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));

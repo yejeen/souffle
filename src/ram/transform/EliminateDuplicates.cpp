@@ -48,7 +48,7 @@ bool EliminateDuplicatesTransformer::eliminateDuplicates(RamProgram& program) {
                 }
                 if (eliminatedDuplicate) {
                     changed = true;
-                    node = std::make_unique<RamFilter>(
+                    node = mk<RamFilter>(
                             Own<RamCondition>(toCondition(conds)), souffle::clone(&filter->getOperation()));
                 }
             }

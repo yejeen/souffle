@@ -56,7 +56,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->setDebugReport();
             } else {
-                i = std::make_unique<DebugReporter>(std::move(i));
+                i = mk<DebugReporter>(std::move(i));
             }
         }
     }
@@ -75,7 +75,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->disableTransformers(transforms);
             } else if (transforms.find(i->getName()) != transforms.end()) {
-                i = std::make_unique<NullTransformer>();
+                i = mk<NullTransformer>();
             }
         }
     }

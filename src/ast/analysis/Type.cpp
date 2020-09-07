@@ -498,12 +498,12 @@ Own<AstClause> createAnnotatedClause(
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 std::stringstream newVarName;
                 newVarName << var->getName() << "&isin;" << types.find(var)->second;
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             } else if (auto* var = dynamic_cast<AstUnnamedVariable*>(node.get())) {
                 std::stringstream newVarName;
                 newVarName << "_"
                            << "&isin;" << types.find(var)->second;
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             }
             node->apply(*this);
             return node;

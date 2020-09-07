@@ -412,7 +412,7 @@ Own<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(const AstCla
     for (const AstArgument* arg : terms) {
         // create a new mapping for this term
         auto term = souffle::clone(arg);
-        auto newVariable = std::make_unique<AstVariable>(" _tmp_" + toString(varCounter++));
+        auto newVariable = mk<AstVariable>(" _tmp_" + toString(varCounter++));
         termToVar.push_back(std::make_pair(std::move(term), std::move(newVariable)));
     }
 
@@ -450,7 +450,7 @@ Own<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(const AstCla
         auto& term = pair.first;
         auto& variable = pair.second;
 
-        res->addToBody(std::make_unique<AstBinaryConstraint>(
+        res->addToBody(mk<AstBinaryConstraint>(
                 BinaryConstraintOp::EQ, souffle::clone(variable), souffle::clone(term)));
     }
 

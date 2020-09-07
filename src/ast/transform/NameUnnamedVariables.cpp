@@ -43,7 +43,7 @@ bool NameUnnamedVariablesTransformer::transform(AstTranslationUnit& translationU
                 changed = true;
                 std::stringstream name;
                 name << boundPrefix << "_" << underscoreCount++;
-                return std::make_unique<AstVariable>(name.str());
+                return mk<AstVariable>(name.str());
             }
             node->apply(*this);
             return node;

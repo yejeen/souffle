@@ -48,7 +48,7 @@ public:
 
 Own<InterpreterIndex> createEqrelIndex(const Order& order) {
     assert(order.size() == 2 && "Eqrel index must have tuple of 2 arities");
-    return std::make_unique<EqrelIndex>(order);
+    return mk<EqrelIndex>(order);
 }
 
 }  // namespace souffle

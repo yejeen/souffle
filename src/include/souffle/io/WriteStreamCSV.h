@@ -212,10 +212,10 @@ public:
             const SymbolTable& symbolTable, const RecordTable& recordTable) override {
 #ifdef USE_LIBZ
         if (contains(rwOperation, "compress")) {
-            return std::make_unique<WriteGZipFileCSV>(rwOperation, symbolTable, recordTable);
+            return mk<WriteGZipFileCSV>(rwOperation, symbolTable, recordTable);
         }
 #endif
-        return std::make_unique<WriteFileCSV>(rwOperation, symbolTable, recordTable);
+        return mk<WriteFileCSV>(rwOperation, symbolTable, recordTable);
     }
     const std::string& getName() const override {
         static const std::string name = "file";
@@ -228,7 +228,7 @@ class WriteCoutCSVFactory : public WriteStreamFactory {
 public:
     Own<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation,
             const SymbolTable& symbolTable, const RecordTable& recordTable) override {
-        return std::make_unique<WriteCoutCSV>(rwOperation, symbolTable, recordTable);
+        return mk<WriteCoutCSV>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {
@@ -242,7 +242,7 @@ class WriteCoutPrintSizeFactory : public WriteStreamFactory {
 public:
     Own<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation, const SymbolTable&,
             const RecordTable&) override {
-        return std::make_unique<WriteCoutPrintSize>(rwOperation);
+        return mk<WriteCoutPrintSize>(rwOperation);
     }
     const std::string& getName() const override {
         static const std::string name = "stdoutprintsize";

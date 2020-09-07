@@ -117,7 +117,7 @@ public:
             if (const RamRelationReference* relRef = dynamic_cast<RamRelationReference*>(node.get())) {
                 const RamRelation* rel = refMap[relRef->get()];
                 assert(rel != nullptr && "dangling RAM relation reference");
-                return std::make_unique<RamRelationReference>(rel);
+                return mk<RamRelationReference>(rel);
             } else {
                 return node;
             }

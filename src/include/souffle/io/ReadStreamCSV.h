@@ -304,7 +304,7 @@ class ReadCinCSVFactory : public ReadStreamFactory {
 public:
     Own<ReadStream> getReader(const std::map<std::string, std::string>& rwOperation, SymbolTable& symbolTable,
             RecordTable& recordTable) override {
-        return std::make_unique<ReadStreamCSV>(std::cin, rwOperation, symbolTable, recordTable);
+        return mk<ReadStreamCSV>(std::cin, rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {
@@ -318,7 +318,7 @@ class ReadFileCSVFactory : public ReadStreamFactory {
 public:
     Own<ReadStream> getReader(const std::map<std::string, std::string>& rwOperation, SymbolTable& symbolTable,
             RecordTable& recordTable) override {
-        return std::make_unique<ReadFileCSV>(rwOperation, symbolTable, recordTable);
+        return mk<ReadFileCSV>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {

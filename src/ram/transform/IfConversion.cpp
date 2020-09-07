@@ -67,10 +67,8 @@ Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* 
             newOp = indexScan->getOperation().clone();
         }
 
-        return std::make_unique<RamFilter>(
-                std::make_unique<RamExistenceCheck>(
-                        std::make_unique<RamRelationReference>(&indexScan->getRelation()),
-                        std::move(newValues)),
+        return mk<RamFilter>(mk<RamExistenceCheck>(mk<RamRelationReference>(&indexScan->getRelation()),
+                                     std::move(newValues)),
                 Own<RamOperation>(newOp), indexScan->getProfileText());
     }
     return nullptr;

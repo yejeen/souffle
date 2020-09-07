@@ -86,7 +86,7 @@ VecOwn<AstLiteral> FoldAnonymousRecords::expandRecordBinaryConstraint(const AstB
 
     // [a, b..] = [c, d...] → a = c, b = d ...
     for (size_t i = 0; i < leftChildren.size(); ++i) {
-        auto newConstraint = std::make_unique<AstBinaryConstraint>(
+        auto newConstraint = mk<AstBinaryConstraint>(
                 constraint.getOperator(), souffle::clone(leftChildren[i]), souffle::clone(rightChildren[i]));
         replacedContraint.push_back(std::move(newConstraint));
     }

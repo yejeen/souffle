@@ -130,8 +130,7 @@ public:
         }
 
         Stream range(const TupleRef& low, const TupleRef& high) const override {
-            return std::make_unique<Source>(
-                    index.set.lower_bound(low, hints), index.set.upper_bound(high, hints));
+            return mk<Source>(index.set.lower_bound(low, hints), index.set.upper_bound(high, hints));
         }
 
         size_t getArity() const override {
@@ -144,7 +143,7 @@ public:
               arity(order.size()) {}
 
     IndexViewPtr createView() const override {
-        return std::make_unique<IndirectIndexView>(*this);
+        return mk<IndirectIndexView>(*this);
     }
 
     size_t getArity() const override {
@@ -178,7 +177,7 @@ public:
     }
 
     Stream scan() const override {
-        return std::make_unique<Source>(set.begin(), set.end());
+        return mk<Source>(set.begin(), set.end());
     }
 
     PartitionedStream partitionScan(int) const override {
@@ -219,7 +218,7 @@ private:
 
 Own<InterpreterIndex> createIndirectIndex(const Order& order) {
     assert(order.size() != 0 && "IndirectIndex does not work with nullary relation\n");
-    return std::make_unique<IndirectIndex>(order.getOrder());
+    return mk<IndirectIndex>(order.getOrder());
 }
 
 }  // namespace souffle

@@ -55,9 +55,9 @@ public:
         Own<Stream> stream;
 
     public:
-        Iterator() : stream(std::make_unique<Stream>()) {}
+        Iterator() : stream(mk<Stream>()) {}
 
-        Iterator(const InterpreterRelation& rel) : stream(std::make_unique<Stream>(rel.scan())) {}
+        Iterator(const InterpreterRelation& rel) : stream(mk<Stream>(rel.scan())) {}
 
         Iterator(const Iterator& iter) : stream(iter.stream->clone()) {}
 

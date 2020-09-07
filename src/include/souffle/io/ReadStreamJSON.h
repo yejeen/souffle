@@ -341,7 +341,7 @@ class ReadCinJSONFactory : public ReadStreamFactory {
 public:
     Own<ReadStream> getReader(const std::map<std::string, std::string>& rwOperation, SymbolTable& symbolTable,
             RecordTable& recordTable) override {
-        return std::make_unique<ReadStreamJSON>(std::cin, rwOperation, symbolTable, recordTable);
+        return mk<ReadStreamJSON>(std::cin, rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {
@@ -355,7 +355,7 @@ class ReadFileJSONFactory : public ReadStreamFactory {
 public:
     Own<ReadStream> getReader(const std::map<std::string, std::string>& rwOperation, SymbolTable& symbolTable,
             RecordTable& recordTable) override {
-        return std::make_unique<ReadFileJSON>(rwOperation, symbolTable, recordTable);
+        return mk<ReadFileJSON>(rwOperation, symbolTable, recordTable);
     }
 
     const std::string& getName() const override {

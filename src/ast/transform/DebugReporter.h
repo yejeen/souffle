@@ -56,7 +56,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(wrappedTransformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(wrappedTransformer->getName()) != transforms.end()) {
-            wrappedTransformer = std::make_unique<NullTransformer>();
+            wrappedTransformer = mk<NullTransformer>();
         }
     }
 

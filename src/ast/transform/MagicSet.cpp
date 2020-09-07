@@ -219,20 +219,20 @@ bool NormaliseDatabaseTransformer::partitionIO(AstTranslationUnit& translationUn
         newRelName.prepend("@split_in");
 
         // Create a new intermediate input relation, I'
-        auto newRelation = std::make_unique<AstRelation>(newRelName);
+        auto newRelation = mk<AstRelation>(newRelName);
         for (const auto* attr : rel->getAttributes()) {
             newRelation->addAttribute(souffle::clone(attr));
         }
 
         // Add the rule I <- I'
-        auto newClause = std::make_unique<AstClause>();
-        auto newHeadAtom = std::make_unique<AstAtom>(relName);
-        auto newBodyAtom = std::make_unique<AstAtom>(newRelName);
+        auto newClause = mk<AstClause>();
+        auto newHeadAtom = mk<AstAtom>(relName);
+        auto newBodyAtom = mk<AstAtom>(newRelName);
         for (size_t i = 0; i < rel->getArity(); i++) {
             std::stringstream varName;
             varName << "@var" << i;
-            newHeadAtom->addArgument(std::make_unique<AstVariable>(varName.str()));
-            newBodyAtom->addArgument(std::make_unique<AstVariable>(varName.str()));
+            newHeadAtom->addArgument(mk<AstVariable>(varName.str()));
+            newBodyAtom->addArgument(mk<AstVariable>(varName.str()));
         }
         newClause->setHead(std::move(newHeadAtom));
         newClause->addToBody(std::move(newBodyAtom));
@@ -309,19 +309,19 @@ bool NormaliseDatabaseTransformer::extractIDB(AstTranslationUnit& translationUni
 
     // Add the rule I' <- I
     for (const auto& inputRelationName : inputRelationNames) {
-        auto queryHead = std::make_unique<AstAtom>(inputToIntermediate.at(inputRelationName));
-        auto queryLiteral = std::make_unique<AstAtom>(inputRelationName);
+        auto queryHead = mk<AstAtom>(inputToIntermediate.at(inputRelationName));
+        auto queryLiteral = mk<AstAtom>(inputRelationName);
 
         // Give them identical arguments
         const auto* inputRelation = getRelation(program, inputRelationName);
         for (size_t i = 0; i < inputRelation->getArity(); i++) {
             std::stringstream var;
             var << "@query_x" << i;
-            queryHead->addArgument(std::make_unique<AstVariable>(var.str()));
-            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
+            queryHead->addArgument(mk<AstVariable>(var.str()));
+            queryLiteral->addArgument(mk<AstVariable>(var.str()));
         }
 
-        auto query = std::make_unique<AstClause>(std::move(queryHead));
+        auto query = mk<AstClause>(std::move(queryHead));
         query->addToBody(std::move(queryLiteral));
         program.addClause(std::move(query));
     }
@@ -384,18 +384,18 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(AstTranslationUnit& tr
 
     // Add the rule I <- I'
     for (const auto& outputRelationName : outputRelationNames) {
-        auto queryHead = std::make_unique<AstAtom>(outputRelationName);
-        auto queryLiteral = std::make_unique<AstAtom>(outputToIntermediate.at(outputRelationName));
+        auto queryHead = mk<AstAtom>(outputRelationName);
+        auto queryLiteral = mk<AstAtom>(outputToIntermediate.at(outputRelationName));
 
         // Give them identical arguments
         const auto* outputRelation = getRelation(program, outputRelationName);
         for (size_t i = 0; i < outputRelation->getArity(); i++) {
             std::stringstream var;
             var << "@query_x" << i;
-            queryHead->addArgument(std::make_unique<AstVariable>(var.str()));
-            queryLiteral->addArgument(std::make_unique<AstVariable>(var.str()));
+            queryHead->addArgument(mk<AstVariable>(var.str()));
+            queryLiteral->addArgument(mk<AstVariable>(var.str()));
         }
-        auto query = std::make_unique<AstClause>(std::move(queryHead));
+        auto query = mk<AstClause>(std::move(queryHead));
         query->addToBody(std::move(queryLiteral));
         program.addClause(std::move(query));
     }
@@ -434,11 +434,10 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
                 // Update the node to reflect normalised aggregator
                 node = aggr->getTargetExpression() != nullptr
-                               ? std::make_unique<AstAggregator>(aggr->getOperator(),
+                               ? mk<AstAggregator>(aggr->getOperator(),
                                          souffle::clone(aggr->getTargetExpression()),
                                          std::move(newBodyLiterals))
-                               : std::make_unique<AstAggregator>(
-                                         aggr->getOperator(), nullptr, std::move(newBodyLiterals));
+                               : mk<AstAggregator>(aggr->getOperator(), nullptr, std::move(newBodyLiterals));
             } else {
                 // Otherwise, just normalise children as usual.
                 node->apply(*this);
@@ -452,13 +451,13 @@ bool NormaliseDatabaseTransformer::normaliseArguments(AstTranslationUnit& transl
 
                     // Unnamed variables don't need a new constraint, just give them a name
                     if (isA<AstUnnamedVariable>(arg)) {
-                        return std::make_unique<AstVariable>(name.str());
+                        return mk<AstVariable>(name.str());
                     }
 
                     // Link other variables back to their original value with a `<var> = <arg>` constraint
-                    constraints.insert(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                            std::make_unique<AstVariable>(name.str()), souffle::clone(arg)));
-                    return std::make_unique<AstVariable>(name.str());
+                    constraints.insert(mk<AstBinaryConstraint>(
+                            BinaryConstraintOp::EQ, mk<AstVariable>(name.str()), souffle::clone(arg)));
+                    return mk<AstVariable>(name.str());
                 }
             }
             return node;
@@ -547,7 +546,7 @@ Own<AstClause> AdornDatabaseTransformer::adornClause(
     }
 
     // Create the adorned clause with an empty body
-    auto adornedClause = std::make_unique<AstClause>();
+    auto adornedClause = mk<AstClause>();
 
     // Copy over plans if needed
     if (clause->getExecutionPlan() != nullptr) {
@@ -557,7 +556,7 @@ Own<AstClause> AdornDatabaseTransformer::adornClause(
     }
 
     // Create the head atom
-    auto adornedHeadAtom = std::make_unique<AstAtom>(getAdornmentID(relName, adornmentMarker));
+    auto adornedHeadAtom = mk<AstAtom>(getAdornmentID(relName, adornmentMarker));
     assert((adornmentMarker == "" || headArgs.size() == adornmentMarker.length()) &&
             "adornment marker should correspond to head atom variables");
     for (const auto* arg : headArgs) {
@@ -640,7 +639,7 @@ bool AdornDatabaseTransformer::transform(AstTranslationUnit& translationUnit) {
             const auto* rel = getRelation(program, relName);
             assert(rel != nullptr && "relation does not exist");
 
-            auto adornedRelation = std::make_unique<AstRelation>(getAdornmentID(relName, adornmentMarker));
+            auto adornedRelation = mk<AstRelation>(getAdornmentID(relName, adornmentMarker));
             for (const auto* attr : rel->getAttributes()) {
                 adornedRelation->addAttribute(souffle::clone(attr));
             }
@@ -921,7 +920,7 @@ Own<AstAtom> MagicSetCoreTransformer::createMagicAtom(const AstAtom* atom) {
     auto origRelName = atom->getQualifiedName();
     auto args = atom->getArguments();
 
-    auto magicAtom = std::make_unique<AstAtom>(getMagicName(origRelName));
+    auto magicAtom = mk<AstAtom>(getMagicName(origRelName));
 
     auto adornmentMarker = getAdornment(origRelName);
     for (size_t i = 0; i < args.size(); i++) {
@@ -990,7 +989,7 @@ Own<AstClause> MagicSetCoreTransformer::createMagicClause(const AstAtom* atom,
         const std::vector<Own<AstAtom>>& constrainingAtoms,
         const std::vector<const AstBinaryConstraint*> eqConstraints) {
     auto magicHead = createMagicAtom(atom);
-    auto magicClause = std::make_unique<AstClause>();
+    auto magicClause = mk<AstClause>();
 
     // Add in all constraining atoms
     for (const auto& bindingAtom : constrainingAtoms) {
@@ -1056,7 +1055,7 @@ bool MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
         } else {
             // Refine the clause with a prepended magic atom
             auto magicAtom = createMagicAtom(head);
-            auto refinedClause = std::make_unique<AstClause>();
+            auto refinedClause = mk<AstClause>();
             refinedClause->setHead(souffle::clone(head));
             refinedClause->addToBody(souffle::clone(magicAtom));
             for (auto* literal : clause->getBodyLiterals()) {
@@ -1100,7 +1099,7 @@ bool MagicSetCoreTransformer::transform(AstTranslationUnit& translationUnit) {
     for (const auto* rel : program.getRelations()) {
         const auto& origName = rel->getQualifiedName();
         if (!isAdorned(origName)) continue;
-        auto magicRelation = std::make_unique<AstRelation>(getMagicName(origName));
+        auto magicRelation = mk<AstRelation>(getMagicName(origName));
         auto attributes = getRelation(program, origName)->getAttributes();
         auto adornmentMarker = getAdornment(origName);
         for (size_t i = 0; i < attributes.size(); i++) {

@@ -57,7 +57,7 @@ public:
         auto it = analyses.find(name);
         if (it == analyses.end()) {
             // analysis does not exist yet, create instance and run it.
-            analyses[name] = std::make_unique<Analysis>();
+            analyses[name] = mk<Analysis>();
             analyses[name]->run(*this);
             if (debug) {
                 std::stringstream ss;

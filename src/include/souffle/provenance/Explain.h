@@ -183,7 +183,7 @@ public:
         } else if (command[0] == "output") {
             if (command.size() == 2) {
                 // assign a new filestream, the old one is deleted by unique_ptr
-                ExplainConfig::getExplainConfig().outputStream = std::make_unique<std::ofstream>(command[1]);
+                ExplainConfig::getExplainConfig().outputStream = mk<std::ofstream>(command[1]);
             } else if (command.size() == 1) {
                 ExplainConfig::getExplainConfig().outputStream = nullptr;
             } else {

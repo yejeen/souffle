@@ -157,13 +157,13 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
             // Create the extracted relation and clause for the component
             // newrelX() <- disconnectedLiterals(x).
-            auto newRelation = std::make_unique<AstRelation>();
+            auto newRelation = mk<AstRelation>();
             newRelation->setQualifiedName(newRelationName);
             program.addRelation(std::move(newRelation));
 
             auto* disconnectedClause = new AstClause();
             disconnectedClause->setSrcLoc(clause.getSrcLoc());
-            disconnectedClause->setHead(std::make_unique<AstAtom>(newRelationName));
+            disconnectedClause->setHead(mk<AstAtom>(newRelationName));
 
             // Find the body literals for this connected component
             std::vector<AstLiteral*> associatedLiterals;
