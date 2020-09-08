@@ -43,7 +43,7 @@ namespace souffle {
  */
 class RamLoop : public RamStatement {
 public:
-    RamLoop(std::unique_ptr<RamStatement> b) : body(std::move(b)) {
+    RamLoop(Own<RamStatement> b) : body(std::move(b)) {
         assert(body != nullptr && "Loop body is a null-pointer");
     }
 
@@ -77,7 +77,7 @@ protected:
     }
 
     /** loop body */
-    std::unique_ptr<RamStatement> body;
+    Own<RamStatement> body;
 };
 
 }  // end of namespace souffle

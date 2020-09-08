@@ -41,7 +41,7 @@ namespace souffle {
  */
 class RamClear : public RamRelationStatement {
 public:
-    RamClear(std::unique_ptr<RamRelationReference> relRef) : RamRelationStatement(std::move(relRef)) {}
+    RamClear(Own<RamRelationReference> relRef) : RamRelationStatement(std::move(relRef)) {}
 
     RamClear* clone() const override {
         return new RamClear(souffle::clone(relationRef));

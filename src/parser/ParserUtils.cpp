@@ -102,7 +102,7 @@ VecOwn<AstClause> RuleBody::toClauseBodies() const {
                 // negate
                 if (auto* atom = dynamic_cast<AstAtom*>(&*base)) {
                     base.release();
-                    base = mk<AstNegation>(std::unique_ptr<AstAtom>(atom));
+                    base = mk<AstNegation>(Own<AstAtom>(atom));
                     base->setSrcLoc(atom->getSrcLoc());
                 } else if (auto* cstr = dynamic_cast<AstConstraint*>(&*base)) {
                     negateConstraintInPlace(*cstr);

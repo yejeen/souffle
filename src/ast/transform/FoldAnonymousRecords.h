@@ -21,6 +21,7 @@
 #include "ast/Literal.h"
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -63,7 +64,7 @@ private:
      * @parem clause Clause to be processed.
      * @param newClauses a destination for the newly produced clauses.
      */
-    void transformClause(const AstClause& clause, std::vector<std::unique_ptr<AstClause>>& newClauses);
+    void transformClause(const AstClause& clause, VecOwn<AstClause>& newClauses);
 
     /**
      * Expand constraint on records position-wise.
@@ -76,7 +77,7 @@ private:
      * that children are of type AstRecordInit and that the size
      * of both sides is the same
      */
-    std::vector<std::unique_ptr<AstLiteral>> expandRecordBinaryConstraint(const AstBinaryConstraint&);
+    VecOwn<AstLiteral> expandRecordBinaryConstraint(const AstBinaryConstraint&);
 
     /**
      * Determine if the clause contains at least one binary constraint which can be expanded.

@@ -60,7 +60,7 @@ namespace {
 class Substitution {
     // map type used for internally storing var->term mappings
     //      - note: variables are identified by their names
-    using map_t = std::map<std::string, std::unique_ptr<AstArgument>>;
+    using map_t = std::map<std::string, Own<AstArgument>>;
 
     // the mapping of variables to terms
     map_t varToTerm;
@@ -83,7 +83,7 @@ public:
      * @param node the node to be transformed
      * @return a pointer to the modified or replaced node
      */
-    std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+    Own<AstNode> operator()(Own<AstNode> node) const {
         // create a substitution mapper
         struct M : public AstNodeMapper {
             const map_t& map;
@@ -92,7 +92,7 @@ public:
 
             using AstNodeMapper::operator();
 
-            std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            Own<AstNode> operator()(Own<AstNode> node) const override {
                 // see whether it is a variable to be substituted
                 if (auto var = dynamic_cast<AstVariable*>(node.get())) {
                     auto pos = map.find(var->getName());
@@ -115,10 +115,10 @@ public:
      * A generic, type consistent wrapper of the transformation operation above.
      */
     template <typename T>
-    std::unique_ptr<T> operator()(std::unique_ptr<T> node) const {
-        std::unique_ptr<AstNode> resPtr = (*this)(std::unique_ptr<AstNode>(node.release()));
+    Own<T> operator()(Own<T> node) const {
+        Own<AstNode> resPtr = (*this)(Own<AstNode>(node.release()));
         assert(isA<T>(resPtr.get()) && "Invalid node type mapping.");
-        return std::unique_ptr<T>(dynamic_cast<T*>(resPtr.release()));
+        return Own<T>(dynamic_cast<T*>(resPtr.release()));
     }
 
     /**
@@ -147,8 +147,7 @@ public:
     void print(std::ostream& out) const {
         out << "{"
             << join(varToTerm, ",",
-                       [](std::ostream& out,
-                               const std::pair<const std::string, std::unique_ptr<AstArgument>>& cur) {
+                       [](std::ostream& out, const std::pair<const std::string, Own<AstArgument>>& cur) {
                            out << cur.first << " -> " << *cur.second;
                        })
             << "}";
@@ -167,8 +166,8 @@ public:
 class Equation {
 public:
     // the two terms to be equivalent
-    std::unique_ptr<AstArgument> lhs;
-    std::unique_ptr<AstArgument> rhs;
+    Own<AstArgument> lhs;
+    Own<AstArgument> rhs;
 
     Equation(const AstArgument& lhs, const AstArgument& rhs)
             : lhs(souffle::clone(&lhs)), rhs(souffle::clone(&rhs)) {}
@@ -205,7 +204,7 @@ public:
 
 }  // namespace
 
-std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
+Own<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     // -- utilities --
 
     // tests whether something is a variable
@@ -347,8 +346,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     return substitution(souffle::clone(&clause));
 }
 
-std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(const AstClause& clause) {
-    std::unique_ptr<AstClause> res(cloneHead(&clause));
+Own<AstClause> ResolveAliasesTransformer::removeTrivialEquality(const AstClause& clause) {
+    Own<AstClause> res(cloneHead(&clause));
 
     // add all literals, except filtering out t = t constraints
     for (AstLiteral* literal : clause.getBodyLiterals()) {
@@ -368,8 +367,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(cons
     return res;
 }
 
-std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(const AstClause& clause) {
-    std::unique_ptr<AstClause> res(clause.clone());
+Own<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(const AstClause& clause) {
+    Own<AstClause> res(clause.clone());
 
     // get list of atoms
     std::vector<AstAtom*> atoms = getBodyLiterals<AstAtom>(*res);
@@ -406,8 +405,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
     });
 
     // substitute them with new variables (a real map would compare pointers)
-    using substitution_map =
-            std::vector<std::pair<std::unique_ptr<AstArgument>, std::unique_ptr<AstVariable>>>;
+    using substitution_map = std::vector<std::pair<Own<AstArgument>, Own<AstVariable>>>;
     substitution_map termToVar;
 
     static int varCounter = 0;
@@ -424,7 +422,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
 
         Update(const substitution_map& map) : map(map) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // check whether node needs to be replaced
             for (const auto& pair : map) {
                 auto& term = pair.first;
@@ -475,14 +473,14 @@ bool ResolveAliasesTransformer::transform(AstTranslationUnit& translationUnit) {
     for (const AstClause* clause : clauses) {
         // -- Step 1 --
         // get rid of aliases
-        std::unique_ptr<AstClause> noAlias = resolveAliases(*clause);
+        Own<AstClause> noAlias = resolveAliases(*clause);
 
         // clean up equalities
-        std::unique_ptr<AstClause> cleaned = removeTrivialEquality(*noAlias);
+        Own<AstClause> cleaned = removeTrivialEquality(*noAlias);
 
         // -- Step 2 --
         // restore simple terms in atoms
-        std::unique_ptr<AstClause> normalised = removeComplexTermsInAtoms(*cleaned);
+        Own<AstClause> normalised = removeComplexTermsInAtoms(*cleaned);
 
         // swap if changed
         if (*normalised != *clause) {

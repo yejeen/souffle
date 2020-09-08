@@ -35,7 +35,7 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
     struct ReplaceSumWithCount : public AstNodeMapper {
         ReplaceSumWithCount() = default;
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // Apply to all aggregates of the form
             // sum k : { .. } where k is a constant
             if (auto* agg = dynamic_cast<AstAggregator*>(node.get())) {
@@ -46,7 +46,7 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
                         // Then construct the new thing to replace it with
                         auto count = mk<AstAggregator>(AggregateOp::COUNT);
                         // Duplicate the body of the aggregate
-                        std::vector<std::unique_ptr<AstLiteral>> newBody;
+                        VecOwn<AstLiteral> newBody;
                         for (const auto& lit : agg->getBodyLiterals()) {
                             newBody.push_back(souffle::clone(lit));
                         }

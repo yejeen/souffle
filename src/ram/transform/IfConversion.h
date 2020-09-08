@@ -65,7 +65,7 @@ public:
      * Rewrites IndexScan operations to a filter/existence check if the IndexScan's tuple
      * is not used in a consecutive RAM operation
      */
-    std::unique_ptr<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
+    Own<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
 
     /**
      * @brief Apply if-conversion to the whole program

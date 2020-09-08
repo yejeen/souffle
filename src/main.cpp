@@ -415,7 +415,7 @@ int main(int argc, char** argv) {
     // parse file
     ErrorReport errReport(Global::config().has("no-warn"));
     DebugReport debugReport;
-    std::unique_ptr<AstTranslationUnit> astTranslationUnit =
+    Own<AstTranslationUnit> astTranslationUnit =
             ParserDriver::parseTranslationUnit("<stdin>", in, errReport, debugReport);
 
     // close input pipe
@@ -563,15 +563,12 @@ int main(int argc, char** argv) {
     // ------- execution -------------
     /* translate AST to RAM */
     debugReport.startSection();
-    std::unique_ptr<RamTranslationUnit> ramTranslationUnit =
-            AstToRamTranslator().translateUnit(*astTranslationUnit);
+    Own<RamTranslationUnit> ramTranslationUnit = AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
-    std::unique_ptr<RamTransformer> ramTransform = mk<RamTransformerSequence>(
+    Own<RamTransformer> ramTransform = mk<RamTransformerSequence>(
             mk<RamLoopTransformer>(mk<RamTransformerSequence>(mk<ExpandFilterTransformer>(),
-                    mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>()
-                    // not sure if I need to move out the filter transform
-                    )),
+                    mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>())),
             mk<RamLoopTransformer>(mk<IndexedInequalityTransformer>()), mk<IfConversionTransformer>(),
             mk<ChoiceConversionTransformer>(), mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
             mk<RamLoopTransformer>(
@@ -608,7 +605,7 @@ int main(int argc, char** argv) {
             }
 
             // configure and execute interpreter
-            std::unique_ptr<InterpreterEngine> interpreter(mk<InterpreterEngine>(*ramTranslationUnit));
+            Own<InterpreterEngine> interpreter(mk<InterpreterEngine>(*ramTranslationUnit));
             interpreter->executeMain();
             // If the profiler was started, join back here once it exits.
             if (profiler.joinable()) {
@@ -625,7 +622,7 @@ int main(int argc, char** argv) {
             }
         } else {
             // ------- compiler -------------
-            std::unique_ptr<Synthesiser> synthesiser = mk<Synthesiser>(*ramTranslationUnit);
+            Own<Synthesiser> synthesiser = mk<Synthesiser>(*ramTranslationUnit);
 
             // Find the base filename for code generation and execution
             std::string baseFilename;

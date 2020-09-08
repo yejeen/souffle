@@ -32,7 +32,7 @@ namespace souffle {
  */
 class RamRelationStatement : public RamStatement {
 public:
-    RamRelationStatement(std::unique_ptr<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
+    RamRelationStatement(Own<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "Relation reference is a null-pointer");
     }
 
@@ -57,7 +57,7 @@ protected:
 
 protected:
     /** Relation reference */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 };
 
 }  // end of namespace souffle

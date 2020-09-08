@@ -72,7 +72,7 @@ public:
      * Rewrites Scan/If pair to a Choice operation if value
      * is not used in a consecutive RAM operation
      */
-    std::unique_ptr<RamOperation> rewriteScan(const RamScan* scan);
+    Own<RamOperation> rewriteScan(const RamScan* scan);
 
     /**
      * @brief Rewrite IndexScan operations
@@ -82,7 +82,7 @@ public:
      * Rewrites IndexScan/If pair to an IndexChoice operation if value
      * is not used in a consecutive RAM operation
      */
-    std::unique_ptr<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
+    Own<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
 
     /**
      * @brief Apply choice-conversion to the whole program

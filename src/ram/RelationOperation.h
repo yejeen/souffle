@@ -36,8 +36,8 @@ namespace souffle {
  */
 class RamRelationOperation : public RamTupleOperation {
 public:
-    RamRelationOperation(std::unique_ptr<RamRelationReference> relRef, int ident,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamRelationOperation(Own<RamRelationReference> relRef, int ident, Own<RamOperation> nested,
+            std::string profileText = "")
             : RamTupleOperation(ident, std::move(nested), std::move(profileText)),
               relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "relation reference is a null-pointer");
@@ -68,7 +68,7 @@ protected:
     }
 
     /** Search relation */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 };
 
 }  // namespace souffle

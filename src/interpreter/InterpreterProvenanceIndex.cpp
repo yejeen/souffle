@@ -57,7 +57,7 @@ public:
             InterpreterProvenanceUpdater<Arity>>>::GenericIndex;
 };
 
-std::unique_ptr<InterpreterIndex> createBTreeProvenanceIndex(const Order& order) {
+Own<InterpreterIndex> createBTreeProvenanceIndex(const Order& order) {
     switch (order.size()) {
         case 0:
         case 1: fatal("Provenance relation with arity < 2.");

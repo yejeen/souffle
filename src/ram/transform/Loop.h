@@ -33,7 +33,7 @@ namespace souffle {
  */
 class RamLoopTransformer : public RamMetaTransformer {
 public:
-    RamLoopTransformer(std::unique_ptr<RamTransformer> tLoop) : loop(std::move(tLoop)) {}
+    RamLoopTransformer(Own<RamTransformer> tLoop) : loop(std::move(tLoop)) {}
     std::string getName() const override {
         return "RamLoopTransformer";
     }
@@ -47,7 +47,7 @@ public:
 
 protected:
     /** transformer of the loop */
-    std::unique_ptr<RamTransformer> loop;
+    Own<RamTransformer> loop;
 };
 
 }  // end of namespace souffle

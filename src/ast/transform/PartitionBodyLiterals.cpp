@@ -194,7 +194,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
         // Add the new propositions to the clause first
         for (AstAtom* newAtom : replacementAtoms) {
-            replacementClause->addToBody(std::unique_ptr<AstLiteral>(newAtom));
+            replacementClause->addToBody(Own<AstLiteral>(newAtom));
         }
 
         // Add the remaining body literals to the clause
@@ -219,7 +219,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
     // Adjust the program
     for (AstClause* newClause : clausesToAdd) {
-        program.addClause(std::unique_ptr<AstClause>(newClause));
+        program.addClause(Own<AstClause>(newClause));
     }
 
     for (const AstClause* oldClause : clausesToRemove) {

@@ -43,19 +43,19 @@
 
 namespace souffle::test {
 
-inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
+inline Own<AstTranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
     ErrorReport e;
     DebugReport d;
     return ParserDriver::parseTranslationUnit(program, e, d);
 }
 
-inline std::unique_ptr<AstTranslationUnit> makePrintedATU(std::unique_ptr<AstTranslationUnit>& tu) {
+inline Own<AstTranslationUnit> makePrintedATU(Own<AstTranslationUnit>& tu) {
     std::stringstream ss;
     ss << *tu->getProgram();
     return makeATU(ss.str());
 }
 
-inline std::unique_ptr<AstClause> makeClauseA(std::unique_ptr<AstArgument> headArgument) {
+inline Own<AstClause> makeClauseA(Own<AstArgument> headArgument) {
     auto headAtom = mk<AstAtom>("A");
     headAtom->addArgument(std::move(headArgument));
     auto clause = mk<AstClause>();
@@ -126,7 +126,7 @@ TEST(AstPrint, AggregatorMin) {
     atom->addArgument(mk<AstVariable>("x"));
     auto min = mk<AstAggregator>(AggregateOp::MIN, mk<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(mk<AstAtom>("B"));
 
     min->setBody(std::move(body));
@@ -143,7 +143,7 @@ TEST(AstPrint, AggregatorMax) {
     atom->addArgument(mk<AstVariable>("x"));
     auto max = mk<AstAggregator>(AggregateOp::MAX, mk<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     max->setBody(std::move(body));
 
@@ -159,7 +159,7 @@ TEST(AstPrint, AggregatorCount) {
     atom->addArgument(mk<AstVariable>("x"));
     auto count = mk<AstAggregator>(AggregateOp::COUNT);
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     count->setBody(std::move(body));
 
@@ -175,7 +175,7 @@ TEST(AstPrint, AggregatorSum) {
     atom->addArgument(mk<AstVariable>("x"));
     auto sum = mk<AstAggregator>(AggregateOp::SUM, mk<AstVariable>("x"));
 
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     sum->setBody(std::move(body));
 

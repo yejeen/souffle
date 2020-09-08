@@ -48,18 +48,18 @@ namespace souffle::test {
 #define TESTS_PER_OPERATION 20
 
 /** Function to evaluate a single RamExpression. */
-RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable& symTab) {
+RamDomain evalExpression(Own<RamExpression> expression, SymbolTable& symTab) {
     // Set up RamProgram and translation unit
-    std::vector<std::unique_ptr<RamExpression>> returnValues;
+    VecOwn<RamExpression> returnValues;
     returnValues.emplace_back(std::move(expression));
 
     Global::config().set("jobs", "1");
-    std::unique_ptr<RamStatement> query = mk<RamQuery>(mk<RamSubroutineReturn>(std::move(returnValues)));
-    std::map<std::string, std::unique_ptr<RamStatement>> subs;
+    Own<RamStatement> query = mk<RamQuery>(mk<RamSubroutineReturn>(std::move(returnValues)));
+    std::map<std::string, Own<RamStatement>> subs;
     subs.insert(std::make_pair("test", std::move(query)));
-    std::vector<std::unique_ptr<RamRelation>> rels;
+    VecOwn<RamRelation> rels;
 
-    std::unique_ptr<RamProgram> prog = mk<RamProgram>(std::move(rels), mk<RamSequence>(), std::move(subs));
+    Own<RamProgram> prog = mk<RamProgram>(std::move(rels), mk<RamSequence>(), std::move(subs));
 
     ErrorReport errReport;
     DebugReport debugReport;
@@ -67,7 +67,7 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
     RamTranslationUnit translationUnit(std::move(prog), symTab, errReport, debugReport);
 
     // configure and execute interpreter
-    std::unique_ptr<InterpreterEngine> interpreter = mk<InterpreterEngine>(translationUnit);
+    Own<InterpreterEngine> interpreter = mk<InterpreterEngine>(translationUnit);
 
     std::string name("test");
     std::vector<RamDomain> ret;
@@ -78,24 +78,23 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable&
 }
 
 /** Function to evaluate a single RamExpression. */
-RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
+RamDomain evalExpression(Own<RamExpression> expression) {
     SymbolTable symTab;
     return evalExpression(std::move(expression), symTab);
 }
 
-RamDomain evalMultiArg(
-        FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args, SymbolTable& symTab) {
+RamDomain evalMultiArg(FunctorOp functor, VecOwn<RamExpression> args, SymbolTable& symTab) {
     return evalExpression(mk<RamIntrinsicOperator>(functor, std::move(args)), symTab);
 }
 
-RamDomain evalMultiArg(FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args) {
+RamDomain evalMultiArg(FunctorOp functor, VecOwn<RamExpression> args) {
     SymbolTable symTab;
     return evalMultiArg(functor, std::move(args), symTab);
 }
 
 /** Evaluate a single argument expression */
 RamDomain evalUnary(FunctorOp functor, RamDomain arg1) {
-    std::vector<std::unique_ptr<RamExpression>> args;
+    VecOwn<RamExpression> args;
     args.push_back(mk<RamSignedConstant>(arg1));
 
     return evalMultiArg(functor, std::move(args));
@@ -103,7 +102,7 @@ RamDomain evalUnary(FunctorOp functor, RamDomain arg1) {
 
 /** Evaluate a binary operator */
 RamDomain evalBinary(FunctorOp functor, RamDomain arg1, RamDomain arg2) {
-    std::vector<std::unique_ptr<RamExpression>> args;
+    VecOwn<RamExpression> args;
     args.push_back(mk<RamSignedConstant>(arg1));
     args.push_back(mk<RamSignedConstant>(arg2));
 
@@ -112,7 +111,7 @@ RamDomain evalBinary(FunctorOp functor, RamDomain arg1, RamDomain arg2) {
 
 TEST(RamSignedConstant, ArithmeticEvaluation) {
     RamDomain num = 42;
-    std::unique_ptr<RamExpression> expression = mk<RamSignedConstant>(num);
+    Own<RamExpression> expression = mk<RamSignedConstant>(num);
     RamDomain result = evalExpression(std::move(expression));
     EXPECT_EQ(result, num);
 }
@@ -607,7 +606,7 @@ TEST(Binary, UnsignedLogicalOr) {
 
 TEST(MultiArg, Max) {
     FunctorOp functor = FunctorOp::MAX;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamDomain i = 0; i <= 50; ++i) {
         args.push_back(mk<RamSignedConstant>(i));
@@ -620,7 +619,7 @@ TEST(MultiArg, Max) {
 
 TEST(MultiArg, UnsignedMax) {
     FunctorOp functor = FunctorOp::UMAX;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamUnsigned i = 0; i <= 100; ++i) {
         args.push_back(mk<RamSignedConstant>(ramBitCast(i)));
@@ -633,7 +632,7 @@ TEST(MultiArg, UnsignedMax) {
 
 TEST(MultiArg, FloatMax) {
     FunctorOp functor = FunctorOp::FMAX;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamDomain i = -100; i <= 100; ++i) {
         args.push_back(mk<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
@@ -646,7 +645,7 @@ TEST(MultiArg, FloatMax) {
 
 TEST(MultiArg, SymbolMax) {
     FunctorOp functor = FunctorOp::SMAX;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     SymbolTable symTab;
 
@@ -661,7 +660,7 @@ TEST(MultiArg, SymbolMax) {
 
 TEST(MultiArg, Min) {
     FunctorOp functor = FunctorOp::MIN;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamDomain i = 0; i <= 50; ++i) {
         args.push_back(mk<RamSignedConstant>(i));
@@ -674,7 +673,7 @@ TEST(MultiArg, Min) {
 
 TEST(MultiArg, UnsignedMin) {
     FunctorOp functor = FunctorOp::UMIN;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamUnsigned i = 0; i <= 100; ++i) {
         args.push_back(mk<RamSignedConstant>(ramBitCast(i)));
@@ -687,7 +686,7 @@ TEST(MultiArg, UnsignedMin) {
 
 TEST(MultiArg, FloatMin) {
     FunctorOp functor = FunctorOp::FMIN;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     for (RamDomain i = -100; i <= 100; ++i) {
         args.push_back(mk<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(i))));
@@ -700,7 +699,7 @@ TEST(MultiArg, FloatMin) {
 
 TEST(MultiArg, SymbolMin) {
     FunctorOp functor = FunctorOp::SMIN;
-    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+    VecOwn<souffle::RamExpression> args;
 
     SymbolTable symTab;
 

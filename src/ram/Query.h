@@ -45,7 +45,7 @@ namespace souffle {
  */
 class RamQuery : public RamStatement {
 public:
-    RamQuery(std::unique_ptr<RamOperation> o) : operation(std::move(o)) {
+    RamQuery(Own<RamOperation> o) : operation(std::move(o)) {
         assert(operation && "operation is a nullptr");
     }
 
@@ -78,7 +78,7 @@ protected:
     }
 
     /** RAM operation */
-    std::unique_ptr<RamOperation> operation;
+    Own<RamOperation> operation;
 };
 
 }  // end of namespace souffle

@@ -178,30 +178,29 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 }
             }
 
-            aggClause->setHead(std::unique_ptr<AstAtom>(head));
+            aggClause->setHead(Own<AstAtom>(head));
 
             // instantiate unnamed variables in count operations
             if (agg.getOperator() == AggregateOp::COUNT) {
                 int count = 0;
                 for (const auto& cur : aggClause->getBodyLiterals()) {
-                    cur->apply(makeLambdaAstMapper(
-                            [&](std::unique_ptr<AstNode> node) -> std::unique_ptr<AstNode> {
-                                // check whether it is a unnamed variable
-                                auto* var = dynamic_cast<AstUnnamedVariable*>(node.get());
-                                if (var == nullptr) {
-                                    return node;
-                                }
+                    cur->apply(makeLambdaAstMapper([&](Own<AstNode> node) -> Own<AstNode> {
+                        // check whether it is a unnamed variable
+                        auto* var = dynamic_cast<AstUnnamedVariable*>(node.get());
+                        if (var == nullptr) {
+                            return node;
+                        }
 
-                                // replace by variable
-                                auto name = " _" + toString(count++);
-                                auto res = new AstVariable(name);
+                        // replace by variable
+                        auto name = " _" + toString(count++);
+                        auto res = new AstVariable(name);
 
-                                // extend head
-                                head->addArgument(souffle::clone(res));
+                        // extend head
+                        head->addArgument(souffle::clone(res));
 
-                                // return replacement
-                                return std::unique_ptr<AstNode>(res);
-                            }));
+                        // return replacement
+                        return Own<AstNode>(res);
+                    }));
                 }
             }
 
@@ -217,11 +216,11 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                         (isOfKind(argTypes[cur], TypeAttribute::Signed)) ? "number" : "symbol"));
             }
 
-            program.addClause(std::unique_ptr<AstClause>(aggClause));
-            program.addRelation(std::unique_ptr<AstRelation>(rel));
+            program.addClause(Own<AstClause>(aggClause));
+            program.addRelation(Own<AstRelation>(rel));
 
             // add arguments to head of aggregate body atom (__agg_body_rel_n)
-            std::vector<std::unique_ptr<AstArgument>> args;
+            VecOwn<AstArgument> args;
             for (auto arg : head->getArguments()) {
                 if (auto* var = dynamic_cast<AstVariable*>(arg)) {
                     // replace local variable by underscore if local
@@ -234,7 +233,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             }
             auto aggAtom = mk<AstAtom>(head->getQualifiedName(), std::move(args), head->getSrcLoc());
 
-            std::vector<std::unique_ptr<AstLiteral>> newBody;
+            VecOwn<AstLiteral> newBody;
             newBody.push_back(std::move(aggAtom));
             const_cast<AstAggregator&>(agg).setBody(std::move(newBody));
         });

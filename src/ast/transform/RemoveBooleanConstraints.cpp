@@ -44,7 +44,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
     // Remove true and false constant literals from all aggregators
     struct removeBools : public AstNodeMapper {
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // Remove them from child nodes
             node->apply(*this);
 
@@ -66,7 +66,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                 // Only keep literals that aren't boolean constraints
                 if (containsFalse || containsTrue) {
                     auto replacementAggregator = souffle::clone(aggr);
-                    std::vector<std::unique_ptr<AstLiteral>> newBody;
+                    VecOwn<AstLiteral> newBody;
 
                     bool isEmpty = true;
 
@@ -126,7 +126,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                 // Clause will always fail
                 program.removeClause(clause);
             } else if (containsTrue) {
-                auto replacementClause = std::unique_ptr<AstClause>(cloneHead(clause));
+                auto replacementClause = Own<AstClause>(cloneHead(clause));
 
                 // Only keep non-'true' literals
                 for (AstLiteral* lit : clause->getBodyLiterals()) {

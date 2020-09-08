@@ -46,9 +46,8 @@ namespace souffle {
  */
 class RamParallelChoice : public RamChoice, public RamAbstractParallel {
 public:
-    RamParallelChoice(std::unique_ptr<RamRelationReference> rel, size_t ident,
-            std::unique_ptr<RamCondition> cond, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamParallelChoice(Own<RamRelationReference> rel, size_t ident, Own<RamCondition> cond,
+            Own<RamOperation> nested, std::string profileText = "")
             : RamChoice(std::move(rel), ident, std::move(cond), std::move(nested), profileText) {}
 
     RamParallelChoice* clone() const override {

@@ -46,7 +46,7 @@ bool PolymorphicObjectsTransformer::transform(AstTranslationUnit& translationUni
         TypeRewriter(const TypeAnalysis& typeAnalysis, ErrorReport& report)
                 : typeAnalysis(typeAnalysis), report(report) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // Utility lambdas to determine if all args are of the same type.
             auto isFloat = [&](const AstArgument* argument) {
                 return isOfKind(typeAnalysis.getTypes(argument), TypeAttribute::Float);

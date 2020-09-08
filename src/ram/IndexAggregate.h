@@ -46,9 +46,8 @@ namespace souffle {
  */
 class RamIndexAggregate : public RamIndexOperation, public RamAbstractAggregate {
 public:
-    RamIndexAggregate(std::unique_ptr<RamOperation> nested, AggregateOp fun,
-            std::unique_ptr<RamRelationReference> relRef, std::unique_ptr<RamExpression> expression,
-            std::unique_ptr<RamCondition> condition, RamPattern queryPattern, int ident)
+    RamIndexAggregate(Own<RamOperation> nested, AggregateOp fun, Own<RamRelationReference> relRef,
+            Own<RamExpression> expression, Own<RamCondition> condition, RamPattern queryPattern, int ident)
             : RamIndexOperation(std::move(relRef), ident, std::move(queryPattern), std::move(nested)),
               RamAbstractAggregate(fun, std::move(expression), std::move(condition)) {}
 

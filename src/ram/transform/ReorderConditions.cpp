@@ -32,26 +32,23 @@ namespace souffle {
 bool ReorderConditionsTransformer::reorderConditions(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamFilter* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition* condition = &filter->getCondition();
-                std::vector<std::unique_ptr<RamCondition>> sortedConds;
-                std::vector<std::unique_ptr<RamCondition>> condList = toConjunctionList(condition);
+                VecOwn<RamCondition> sortedConds;
+                VecOwn<RamCondition> condList = toConjunctionList(condition);
                 for (auto& cond : condList) {
                     sortedConds.emplace_back(cond->clone());
                 }
                 std::sort(sortedConds.begin(), sortedConds.end(),
-                        [&](std::unique_ptr<RamCondition>& a, std::unique_ptr<RamCondition>& b) {
+                        [&](Own<RamCondition>& a, Own<RamCondition>& b) {
                             return rca->getComplexity(a.get()) < rca->getComplexity(b.get());
                         });
 
                 if (!std::equal(sortedConds.begin(), sortedConds.end(), condList.begin(),
-                            [](std::unique_ptr<RamCondition>& a, std::unique_ptr<RamCondition>& b) {
-                                return *a == *b;
-                            })) {
+                            [](Own<RamCondition>& a, Own<RamCondition>& b) { return *a == *b; })) {
                     changed = true;
-                    node = mk<RamFilter>(std::unique_ptr<RamCondition>(toCondition(sortedConds)),
+                    node = mk<RamFilter>(Own<RamCondition>(toCondition(sortedConds)),
                             souffle::clone(&filter->getOperation()));
                 }
             }

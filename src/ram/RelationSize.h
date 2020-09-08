@@ -42,7 +42,7 @@ namespace souffle {
  */
 class RamRelationSize : public RamExpression {
 public:
-    RamRelationSize(std::unique_ptr<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
+    RamRelationSize(Own<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "Relation reference is a nullptr");
     }
 
@@ -74,7 +74,7 @@ protected:
     }
 
     /** Relation */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 };
 
 }  // end of namespace souffle

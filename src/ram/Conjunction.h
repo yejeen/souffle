@@ -46,8 +46,7 @@ namespace souffle {
  */
 class RamConjunction : public RamCondition {
 public:
-    RamConjunction(std::unique_ptr<RamCondition> l, std::unique_ptr<RamCondition> r)
-            : lhs(std::move(l)), rhs(std::move(r)) {
+    RamConjunction(Own<RamCondition> l, Own<RamCondition> r) : lhs(std::move(l)), rhs(std::move(r)) {
         assert(lhs != nullptr && "left-hand side of conjunction is a nullptr");
         assert(rhs != nullptr && "right-hand side of conjunction is a nullptr");
     }
@@ -86,10 +85,10 @@ protected:
     }
 
     /** Left-hand side of conjunction */
-    std::unique_ptr<RamCondition> lhs;
+    Own<RamCondition> lhs;
 
     /** Right-hand side of conjunction */
-    std::unique_ptr<RamCondition> rhs;
+    Own<RamCondition> rhs;
 };
 
 }  // end of namespace souffle

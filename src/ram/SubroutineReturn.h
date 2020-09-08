@@ -41,7 +41,7 @@ namespace souffle {
  */
 class RamSubroutineReturn : public RamOperation {
 public:
-    RamSubroutineReturn(std::vector<std::unique_ptr<RamExpression>> vals) : expressions(std::move(vals)) {
+    RamSubroutineReturn(VecOwn<RamExpression> vals) : expressions(std::move(vals)) {
         for (const auto& expr : expressions) {
             assert(expr != nullptr && "Expression is a null-pointer");
         }
@@ -61,7 +61,7 @@ public:
     }
 
     RamSubroutineReturn* clone() const override {
-        std::vector<std::unique_ptr<RamExpression>> newValues;
+        VecOwn<RamExpression> newValues;
         for (auto& expr : expressions) {
             newValues.emplace_back(expr->clone());
         }
@@ -93,7 +93,7 @@ protected:
     }
 
     /** Return expressions */
-    std::vector<std::unique_ptr<RamExpression>> expressions;
+    VecOwn<RamExpression> expressions;
 };
 
 }  // namespace souffle

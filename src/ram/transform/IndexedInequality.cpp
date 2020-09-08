@@ -38,8 +38,7 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
     bool changed = false;
 
     // helper for collecting conditions from filter operations
-    auto addCondition = [](std::unique_ptr<RamCondition> condition,
-                                std::unique_ptr<RamCondition> c) -> std::unique_ptr<RamCondition> {
+    auto addCondition = [](Own<RamCondition> condition, Own<RamCondition> c) -> Own<RamCondition> {
         if (condition == nullptr) {
             return c;
         } else {
@@ -48,15 +47,15 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
     };
 
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> indexToFilterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> indexToFilterRewriter =
+                [&](Own<RamNode> node) -> Own<RamNode> {
             // find a RamIndexOperation
             if (const RamIndexOperation* indexOperation = dynamic_cast<RamIndexOperation*>(node.get())) {
                 auto indexSelection = idxAnalysis->getIndexes(indexOperation->getRelation());
                 auto attributesToDischarge = indexSelection.getAttributesToDischarge(
                         idxAnalysis->getSearchSignature(indexOperation), indexOperation->getRelation());
                 auto pattern = indexOperation->getRangePattern();
-                std::unique_ptr<RamCondition> condition;
+                Own<RamCondition> condition;
                 RamPattern updatedPattern;
 
                 for (RamExpression* p : indexOperation->getRangePattern().first) {
@@ -67,8 +66,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 }
                 for (auto i : attributesToDischarge) {
                     // move constraints out of the indexed inequality and into a conjuction
-                    std::unique_ptr<RamConstraint> lowerBound;
-                    std::unique_ptr<RamConstraint> upperBound;
+                    Own<RamConstraint> lowerBound;
+                    Own<RamConstraint> upperBound;
                     changed = true;
 
                     if (!isRamUndefValue(pattern.first[i])) {
@@ -112,9 +111,9 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                         // in the case of an aggregate we must strengthen the condition of the aggregate
                         // it doesn't make sense to nest a filter operation because the aggregate needs the
                         // condition in its scope
-                        auto strengthenedCondition = addCondition(
-                                std::unique_ptr<RamCondition>(souffle::clone(&iagg->getCondition())),
-                                std::move(condition));
+                        auto strengthenedCondition =
+                                addCondition(Own<RamCondition>(souffle::clone(&iagg->getCondition())),
+                                        std::move(condition));
 
                         node = mk<RamIndexAggregate>(std::move(nestedOp), iagg->getFunction(),
                                 mk<RamRelationReference>(&iagg->getRelation()),
@@ -132,8 +131,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
     });
 
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> removeEmptyIndexRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> removeEmptyIndexRewriter =
+                [&](Own<RamNode> node) -> Own<RamNode> {
             // find an IndexOperation
             if (const RamIndexOperation* indexOperation = dynamic_cast<RamIndexOperation*>(node.get())) {
                 auto pattern = indexOperation->getRangePattern();

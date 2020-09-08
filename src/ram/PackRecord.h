@@ -35,7 +35,7 @@ namespace souffle {
  */
 class RamPackRecord : public RamExpression {
 public:
-    RamPackRecord(std::vector<std::unique_ptr<RamExpression>> args) : arguments(std::move(args)) {
+    RamPackRecord(VecOwn<RamExpression> args) : arguments(std::move(args)) {
         for (const auto& arg : arguments) {
             assert(arg != nullptr && "argument is a null-pointer");
         }
@@ -70,9 +70,9 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-        os << "[" << join(arguments, ",", [](std::ostream& out, const std::unique_ptr<RamExpression>& arg) {
-            out << *arg;
-        }) << "]";
+        os << "["
+           << join(arguments, ",", [](std::ostream& out, const Own<RamExpression>& arg) { out << *arg; })
+           << "]";
     }
 
     bool equal(const RamNode& node) const override {
@@ -81,7 +81,7 @@ protected:
     }
 
     /** Arguments */
-    std::vector<std::unique_ptr<RamExpression>> arguments;
+    VecOwn<RamExpression> arguments;
 };
 
 }  // end of namespace souffle

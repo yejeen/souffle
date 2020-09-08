@@ -28,7 +28,7 @@ bool RemoveTypecastsTransformer::transform(AstTranslationUnit& translationUnit) 
     struct TypecastRemover : public AstNodeMapper {
         mutable bool changed{false};
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // remove sub-typecasts first
             node->apply(*this);
 

@@ -97,7 +97,7 @@ enum InterpreterNodeType {
 
 class InterpreterNode {
 public:
-    using RelationHandle = std::unique_ptr<InterpreterRelation>;
+    using RelationHandle = Own<InterpreterRelation>;
 
     InterpreterNode(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle = nullptr)
             : type(ty), shadow(sdw), relHandle(relHandle) {}
@@ -130,7 +130,7 @@ protected:
  * @brief Compound node represents interpreter node with a list of children.
  */
 class InterpreterCompoundNode : public InterpreterNode {
-    using NodePtrVec = std::vector<std::unique_ptr<InterpreterNode>>;
+    using NodePtrVec = VecOwn<InterpreterNode>;
 
 public:
     InterpreterCompoundNode(enum InterpreterNodeType ty, const RamNode* sdw, NodePtrVec children = {},
@@ -157,8 +157,8 @@ protected:
  */
 class InterpreterUnaryNode : public InterpreterNode {
 public:
-    InterpreterUnaryNode(enum InterpreterNodeType ty, const RamNode* sdw,
-            std::unique_ptr<InterpreterNode> child, RelationHandle* relHandle = nullptr)
+    InterpreterUnaryNode(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> child,
+            RelationHandle* relHandle = nullptr)
             : InterpreterNode(ty, sdw, relHandle), child(std::move(child)) {}
 
     inline const InterpreterNode* getChild() const {
@@ -166,7 +166,7 @@ public:
     }
 
 protected:
-    std::unique_ptr<InterpreterNode> child;
+    Own<InterpreterNode> child;
 };
 
 /**
@@ -175,9 +175,8 @@ protected:
  */
 class InterpreterBinaryNode : public InterpreterNode {
 public:
-    InterpreterBinaryNode(enum InterpreterNodeType ty, const RamNode* sdw,
-            std::unique_ptr<InterpreterNode> lhs, std::unique_ptr<InterpreterNode> rhs,
-            RelationHandle* relHandle = nullptr)
+    InterpreterBinaryNode(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> lhs,
+            Own<InterpreterNode> rhs, RelationHandle* relHandle = nullptr)
             : InterpreterNode(ty, sdw, relHandle), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
 
     /** @brief get left child of node */
@@ -191,8 +190,8 @@ public:
     }
 
 protected:
-    std::unique_ptr<InterpreterNode> lhs;
-    std::unique_ptr<InterpreterNode> rhs;
+    Own<InterpreterNode> lhs;
+    Own<InterpreterNode> rhs;
 };
 
 /**
@@ -220,9 +219,9 @@ public:
     /** @brief Encoded tupleElement expressions in the upper bound */
     std::vector<std::array<size_t, 3>> tupleSecond;
     /** @brief Generic expressions in the lower bound/pattern */
-    std::vector<std::pair<size_t, std::unique_ptr<InterpreterNode>>> exprFirst;
+    std::vector<std::pair<size_t, Own<InterpreterNode>>> exprFirst;
     /** @brief Generic expressions in the upper bound */
-    std::vector<std::pair<size_t, std::unique_ptr<InterpreterNode>>> exprSecond;
+    std::vector<std::pair<size_t, Own<InterpreterNode>>> exprSecond;
 };
 
 /**
@@ -308,14 +307,14 @@ protected:
  */
 class InterpreterNestedOperation {
 public:
-    InterpreterNestedOperation(std::unique_ptr<InterpreterNode> nested) : nested(std::move(nested)) {}
+    InterpreterNestedOperation(Own<InterpreterNode> nested) : nested(std::move(nested)) {}
 
     inline const InterpreterNode* getNestedOperation() const {
         return nested.get();
     };
 
 protected:
-    std::unique_ptr<InterpreterNode> nested;
+    Own<InterpreterNode> nested;
 };
 
 /**
@@ -324,14 +323,14 @@ protected:
  */
 class InterpreterConditionalOperation {
 public:
-    InterpreterConditionalOperation(std::unique_ptr<InterpreterNode> cond) : cond(std::move(cond)) {}
+    InterpreterConditionalOperation(Own<InterpreterNode> cond) : cond(std::move(cond)) {}
 
     inline const InterpreterNode* getCondition() const {
         return cond.get();
     };
 
 protected:
-    std::unique_ptr<InterpreterNode> cond;
+    Own<InterpreterNode> cond;
 };
 
 /**
@@ -460,7 +459,7 @@ class InterpreterProvenanceExistenceCheck : public InterpreterUnaryNode,
                                             public InterpreterViewOperation {
 public:
     InterpreterProvenanceExistenceCheck(enum InterpreterNodeType ty, const RamNode* sdw,
-            std::unique_ptr<InterpreterNode> child, size_t viewId, InterpreterSuperInstruction superInst)
+            Own<InterpreterNode> child, size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterUnaryNode(ty, sdw, std::move(child)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
 };
@@ -485,7 +484,7 @@ class InterpreterTupleOperation : public InterpreterUnaryNode {
 class InterpreterScan : public InterpreterNode, public InterpreterNestedOperation {
 public:
     InterpreterScan(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> nested)
+            Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterNestedOperation(std::move(nested)) {}
 };
 
@@ -504,7 +503,7 @@ class InterpreterIndexScan : public InterpreterScan,
                              public InterpreterViewOperation {
 public:
     InterpreterIndexScan(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> nested, size_t viewId, InterpreterSuperInstruction superInst)
+            Own<InterpreterNode> nested, size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterScan(ty, sdw, relHandle, std::move(nested)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
 };
@@ -525,7 +524,7 @@ class InterpreterChoice : public InterpreterNode,
                           public InterpreterNestedOperation {
 public:
     InterpreterChoice(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> cond, std::unique_ptr<InterpreterNode> nested)
+            Own<InterpreterNode> cond, Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
 };
@@ -545,7 +544,7 @@ class InterpreterIndexChoice : public InterpreterChoice,
                                public InterpreterViewOperation {
 public:
     InterpreterIndexChoice(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> cond, std::unique_ptr<InterpreterNode> nested, size_t viewId,
+            Own<InterpreterNode> cond, Own<InterpreterNode> nested, size_t viewId,
             InterpreterSuperInstruction superInst)
             : InterpreterChoice(ty, sdw, relHandle, std::move(cond), std::move(nested)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
@@ -563,8 +562,8 @@ class InterpreterParallelIndexChoice : public InterpreterIndexChoice, public Int
  */
 class InterpreterUnpackRecord : public InterpreterNode, public InterpreterNestedOperation {
 public:
-    InterpreterUnpackRecord(enum InterpreterNodeType ty, const RamNode* sdw,
-            std::unique_ptr<InterpreterNode> expr, std::unique_ptr<InterpreterNode> nested)
+    InterpreterUnpackRecord(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> expr,
+            Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw), InterpreterNestedOperation(std::move(nested)), expr(std::move(expr)) {
     }
 
@@ -573,7 +572,7 @@ public:
     }
 
 protected:
-    std::unique_ptr<InterpreterNode> expr;
+    Own<InterpreterNode> expr;
 };
 
 /**
@@ -584,8 +583,7 @@ class InterpreterAggregate : public InterpreterNode,
                              public InterpreterNestedOperation {
 public:
     InterpreterAggregate(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> expr, std::unique_ptr<InterpreterNode> filter,
-            std::unique_ptr<InterpreterNode> nested)
+            Own<InterpreterNode> expr, Own<InterpreterNode> filter, Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterConditionalOperation(std::move(filter)),
               InterpreterNestedOperation(std::move(nested)), expr(std::move(expr)) {}
 
@@ -594,7 +592,7 @@ public:
     }
 
 protected:
-    std::unique_ptr<InterpreterNode> expr;
+    Own<InterpreterNode> expr;
 };
 
 /**
@@ -612,8 +610,8 @@ class InterpreterIndexAggregate : public InterpreterAggregate,
                                   public InterpreterViewOperation {
 public:
     InterpreterIndexAggregate(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
-            std::unique_ptr<InterpreterNode> expr, std::unique_ptr<InterpreterNode> filter,
-            std::unique_ptr<InterpreterNode> nested, size_t viewId, InterpreterSuperInstruction superInst)
+            Own<InterpreterNode> expr, Own<InterpreterNode> filter, Own<InterpreterNode> nested,
+            size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterAggregate(ty, sdw, relHandle, std::move(expr), std::move(filter), std::move(nested)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
 };
@@ -633,8 +631,8 @@ class InterpreterBreak : public InterpreterNode,
                          public InterpreterConditionalOperation,
                          public InterpreterNestedOperation {
 public:
-    InterpreterBreak(enum InterpreterNodeType ty, const RamNode* sdw, std::unique_ptr<InterpreterNode> cond,
-            std::unique_ptr<InterpreterNode> nested)
+    InterpreterBreak(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> cond,
+            Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, nullptr), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
 };
@@ -646,8 +644,8 @@ class InterpreterFilter : public InterpreterNode,
                           public InterpreterConditionalOperation,
                           public InterpreterNestedOperation {
 public:
-    InterpreterFilter(enum InterpreterNodeType ty, const RamNode* sdw, std::unique_ptr<InterpreterNode> cond,
-            std::unique_ptr<InterpreterNode> nested)
+    InterpreterFilter(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> cond,
+            Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, nullptr), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
 };

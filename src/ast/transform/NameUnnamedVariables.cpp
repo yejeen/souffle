@@ -38,7 +38,7 @@ bool NameUnnamedVariablesTransformer::transform(AstTranslationUnit& translationU
         mutable bool changed = false;
         nameVariables() = default;
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (isA<AstUnnamedVariable>(node.get())) {
                 changed = true;
                 std::stringstream name;

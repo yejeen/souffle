@@ -37,8 +37,8 @@ namespace souffle {
 class RamTransformerSequence : public RamMetaTransformer {
 public:
     template <typename... Tfs>
-    RamTransformerSequence(std::unique_ptr<Tfs>&&... tf) : RamTransformerSequence() {
-        std::unique_ptr<RamTransformer> tmp[] = {std::move(tf)...};
+    RamTransformerSequence(Own<Tfs>&&... tf) : RamTransformerSequence() {
+        Own<RamTransformer> tmp[] = {std::move(tf)...};
         for (auto& cur : tmp) {
             transformers.emplace_back(std::move(cur));
         }
@@ -65,7 +65,7 @@ public:
 
 protected:
     /** sequence of transformers */
-    std::vector<std::unique_ptr<RamTransformer>> transformers;
+    VecOwn<RamTransformer> transformers;
 };
 
 }  // end of namespace souffle

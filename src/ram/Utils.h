@@ -48,8 +48,8 @@ inline bool isRamTrue(const RamCondition* cond) {
  * Convert a condition of the format C1 /\ C2 /\ ... /\ Cn
  * to a list {C1, C2, ..., Cn}.
  */
-inline std::vector<std::unique_ptr<RamCondition>> toConjunctionList(const RamCondition* condition) {
-    std::vector<std::unique_ptr<RamCondition>> conditionList;
+inline VecOwn<RamCondition> toConjunctionList(const RamCondition* condition) {
+    VecOwn<RamCondition> conditionList;
     std::queue<const RamCondition*> conditionsToProcess;
     if (condition != nullptr) {
         conditionsToProcess.push(condition);
@@ -75,8 +75,8 @@ inline std::vector<std::unique_ptr<RamCondition>> toConjunctionList(const RamCon
  * Convert a list {C1, C2, ..., Cn} to a condition of
  * the format C1 /\ C2 /\ ... /\ Cn.
  */
-inline std::unique_ptr<RamCondition> toCondition(const std::vector<std::unique_ptr<RamCondition>>& conds) {
-    std::unique_ptr<RamCondition> result;
+inline Own<RamCondition> toCondition(const VecOwn<RamCondition>& conds) {
+    Own<RamCondition> result;
     for (auto const& cur : conds) {
         if (result == nullptr) {
             result = souffle::clone(cur);

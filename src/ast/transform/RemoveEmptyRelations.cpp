@@ -113,7 +113,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
             if (rewrite) {
                 // clone clause without negation for empty relations
 
-                auto res = std::unique_ptr<AstClause>(cloneHead(cl));
+                auto res = Own<AstClause>(cloneHead(cl));
 
                 for (AstLiteral* lit : cl->getBodyLiterals()) {
                     if (auto* neg = dynamic_cast<AstNegation*>(lit)) {

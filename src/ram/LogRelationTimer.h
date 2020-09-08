@@ -50,8 +50,7 @@ namespace souffle {
  */
 class RamLogRelationTimer : public RamRelationStatement, public RamAbstractLog {
 public:
-    RamLogRelationTimer(
-            std::unique_ptr<RamStatement> stmt, std::string msg, std::unique_ptr<RamRelationReference> relRef)
+    RamLogRelationTimer(Own<RamStatement> stmt, std::string msg, Own<RamRelationReference> relRef)
             : RamRelationStatement(std::move(relRef)), RamAbstractLog(std::move(stmt), std::move(msg)) {}
 
     std::vector<const RamNode*> getChildNodes() const override {

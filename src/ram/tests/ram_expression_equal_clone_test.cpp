@@ -38,12 +38,12 @@ namespace test {
 
 TEST(RamIntrinsicOperator, CloneAndEquals) {
     // ADD(number(1), number(2))
-    std::vector<std::unique_ptr<RamExpression>> a_args;
+    VecOwn<RamExpression> a_args;
     a_args.emplace_back(new RamSignedConstant(1));
     a_args.emplace_back(new RamSignedConstant(2));
     RamIntrinsicOperator a(FunctorOp::ADD, std::move(a_args));
 
-    std::vector<std::unique_ptr<RamExpression>> b_args;
+    VecOwn<RamExpression> b_args;
     b_args.emplace_back(new RamSignedConstant(1));
     b_args.emplace_back(new RamSignedConstant(2));
     RamIntrinsicOperator b(FunctorOp::ADD, std::move(b_args));
@@ -56,11 +56,11 @@ TEST(RamIntrinsicOperator, CloneAndEquals) {
     delete aClone;
 
     // NEG(number(1))
-    std::vector<std::unique_ptr<RamExpression>> d_args;
+    VecOwn<RamExpression> d_args;
     d_args.emplace_back(new RamSignedConstant(1));
     RamIntrinsicOperator d(FunctorOp::NEG, std::move(d_args));
 
-    std::vector<std::unique_ptr<RamExpression>> e_args;
+    VecOwn<RamExpression> e_args;
     e_args.emplace_back(new RamSignedConstant(1));
     RamIntrinsicOperator e(FunctorOp::NEG, std::move(e_args));
     EXPECT_EQ(d, e);
@@ -75,13 +75,13 @@ TEST(RamIntrinsicOperator, CloneAndEquals) {
 TEST(RamUserDefinedOperator, CloneAndEquals) {
     // define binary functor NE check if two RamExpressions are not equal
     // NE(number(1), number(10))
-    std::vector<std::unique_ptr<RamExpression>> a_args;
+    VecOwn<RamExpression> a_args;
     a_args.emplace_back(new RamSignedConstant(1));
     a_args.emplace_back(new RamSignedConstant(10));
     RamUserDefinedOperator a("NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed,
             false, std::move(a_args));
 
-    std::vector<std::unique_ptr<RamExpression>> b_args;
+    VecOwn<RamExpression> b_args;
     b_args.emplace_back(new RamSignedConstant(1));
     b_args.emplace_back(new RamSignedConstant(10));
     RamUserDefinedOperator b("NE", {TypeAttribute::Signed, TypeAttribute::Signed}, TypeAttribute::Signed,
@@ -147,14 +147,14 @@ TEST(RamUndefValue, CloneAndEquals) {
 
 TEST(RamPackRecord, CloneAndEquals) {
     // {number{10), number(5), ⊥, ⊥}
-    std::vector<std::unique_ptr<RamExpression>> a_args;
+    VecOwn<RamExpression> a_args;
     a_args.emplace_back(new RamSignedConstant(10));
     a_args.emplace_back(new RamSignedConstant(5));
     a_args.emplace_back(new RamUndefValue);
     a_args.emplace_back(new RamUndefValue);
     RamPackRecord a(std::move(a_args));
 
-    std::vector<std::unique_ptr<RamExpression>> b_args;
+    VecOwn<RamExpression> b_args;
     b_args.emplace_back(new RamSignedConstant(10));
     b_args.emplace_back(new RamSignedConstant(5));
     b_args.emplace_back(new RamUndefValue);
@@ -170,18 +170,18 @@ TEST(RamPackRecord, CloneAndEquals) {
     delete aClone;
 
     // {⊥, {argument(1), number(0)}, t1.3}
-    std::vector<std::unique_ptr<RamExpression>> d_args;
+    VecOwn<RamExpression> d_args;
     d_args.emplace_back(new RamUndefValue);
-    std::vector<std::unique_ptr<RamExpression>> d_record;
+    VecOwn<RamExpression> d_record;
     d_record.emplace_back(new RamSubroutineArgument(1));
     d_record.emplace_back(new RamSignedConstant(5));
     d_args.emplace_back(new RamPackRecord(std::move(d_record)));
     d_args.emplace_back(new RamTupleElement(1, 3));
     RamPackRecord d(std::move(d_args));
 
-    std::vector<std::unique_ptr<RamExpression>> e_args;
+    VecOwn<RamExpression> e_args;
     e_args.emplace_back(new RamUndefValue);
-    std::vector<std::unique_ptr<RamExpression>> e_record;
+    VecOwn<RamExpression> e_record;
     e_record.emplace_back(new RamSubroutineArgument(1));
     e_record.emplace_back(new RamSignedConstant(5));
     e_args.emplace_back(new RamPackRecord(std::move(e_record)));
