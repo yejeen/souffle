@@ -34,12 +34,11 @@ namespace souffle {
  */
 class RamProvenanceExistenceCheck : public RamAbstractExistenceCheck {
 public:
-    RamProvenanceExistenceCheck(
-            std::unique_ptr<RamRelationReference> relRef, std::vector<std::unique_ptr<RamExpression>> vals)
+    RamProvenanceExistenceCheck(Own<RamRelationReference> relRef, VecOwn<RamExpression> vals)
             : RamAbstractExistenceCheck(std::move(relRef), std::move(vals)) {}
 
     RamProvenanceExistenceCheck* clone() const override {
-        std::vector<std::unique_ptr<RamExpression>> newValues;
+        VecOwn<RamExpression> newValues;
         for (auto& cur : values) {
             newValues.emplace_back(cur->clone());
         }

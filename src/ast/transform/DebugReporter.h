@@ -15,9 +15,11 @@
  ***********************************************************************/
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
 #include "ast/transform/Transformer.h"
+#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <set>
@@ -27,8 +29,6 @@
 
 namespace souffle {
 
-class AstTranslationUnit;
-
 /**
  * Transformation pass which wraps another transformation pass and generates
  * a debug report section for the stage after applying the wrapped transformer,
@@ -36,7 +36,7 @@ class AstTranslationUnit;
  */
 class DebugReporter : public MetaTransformer {
 public:
-    DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
+    DebugReporter(Own<AstTransformer> wrappedTransformer)
             : wrappedTransformer(std::move(wrappedTransformer)) {}
 
     std::vector<AstTransformer*> getSubtransformers() const override {
@@ -56,7 +56,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(wrappedTransformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(wrappedTransformer->getName()) != transforms.end()) {
-            wrappedTransformer = std::make_unique<NullTransformer>();
+            wrappedTransformer = mk<NullTransformer>();
         }
     }
 
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    std::unique_ptr<AstTransformer> wrappedTransformer;
+    Own<AstTransformer> wrappedTransformer;
 
     bool transform(AstTranslationUnit& translationUnit) override;
 

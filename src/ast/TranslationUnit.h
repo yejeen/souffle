@@ -44,7 +44,7 @@ class ErrorReport;
 
 class AstTranslationUnit {
 public:
-    AstTranslationUnit(std::unique_ptr<AstProgram> program, ErrorReport& e, DebugReport& d)
+    AstTranslationUnit(Own<AstProgram> program, ErrorReport& e, DebugReport& d)
             : program(std::move(program)), errorReport(e), debugReport(d) {}
 
     virtual ~AstTranslationUnit() = default;
@@ -57,13 +57,13 @@ public:
         auto it = analyses.find(name);
         if (it == analyses.end()) {
             // analysis does not exist yet, create instance and run it.
-            analyses[name] = std::make_unique<Analysis>();
+            analyses[name] = mk<Analysis>();
             analyses[name]->run(*this);
             if (debug) {
                 std::stringstream ss;
                 analyses[name]->print(ss);
-                if (nullptr == dynamic_cast<PrecedenceGraphAnalysis*>(analyses[name].get()) &&
-                        nullptr == dynamic_cast<SCCGraphAnalysis*>(analyses[name].get())) {
+                if (!isA<PrecedenceGraphAnalysis>(analyses[name].get()) &&
+                        !isA<SCCGraphAnalysis>(analyses[name].get())) {
                     debugReport.addSection(name, "Ast Analysis [" + name + "]", ss.str());
                 } else {
                     debugReport.addSection(
@@ -111,10 +111,10 @@ public:
 
 private:
     /** Cached analyses */
-    mutable std::map<std::string, std::unique_ptr<AstAnalysis>> analyses;
+    mutable std::map<std::string, Own<AstAnalysis>> analyses;
 
     /** AST program */
-    std::unique_ptr<AstProgram> program;
+    Own<AstProgram> program;
 
     /** Error report capturing errors while compiling */
     ErrorReport& errorReport;

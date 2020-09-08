@@ -21,6 +21,7 @@
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
@@ -33,7 +34,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translationUnit) {
     AstProgram& program = *translationUnit.getProgram();
@@ -44,7 +44,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
     // Remove true and false constant literals from all aggregators
     struct removeBools : public AstNodeMapper {
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // Remove them from child nodes
             node->apply(*this);
 
@@ -66,7 +66,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                 // Only keep literals that aren't boolean constraints
                 if (containsFalse || containsTrue) {
                     auto replacementAggregator = souffle::clone(aggr);
-                    std::vector<std::unique_ptr<AstLiteral>> newBody;
+                    VecOwn<AstLiteral> newBody;
 
                     bool isEmpty = true;
 
@@ -74,7 +74,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                     if (!containsFalse) {
                         for (AstLiteral* lit : aggr->getBodyLiterals()) {
                             // Don't add in boolean constraints
-                            if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
+                            if (!isA<AstBooleanConstraint>(lit)) {
                                 isEmpty = false;
                                 newBody.push_back(souffle::clone(lit));
                             }
@@ -82,9 +82,8 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
                         // If the body is still empty and the original body contains true add it now.
                         if (containsTrue && isEmpty) {
-                            newBody.push_back(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                    std::make_unique<AstNumericConstant>(1),
-                                    std::make_unique<AstNumericConstant>(1)));
+                            newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                                    mk<AstNumericConstant>(1), mk<AstNumericConstant>(1)));
 
                             isEmpty = false;
                         }
@@ -94,9 +93,8 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                         // Empty aggregator body!
                         // Not currently handled, so add in a false literal in the body
                         // E.g. max x : { } =becomes=> max 1 : {0 = 1}
-                        newBody.push_back(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                                std::make_unique<AstNumericConstant>(0),
-                                std::make_unique<AstNumericConstant>(1)));
+                        newBody.push_back(mk<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                                mk<AstNumericConstant>(0), mk<AstNumericConstant>(1)));
                     }
 
                     replacementAggregator->setBody(std::move(newBody));
@@ -128,11 +126,11 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                 // Clause will always fail
                 program.removeClause(clause);
             } else if (containsTrue) {
-                auto replacementClause = std::unique_ptr<AstClause>(cloneHead(clause));
+                auto replacementClause = Own<AstClause>(cloneHead(clause));
 
                 // Only keep non-'true' literals
                 for (AstLiteral* lit : clause->getBodyLiterals()) {
-                    if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
+                    if (!isA<AstBooleanConstraint>(lit)) {
                         replacementClause->addToBody(souffle::clone(lit));
                     }
                 }

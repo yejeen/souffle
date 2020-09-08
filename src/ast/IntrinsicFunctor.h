@@ -17,10 +17,10 @@
 #pragma once
 
 #include "FunctorOps.h"
+#include "ast/Argument.h"
 #include "ast/Functor.h"
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
-#include "souffle/RamTypes.h"
 #include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StreamUtil.h"

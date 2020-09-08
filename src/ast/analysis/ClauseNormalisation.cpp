@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ast/analysis/ClauseNormalisation.h"
+#include "AggregateOp.h"
 #include "ast/Aggregator.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
@@ -22,14 +23,22 @@
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
+#include "ast/Node.h"
 #include "ast/NumericConstant.h"
+#include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/StringConstant.h"
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
+#include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ostream>
 
 namespace souffle {
 
@@ -96,7 +105,7 @@ std::string NormalisedClause::normaliseArgument(const AstArgument* arg) {
         name << "@min:cst:num:" << *numericCst;
         constants.insert(name.str());
         return name.str();
-    } else if (dynamic_cast<const AstNilConstant*>(arg) != nullptr) {
+    } else if (isA<AstNilConstant>(arg)) {
         constants.insert("@min:cst:nil");
         return "@min:cst:nil";
     } else if (auto* var = dynamic_cast<const AstVariable*>(arg)) {

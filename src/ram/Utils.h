@@ -32,12 +32,12 @@ namespace souffle {
 
 /** @brief Determines if an expression represents an undefined value */
 inline bool isRamUndefValue(const RamExpression* expr) {
-    return nullptr != dynamic_cast<const RamUndefValue*>(expr);
+    return isA<RamUndefValue>(expr);
 }
 
 /** @brief Determines if a condition represents true */
 inline bool isRamTrue(const RamCondition* cond) {
-    return nullptr != dynamic_cast<const RamTrue*>(cond);
+    return isA<RamTrue>(cond);
 }
 
 /**
@@ -48,8 +48,8 @@ inline bool isRamTrue(const RamCondition* cond) {
  * Convert a condition of the format C1 /\ C2 /\ ... /\ Cn
  * to a list {C1, C2, ..., Cn}.
  */
-inline std::vector<std::unique_ptr<RamCondition>> toConjunctionList(const RamCondition* condition) {
-    std::vector<std::unique_ptr<RamCondition>> conditionList;
+inline VecOwn<RamCondition> toConjunctionList(const RamCondition* condition) {
+    VecOwn<RamCondition> conditionList;
     std::queue<const RamCondition*> conditionsToProcess;
     if (condition != nullptr) {
         conditionsToProcess.push(condition);
@@ -75,13 +75,13 @@ inline std::vector<std::unique_ptr<RamCondition>> toConjunctionList(const RamCon
  * Convert a list {C1, C2, ..., Cn} to a condition of
  * the format C1 /\ C2 /\ ... /\ Cn.
  */
-inline std::unique_ptr<RamCondition> toCondition(const std::vector<std::unique_ptr<RamCondition>>& conds) {
-    std::unique_ptr<RamCondition> result;
+inline Own<RamCondition> toCondition(const VecOwn<RamCondition>& conds) {
+    Own<RamCondition> result;
     for (auto const& cur : conds) {
         if (result == nullptr) {
             result = souffle::clone(cur);
         } else {
-            result = std::make_unique<RamConjunction>(std::move(result), souffle::clone(cur));
+            result = mk<RamConjunction>(std::move(result), souffle::clone(cur));
         }
     }
     return result;

@@ -82,6 +82,7 @@
 #include "souffle/RecordTable.h"
 #include "souffle/SignalHandler.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/io/IOSystem.h"
 #include "souffle/io/ReadStream.h"
 #include "souffle/io/WriteStream.h"
@@ -91,12 +92,10 @@
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #include "souffle/utility/StringUtil.h"
-#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <cassert>
-#include <csignal>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -177,7 +176,7 @@ void* InterpreterEngine::getMethodHandle(const std::string& method) {
     return nullptr;
 }
 
-std::vector<std::unique_ptr<InterpreterEngine::RelationHandle>>& InterpreterEngine::getRelationMap() {
+VecOwn<InterpreterEngine::RelationHandle>& InterpreterEngine::getRelationMap() {
     return generator.getRelations();
 }
 
@@ -602,8 +601,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
                 /* Initialize arguments for ffi-call */
                 args[0] = args[1] = &ffi_type_pointer;
-                values[0] = (void*)&getSymbolTable();
-                values[1] = (void*)&getRecordTable();
+                void* symbolTable = (void*)&getSymbolTable();
+                values[0] = &symbolTable;
+                void* recordTable = (void*)&getRecordTable();
+                values[1] = &recordTable;
                 for (size_t i = 0; i < arity; i++) {
                     intVal[i] = execute(shadow.getChild(i), ctxt);
                     args[i + 2] = &FFI_RamSigned;

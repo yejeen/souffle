@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <memory>
 
@@ -38,17 +40,16 @@ public:
      * will be destroyed by the mapper and the returned node
      * will become owned by the caller.
      */
-    virtual std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const = 0;
+    virtual Own<RamNode> operator()(Own<RamNode> node) const = 0;
 
     /**
      * @brief Wrapper for any subclass of the RAM node hierarchy performing type casts.
      */
     template <typename T>
-    std::unique_ptr<T> operator()(std::unique_ptr<T> node) const {
-        std::unique_ptr<RamNode> resPtr =
-                (*this)(std::unique_ptr<RamNode>(static_cast<RamNode*>(node.release())));
-        assert(nullptr != dynamic_cast<T*>(resPtr.get()) && "Invalid target node!");
-        return std::unique_ptr<T>(dynamic_cast<T*>(resPtr.release()));
+    Own<T> operator()(Own<T> node) const {
+        Own<RamNode> resPtr = (*this)(Own<RamNode>(static_cast<RamNode*>(node.release())));
+        assert(isA<T>(resPtr.get()) && "Invalid target node!");
+        return Own<T>(dynamic_cast<T*>(resPtr.release()));
     }
 };
 

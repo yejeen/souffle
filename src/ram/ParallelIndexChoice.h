@@ -16,9 +16,9 @@
 
 #include "AggregateOp.h"
 #include "ram/AbstractParallel.h"
-#include "ram/Choice.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
+#include "ram/IndexChoice.h"
 #include "ram/IndexOperation.h"
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"
@@ -54,9 +54,8 @@ namespace souffle {
  */
 class RamParallelIndexChoice : public RamIndexChoice, public RamAbstractParallel {
 public:
-    RamParallelIndexChoice(std::unique_ptr<RamRelationReference> r, int ident,
-            std::unique_ptr<RamCondition> cond, RamPattern queryPattern, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamParallelIndexChoice(Own<RamRelationReference> r, int ident, Own<RamCondition> cond,
+            RamPattern queryPattern, Own<RamOperation> nested, std::string profileText = "")
             : RamIndexChoice(std::move(r), ident, std::move(cond), std::move(queryPattern), std::move(nested),
                       profileText) {}
 

@@ -53,8 +53,8 @@ namespace souffle {
  */
 class RamIndexChoice : public RamIndexOperation, public RamAbstractChoice {
 public:
-    RamIndexChoice(std::unique_ptr<RamRelationReference> r, int ident, std::unique_ptr<RamCondition> cond,
-            RamPattern queryPattern, std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamIndexChoice(Own<RamRelationReference> r, int ident, Own<RamCondition> cond, RamPattern queryPattern,
+            Own<RamOperation> nested, std::string profileText = "")
             : RamIndexOperation(std::move(r), ident, std::move(queryPattern), std::move(nested),
                       std::move(profileText)),
               RamAbstractChoice(std::move(cond)) {

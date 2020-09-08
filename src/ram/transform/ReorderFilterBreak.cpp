@@ -29,15 +29,14 @@ namespace souffle {
 bool ReorderFilterBreak::reorderFilterBreak(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             // find filter-break nesting
             if (const RamFilter* filter = dynamic_cast<RamFilter*>(node.get())) {
                 if (const RamBreak* br = dynamic_cast<RamBreak*>(&filter->getOperation())) {
                     changed = true;
                     // convert to break-filter nesting
-                    node = std::make_unique<RamBreak>(souffle::clone(&br->getCondition()),
-                            std::make_unique<RamFilter>(souffle::clone(&filter->getCondition()),
+                    node = mk<RamBreak>(souffle::clone(&br->getCondition()),
+                            mk<RamFilter>(souffle::clone(&filter->getCondition()),
                                     souffle::clone(&br->getOperation())));
                 }
             }

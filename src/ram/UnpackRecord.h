@@ -46,8 +46,7 @@ namespace souffle {
  */
 class RamUnpackRecord : public RamTupleOperation {
 public:
-    RamUnpackRecord(std::unique_ptr<RamOperation> nested, int ident, std::unique_ptr<RamExpression> expr,
-            size_t arity)
+    RamUnpackRecord(Own<RamOperation> nested, int ident, Own<RamExpression> expr, size_t arity)
             : RamTupleOperation(ident, std::move(nested)), expression(std::move(expr)), arity(arity) {
         assert(expression != nullptr && "Expression is a null-pointer");
     }
@@ -93,7 +92,7 @@ protected:
     }
 
     /** Expression for record reference */
-    std::unique_ptr<RamExpression> expression;
+    Own<RamExpression> expression;
 
     /** Arity of the unpacked tuple */
     const size_t arity;

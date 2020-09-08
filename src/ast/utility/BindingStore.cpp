@@ -16,12 +16,19 @@
  ***********************************************************************/
 
 #include "ast/utility/BindingStore.h"
+#include "ast/Aggregator.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constant.h"
+#include "ast/RecordInit.h"
+#include "ast/Term.h"
 #include "ast/Variable.h"
 #include "ast/utility/Visitor.h"
+#include "souffle/BinaryConstraintOps.h"
+#include <algorithm>
+#include <cassert>
+#include <vector>
 
 namespace souffle {
 
@@ -142,7 +149,7 @@ bool BindingStore::isBound(const AstArgument* arg) const {
             }
         }
         return true;
-    } else if (dynamic_cast<const AstConstant*>(arg) != nullptr) {
+    } else if (isA<AstConstant>(arg)) {
         return true;
     } else {
         return false;

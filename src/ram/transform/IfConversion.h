@@ -14,16 +14,15 @@
 
 #pragma once
 
+#include "ram/IndexScan.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/transform/Transformer.h"
 #include <memory>
 #include <string>
 
 namespace souffle {
-
-class RamProgram;
-class RamIndexScan;
-class RamOperation;
 
 /**
  * @class IfConversionTransformer
@@ -66,7 +65,7 @@ public:
      * Rewrites IndexScan operations to a filter/existence check if the IndexScan's tuple
      * is not used in a consecutive RAM operation
      */
-    std::unique_ptr<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
+    Own<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
 
     /**
      * @brief Apply if-conversion to the whole program

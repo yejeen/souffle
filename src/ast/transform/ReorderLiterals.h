@@ -14,17 +14,16 @@
 
 #pragma once
 
+#include "ast/Atom.h"
+#include "ast/Clause.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <functional>
-#include <set>
 #include <string>
 #include <vector>
 
 namespace souffle {
 
-class AstAtom;
-class AstClause;
-class AstTranslationUnit;
 class BindingStore;
 
 /**

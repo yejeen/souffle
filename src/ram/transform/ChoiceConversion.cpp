@@ -29,7 +29,7 @@
 
 namespace souffle {
 
-std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteScan(const RamScan* scan) {
+Own<RamOperation> ChoiceConversionTransformer::rewriteScan(const RamScan* scan) {
     bool transformTuple = false;
 
     // Check that RamFilter follows the Scan in the loop nest
@@ -51,18 +51,18 @@ std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteScan(const Ram
 
     // Convert the Scan/If pair into a Choice
     if (transformTuple) {
-        std::vector<std::unique_ptr<RamExpression>> newValues;
+        VecOwn<RamExpression> newValues;
         const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation());
         const int identifier = scan->getTupleId();
 
-        return std::make_unique<RamChoice>(std::make_unique<RamRelationReference>(&scan->getRelation()),
-                identifier, souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
+        return mk<RamChoice>(mk<RamRelationReference>(&scan->getRelation()), identifier,
+                souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
                 scan->getProfileText());
     }
     return nullptr;
 }
 
-std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteIndexScan(const RamIndexScan* indexScan) {
+Own<RamOperation> ChoiceConversionTransformer::rewriteIndexScan(const RamIndexScan* indexScan) {
     bool transformTuple = false;
 
     // Check that RamFilter follows the IndexScan in the loop nest
@@ -104,7 +104,7 @@ std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteIndexScan(cons
             newValues.second.emplace_back(val);
         }
 
-        return std::make_unique<RamIndexChoice>(std::make_unique<RamRelationReference>(&rel), identifier,
+        return mk<RamIndexChoice>(mk<RamRelationReference>(&rel), identifier,
                 souffle::clone(&filter->getCondition()), std::move(newValues),
                 souffle::clone(&filter->getOperation()), indexScan->getProfileText());
     }
@@ -114,15 +114,14 @@ std::unique_ptr<RamOperation> ChoiceConversionTransformer::rewriteIndexScan(cons
 bool ChoiceConversionTransformer::convertScans(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> scanRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> scanRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamScan* scan = dynamic_cast<RamScan*>(node.get())) {
-                if (std::unique_ptr<RamOperation> op = rewriteScan(scan)) {
+                if (Own<RamOperation> op = rewriteScan(scan)) {
                     changed = true;
                     node = std::move(op);
                 }
             } else if (const RamIndexScan* indexScan = dynamic_cast<RamIndexScan*>(node.get())) {
-                if (std::unique_ptr<RamOperation> op = rewriteIndexScan(indexScan)) {
+                if (Own<RamOperation> op = rewriteIndexScan(indexScan)) {
                     changed = true;
                     node = std::move(op);
                 }

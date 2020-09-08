@@ -19,7 +19,7 @@
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Operation.h"
-#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <memory>
 #include <string>
@@ -34,8 +34,7 @@ namespace souffle {
  */
 class RamAbstractConditional : public RamNestedOperation {
 public:
-    RamAbstractConditional(std::unique_ptr<RamCondition> cond, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamAbstractConditional(Own<RamCondition> cond, Own<RamOperation> nested, std::string profileText = "")
             : RamNestedOperation(std::move(nested), std::move(profileText)), condition(std::move(cond)) {
         assert(condition != nullptr && "Condition is a null-pointer");
     }
@@ -66,7 +65,7 @@ protected:
     }
 
     /** Condition */
-    std::unique_ptr<RamCondition> condition;
+    Own<RamCondition> condition;
 };
 
 }  // namespace souffle

@@ -17,13 +17,12 @@
 
 #pragma once
 
+#include "interpreter/InterpreterNode.h"
 #include <array>
 #include <memory>
 #include <vector>
 
 namespace souffle {
-
-class InterpreterNode;
 
 /**
  * @class InterpreterPreamble
@@ -32,32 +31,32 @@ class InterpreterNode;
 class InterpreterPreamble {
 public:
     /** @brief Add outer-most filter operation which requires a view.  */
-    void addViewOperationForFilter(std::unique_ptr<InterpreterNode> node) {
+    void addViewOperationForFilter(Own<InterpreterNode> node) {
         outerFilterViewOps.push_back(std::move(node));
     }
 
     /** @brief Add outer-most filter operation which does not require a view.  */
-    void addViewFreeOperationForFilter(std::unique_ptr<InterpreterNode> node) {
+    void addViewFreeOperationForFilter(Own<InterpreterNode> node) {
         outerFilterViewFreeOps.push_back(std::move(node));
     }
 
     /** @brief Add nested operation which require a View (Hints).  */
-    void addViewOperationForNested(std::unique_ptr<InterpreterNode> op) {
+    void addViewOperationForNested(Own<InterpreterNode> op) {
         nestedViewOps.push_back(std::move(op));
     }
 
     /** @brief Return outer-most filter operations.  */
-    const std::vector<std::unique_ptr<InterpreterNode>>& getOuterFilterViewOps() {
+    const VecOwn<InterpreterNode>& getOuterFilterViewOps() {
         return outerFilterViewOps;
     }
 
     /** @brief Return views for outer-most filter operations.  */
-    const std::vector<std::unique_ptr<InterpreterNode>>& getOuterFilterViewFreeOps() {
+    const VecOwn<InterpreterNode>& getOuterFilterViewFreeOps() {
         return outerFilterViewFreeOps;
     }
 
     /** @brief Return nested operations */
-    std::vector<std::unique_ptr<InterpreterNode>>& getViewsInNestedOperation() {
+    VecOwn<InterpreterNode>& getViewsInNestedOperation() {
         return nestedViewOps;
     }
 
@@ -86,11 +85,11 @@ public:
 
 private:
     /** Vector of filter operation, views required */
-    std::vector<std::unique_ptr<InterpreterNode>> outerFilterViewOps;
+    VecOwn<InterpreterNode> outerFilterViewOps;
     /** Vector of filter operations, no views required. */
-    std::vector<std::unique_ptr<InterpreterNode>> outerFilterViewFreeOps;
+    VecOwn<InterpreterNode> outerFilterViewFreeOps;
     /** Vector of nested operations */
-    std::vector<std::unique_ptr<InterpreterNode>> nestedViewOps;
+    VecOwn<InterpreterNode> nestedViewOps;
     /** Vector of View information in filter operations */
     std::vector<std::array<size_t, 3>> viewInfoForFilter;
     /** Vector of View information in nested operations */

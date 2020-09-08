@@ -16,19 +16,16 @@
 
 #pragma once
 
+#include "ast/Argument.h"
 #include "ast/Clause.h"
 #include "ast/analysis/Analysis.h"
 #include "ast/analysis/TypeSystem.h"
-#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace souffle {
-
-class AstArgument;
-class AstTranslationUnit;
 
 class TypeAnalysis : public AstAnalysis {
 public:
@@ -62,7 +59,7 @@ public:
 
 private:
     std::map<const AstArgument*, TypeSet> argumentTypes;
-    std::vector<std::unique_ptr<AstClause>> annotatedClauses;
+    VecOwn<AstClause> annotatedClauses;
     std::stringstream analysisLogs;
 };
 

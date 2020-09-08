@@ -17,6 +17,7 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
+#include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
@@ -40,16 +41,16 @@
 
 namespace souffle::test {
 
-inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program) {
+inline Own<AstTranslationUnit> makeATU(std::string program) {
     ErrorReport e;
     DebugReport d;
     return ParserDriver::parseTranslationUnit(program, e, d);
 }
 
-inline std::unique_ptr<AstClause> makeClause(std::string name, std::unique_ptr<AstArgument> headArgument) {
-    auto headAtom = std::make_unique<AstAtom>(name);
+inline Own<AstClause> makeClause(std::string name, Own<AstArgument> headArgument) {
+    auto headAtom = mk<AstAtom>(name);
     headAtom->addArgument(std::move(headArgument));
-    auto clause = std::make_unique<AstClause>();
+    auto clause = mk<AstClause>();
     clause->setHead(std::move(headAtom));
     return clause;
 }
@@ -58,13 +59,13 @@ TEST(AstProgram, Parse) {
     ErrorReport e;
     DebugReport d;
     // check the empty program
-    std::unique_ptr<AstTranslationUnit> empty = ParserDriver::parseTranslationUnit("", e, d);
+    Own<AstTranslationUnit> empty = ParserDriver::parseTranslationUnit("", e, d);
 
     EXPECT_TRUE(empty->getProgram()->getTypes().empty());
     EXPECT_TRUE(empty->getProgram()->getRelations().empty());
 
     // check something simple
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                    .type Node <: symbol
                    .decl e ( a : Node , b : Node )
@@ -86,16 +87,16 @@ TEST(AstProgram, Parse) {
     EXPECT_FALSE(getRelation(*prog, "n"));
 }
 
-#define TESTASTCLONEANDEQUAL(SUBTYPE, DL)                                                      \
-    TEST(Ast, CloneAndEqual##SUBTYPE) {                                                        \
-        ErrorReport e;                                                                         \
-        DebugReport d;                                                                         \
-        std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(DL, e, d); \
-        AstProgram& program = *tu->getProgram();                                               \
-        EXPECT_EQ(program, program);                                                           \
-        std::unique_ptr<AstProgram> clone(program.clone());                                    \
-        EXPECT_NE(clone.get(), &program);                                                      \
-        EXPECT_EQ(*clone, program);                                                            \
+#define TESTASTCLONEANDEQUAL(SUBTYPE, DL)                                          \
+    TEST(Ast, CloneAndEqual##SUBTYPE) {                                            \
+        ErrorReport e;                                                             \
+        DebugReport d;                                                             \
+        Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(DL, e, d); \
+        AstProgram& program = *tu->getProgram();                                   \
+        EXPECT_EQ(program, program);                                               \
+        Own<AstProgram> clone(program.clone());                                    \
+        EXPECT_NE(clone.get(), &program);                                          \
+        EXPECT_EQ(*clone, program);                                                \
     }
 
 TESTASTCLONEANDEQUAL(Program,
@@ -195,10 +196,10 @@ TESTASTCLONEANDEQUAL(RelationCopies,
 
 /** test removeClause, addRelation and removeRelation */
 TEST(AstProgram, RemoveClause) {
-    auto atom = std::make_unique<AstAtom>("B");
-    atom->addArgument(std::make_unique<AstVariable>("x"));
-    auto sum = std::make_unique<AstAggregator>(AggregateOp::SUM, std::make_unique<AstVariable>("x"));
-    std::vector<std::unique_ptr<AstLiteral>> body;
+    auto atom = mk<AstAtom>("B");
+    atom->addArgument(mk<AstVariable>("x"));
+    auto sum = mk<AstAggregator>(AggregateOp::SUM, mk<AstVariable>("x"));
+    VecOwn<AstLiteral> body;
     body.push_back(std::move(atom));
     sum->setBody(std::move(body));
 
@@ -213,9 +214,9 @@ TEST(AstProgram, RemoveClause) {
 TEST(AstProgram, AppendAstRelation) {
     auto tu1 = makeATU(".decl A,B,C(x:number)");
     auto* prog1 = tu1->getProgram();
-    auto rel = std::make_unique<AstRelation>();
+    auto rel = mk<AstRelation>();
     rel->setQualifiedName("D");
-    rel->addAttribute(std::make_unique<AstAttribute>("x", "number"));
+    rel->addAttribute(mk<AstAttribute>("x", "number"));
     prog1->addRelation(std::move(rel));
     auto tu2 = makeATU(".decl A,B,C,D(x:number)");
     EXPECT_EQ(*tu1->getProgram(), *tu2->getProgram());

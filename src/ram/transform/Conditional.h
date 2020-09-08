@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "ram/Program.h"
+#include "ram/TranslationUnit.h"
 #include "ram/transform/Meta.h"
 #include "ram/transform/Transformer.h"
 #include <functional>
@@ -25,8 +27,6 @@
 
 namespace souffle {
 
-class RamTranslationUnit;
-
 /**
  * @Class RamConditionalTransformer
  * @Brief Composite conditional transformer
@@ -35,7 +35,7 @@ class RamTranslationUnit;
  */
 class RamConditionalTransformer : public RamMetaTransformer {
 public:
-    RamConditionalTransformer(std::function<bool()> fn, std::unique_ptr<RamTransformer> tb)
+    RamConditionalTransformer(std::function<bool()> fn, Own<RamTransformer> tb)
             : func(std::move(fn)), body(std::move(tb)) {}
     std::string getName() const override {
         return "RamConditionalTransformer";
@@ -50,7 +50,7 @@ public:
 
 protected:
     std::function<bool()> func;
-    std::unique_ptr<RamTransformer> body;
+    Own<RamTransformer> body;
 };
 
 }  // end of namespace souffle

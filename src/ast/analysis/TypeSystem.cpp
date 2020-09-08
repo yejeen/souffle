@@ -21,6 +21,7 @@
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/tinyformat.h"
 #include <cassert>
+#include <initializer_list>
 
 namespace souffle {
 

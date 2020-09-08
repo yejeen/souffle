@@ -39,7 +39,7 @@ public:
     RamIntrinsicOperator(FunctorOp op, Args... args)
             : RamAbstractOperator({std::move(args)...}), operation(op) {}
 
-    RamIntrinsicOperator(FunctorOp op, std::vector<std::unique_ptr<RamExpression>> args)
+    RamIntrinsicOperator(FunctorOp op, VecOwn<RamExpression> args)
             : RamAbstractOperator(std::move(args)), operation(op) {}
 
     /** @brief Get operator symbol */
@@ -48,7 +48,7 @@ public:
     }
 
     RamIntrinsicOperator* clone() const override {
-        std::vector<std::unique_ptr<RamExpression>> argsCopy;
+        VecOwn<RamExpression> argsCopy;
         for (auto& arg : arguments) {
             argsCopy.emplace_back(arg->clone());
         }

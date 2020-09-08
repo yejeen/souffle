@@ -42,8 +42,7 @@ namespace souffle {
  */
 class RamScan : public RamRelationOperation {
 public:
-    RamScan(std::unique_ptr<RamRelationReference> rel, int ident, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamScan(Own<RamRelationReference> rel, int ident, Own<RamOperation> nested, std::string profileText = "")
             : RamRelationOperation(std::move(rel), ident, std::move(nested), std::move(profileText)) {}
 
     RamScan* clone() const override {

@@ -25,6 +25,7 @@
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
+#include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
@@ -42,45 +43,43 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 namespace test {
 
 TEST(AstUtils, Grounded) {
     // create an example clause:
-    auto clause = std::make_unique<AstClause>();
+    auto clause = mk<AstClause>();
 
     // something like:
     //   r(X,Y,Z) :- a(X), X = Y, !b(Z).
 
     // r(X,Y,Z)
     auto* head = new AstAtom("r");
-    head->addArgument(std::unique_ptr<AstArgument>(new AstVariable("X")));
-    head->addArgument(std::unique_ptr<AstArgument>(new AstVariable("Y")));
-    head->addArgument(std::unique_ptr<AstArgument>(new AstVariable("Z")));
-    clause->setHead(std::unique_ptr<AstAtom>(head));
+    head->addArgument(Own<AstArgument>(new AstVariable("X")));
+    head->addArgument(Own<AstArgument>(new AstVariable("Y")));
+    head->addArgument(Own<AstArgument>(new AstVariable("Z")));
+    clause->setHead(Own<AstAtom>(head));
 
     // a(X)
     auto* a = new AstAtom("a");
-    a->addArgument(std::unique_ptr<AstArgument>(new AstVariable("X")));
-    clause->addToBody(std::unique_ptr<AstLiteral>(a));
+    a->addArgument(Own<AstArgument>(new AstVariable("X")));
+    clause->addToBody(Own<AstLiteral>(a));
 
     // X = Y
-    AstLiteral* e1 = new AstBinaryConstraint(BinaryConstraintOp::EQ,
-            std::unique_ptr<AstArgument>(new AstVariable("X")),
-            std::unique_ptr<AstArgument>(new AstVariable("Y")));
-    clause->addToBody(std::unique_ptr<AstLiteral>(e1));
+    AstLiteral* e1 = new AstBinaryConstraint(BinaryConstraintOp::EQ, Own<AstArgument>(new AstVariable("X")),
+            Own<AstArgument>(new AstVariable("Y")));
+    clause->addToBody(Own<AstLiteral>(e1));
 
     // !b(Z)
     auto* b = new AstAtom("b");
-    b->addArgument(std::unique_ptr<AstArgument>(new AstVariable("Z")));
-    auto* neg = new AstNegation(std::unique_ptr<AstAtom>(b));
-    clause->addToBody(std::unique_ptr<AstLiteral>(neg));
+    b->addArgument(Own<AstArgument>(new AstVariable("Z")));
+    auto* neg = new AstNegation(Own<AstAtom>(b));
+    clause->addToBody(Own<AstLiteral>(neg));
 
     // check construction
     EXPECT_EQ("r(X,Y,Z) :- \n   a(X),\n   X = Y,\n   !b(Z).", toString(*clause));
 
-    auto program = std::make_unique<AstProgram>();
+    auto program = mk<AstProgram>();
     program->addClause(std::move(clause));
     DebugReport dbgReport;
     ErrorReport errReport;
@@ -99,7 +98,7 @@ TEST(AstUtils, Grounded) {
 TEST(AstUtils, GroundedRecords) {
     ErrorReport e;
     DebugReport d;
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                  .type N <: symbol
                  .type R = [ a : N, B : N ]
@@ -137,7 +136,7 @@ TEST(AstUtils, ReorderClauseAtoms) {
     ErrorReport e;
     DebugReport d;
 
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .decl a,b,c,d,e(x:number)
                 a(x) :- b(x), c(x), 1 != 2, d(y), !e(z), c(z), e(x).
@@ -158,14 +157,14 @@ TEST(AstUtils, ReorderClauseAtoms) {
             toString(*clause));
 
     // Check trivial permutation
-    std::unique_ptr<AstClause> reorderedClause0 =
-            std::unique_ptr<AstClause>(reorderAtoms(clause, std::vector<unsigned int>({0, 1, 2, 3, 4})));
+    Own<AstClause> reorderedClause0 =
+            Own<AstClause>(reorderAtoms(clause, std::vector<unsigned int>({0, 1, 2, 3, 4})));
     EXPECT_EQ("a(x) :- \n   b(x),\n   c(x),\n   1 != 2,\n   d(y),\n   !e(z),\n   c(z),\n   e(x).",
             toString(*reorderedClause0));
 
     // Check more complex permutation
-    std::unique_ptr<AstClause> reorderedClause1 =
-            std::unique_ptr<AstClause>(reorderAtoms(clause, std::vector<unsigned int>({2, 3, 4, 1, 0})));
+    Own<AstClause> reorderedClause1 =
+            Own<AstClause>(reorderAtoms(clause, std::vector<unsigned int>({2, 3, 4, 1, 0})));
     EXPECT_EQ("a(x) :- \n   d(y),\n   c(z),\n   1 != 2,\n   e(x),\n   !e(z),\n   c(x),\n   b(x).",
             toString(*reorderedClause1));
 }

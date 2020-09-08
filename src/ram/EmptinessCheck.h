@@ -18,6 +18,7 @@
 #pragma once
 
 #include "ram/Condition.h"
+#include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Relation.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -44,7 +45,7 @@ namespace souffle {
  */
 class RamEmptinessCheck : public RamCondition {
 public:
-    RamEmptinessCheck(std::unique_ptr<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
+    RamEmptinessCheck(Own<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "Relation reference is a nullptr");
     }
 
@@ -76,7 +77,7 @@ protected:
     }
 
     /** Relation */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 };
 
 }  // end of namespace souffle

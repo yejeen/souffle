@@ -35,7 +35,6 @@
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/tinyformat.h"
-#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -48,10 +47,9 @@ extern void yyset_in(FILE* in_str, yyscan_t scanner);
 
 namespace souffle {
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
+Own<AstTranslationUnit> ParserDriver::parse(
         const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport) {
-    translationUnit =
-            std::make_unique<AstTranslationUnit>(std::make_unique<AstProgram>(), errorReport, debugReport);
+    translationUnit = mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
     yyscan_t scanner;
     scanner_data data;
     data.yyfilename = filename;
@@ -66,10 +64,9 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
     return std::move(translationUnit);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
+Own<AstTranslationUnit> ParserDriver::parse(
         const std::string& code, ErrorReport& errorReport, DebugReport& debugReport) {
-    translationUnit =
-            std::make_unique<AstTranslationUnit>(std::make_unique<AstProgram>(), errorReport, debugReport);
+    translationUnit = mk<AstTranslationUnit>(mk<AstProgram>(), errorReport, debugReport);
 
     scanner_data data;
     data.yyfilename = "<in-memory>";
@@ -84,23 +81,23 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parse(
     return std::move(translationUnit);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(
+Own<AstTranslationUnit> ParserDriver::parseTranslationUnit(
         const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport) {
     ParserDriver parser;
     return parser.parse(filename, in, errorReport, debugReport);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(
+Own<AstTranslationUnit> ParserDriver::parseTranslationUnit(
         const std::string& code, ErrorReport& errorReport, DebugReport& debugReport) {
     ParserDriver parser;
     return parser.parse(code, errorReport, debugReport);
 }
 
-void ParserDriver::addPragma(std::unique_ptr<AstPragma> p) {
+void ParserDriver::addPragma(Own<AstPragma> p) {
     translationUnit->getProgram()->addPragma(std::move(p));
 }
 
-void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> f) {
+void ParserDriver::addFunctorDeclaration(Own<AstFunctorDeclaration> f) {
     const std::string& name = f->getName();
     const AstFunctorDeclaration* existingFunctorDecl =
             getIf(translationUnit->getProgram()->getFunctorDeclarations(),
@@ -115,7 +112,7 @@ void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> 
     }
 }
 
-void ParserDriver::addRelation(std::unique_ptr<AstRelation> r) {
+void ParserDriver::addRelation(Own<AstRelation> r) {
     const auto& name = r->getQualifiedName();
     if (AstRelation* prev = getRelation(*translationUnit->getProgram(), name)) {
         Diagnostic err(Diagnostic::Type::ERROR,
@@ -127,7 +124,7 @@ void ParserDriver::addRelation(std::unique_ptr<AstRelation> r) {
     }
 }
 
-void ParserDriver::addDirective(std::unique_ptr<AstDirective> directive) {
+void ParserDriver::addDirective(Own<AstDirective> directive) {
     if (directive->getType() == AstDirectiveType::printsize) {
         for (const auto& cur : translationUnit->getProgram()->getDirectives()) {
             if (cur->getQualifiedName() == directive->getQualifiedName() &&
@@ -158,7 +155,7 @@ void ParserDriver::addDirective(std::unique_ptr<AstDirective> directive) {
     translationUnit->getProgram()->addDirective(std::move(directive));
 }
 
-void ParserDriver::addType(std::unique_ptr<AstType> type) {
+void ParserDriver::addType(Own<AstType> type) {
     const auto& name = type->getQualifiedName();
     auto* existingType = getIf(translationUnit->getProgram()->getTypes(),
             [&](const AstType* current) { return current->getQualifiedName() == name; });
@@ -172,13 +169,13 @@ void ParserDriver::addType(std::unique_ptr<AstType> type) {
     }
 }
 
-void ParserDriver::addClause(std::unique_ptr<AstClause> c) {
+void ParserDriver::addClause(Own<AstClause> c) {
     translationUnit->getProgram()->addClause(std::move(c));
 }
-void ParserDriver::addComponent(std::unique_ptr<AstComponent> c) {
+void ParserDriver::addComponent(Own<AstComponent> c) {
     translationUnit->getProgram()->addComponent(std::move(c));
 }
-void ParserDriver::addInstantiation(std::unique_ptr<AstComponentInit> ci) {
+void ParserDriver::addInstantiation(Own<AstComponentInit> ci) {
     translationUnit->getProgram()->addInstantiation(std::move(ci));
 }
 

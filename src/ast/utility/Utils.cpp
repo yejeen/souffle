@@ -24,7 +24,6 @@
 #include "ast/Constraint.h"
 #include "ast/Directive.h"
 #include "ast/ExecutionPlan.h"
-#include "ast/FunctorDeclaration.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -33,18 +32,20 @@
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/Type.h"
 #include "ast/analysis/RelationDetailCache.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
+#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
+#include <memory>
 
 namespace souffle {
 
@@ -250,7 +251,7 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     std::vector<unsigned int> atomPositions;
     std::vector<AstLiteral*> bodyLiterals = clause->getBodyLiterals();
     for (unsigned int i = 0; i < bodyLiterals.size(); i++) {
-        if (dynamic_cast<AstAtom*>(bodyLiterals[i]) != nullptr) {
+        if (isA<AstAtom>(bodyLiterals[i])) {
             atomPositions.push_back(i);
         }
     }
@@ -268,7 +269,7 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     unsigned int currentAtom = 0;
     for (unsigned int currentLiteral = 0; currentLiteral < bodyLiterals.size(); currentLiteral++) {
         AstLiteral* literalToAdd = bodyLiterals[currentLiteral];
-        if (dynamic_cast<AstAtom*>(literalToAdd) != nullptr) {
+        if (isA<AstAtom>(literalToAdd)) {
             // Atoms should be reordered
             literalToAdd = bodyLiterals[atomPositions[newOrder[currentAtom++]]];
         }
@@ -327,7 +328,7 @@ bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedNam
         mutable bool changed{false};
         const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
         rename_atoms(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             node->apply(*this);
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 if (contains(oldToNew, atom->getQualifiedName())) {

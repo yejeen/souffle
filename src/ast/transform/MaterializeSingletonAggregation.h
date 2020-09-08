@@ -17,15 +17,14 @@
 
 #pragma once
 
+#include "ast/Aggregator.h"
+#include "ast/Clause.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class AstAggregator;
-class AstClause;
-class AstProgram;
-class AstTranslationUnit;
 
 /**
  * Replaces literals containing single-valued aggregates with

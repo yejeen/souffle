@@ -22,6 +22,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
 #include "ast/Directive.h"
+#include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/RecordType.h"
@@ -44,8 +45,6 @@
 
 namespace souffle {
 
-class AstNode;
-
 namespace {
 
 static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
@@ -54,17 +53,16 @@ static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
  * A container type for the (instantiated) content of a component.
  */
 struct ComponentContent {
-    std::vector<std::unique_ptr<AstType>> types;
-    std::vector<std::unique_ptr<AstRelation>> relations;
-    std::vector<std::unique_ptr<AstDirective>> directives;
-    std::vector<std::unique_ptr<AstClause>> clauses;
+    std::vector<Own<AstType>> types;
+    std::vector<Own<AstRelation>> relations;
+    std::vector<Own<AstDirective>> directives;
+    std::vector<Own<AstClause>> clauses;
 
-    void add(std::unique_ptr<AstType>& type, ErrorReport& report) {
+    void add(Own<AstType>& type, ErrorReport& report) {
         // add to result content (check existence first)
-        auto foundItem =
-                std::find_if(types.begin(), types.end(), [&](const std::unique_ptr<AstType>& element) {
-                    return (element->getQualifiedName() == type->getQualifiedName());
-                });
+        auto foundItem = std::find_if(types.begin(), types.end(), [&](const Own<AstType>& element) {
+            return (element->getQualifiedName() == type->getQualifiedName());
+        });
         if (foundItem != types.end()) {
             Diagnostic err(Diagnostic::Type::ERROR,
                     DiagnosticMessage(
@@ -75,10 +73,10 @@ struct ComponentContent {
         types.push_back(std::move(type));
     }
 
-    void add(std::unique_ptr<AstRelation>& rel, ErrorReport& report) {
+    void add(Own<AstRelation>& rel, ErrorReport& report) {
         // add to result content (check existence first)
-        auto foundItem = std::find_if(
-                relations.begin(), relations.end(), [&](const std::unique_ptr<AstRelation>& element) {
+        auto foundItem =
+                std::find_if(relations.begin(), relations.end(), [&](const Own<AstRelation>& element) {
                     return (element->getQualifiedName() == rel->getQualifiedName());
                 });
         if (foundItem != relations.end()) {
@@ -91,14 +89,14 @@ struct ComponentContent {
         relations.push_back(std::move(rel));
     }
 
-    void add(std::unique_ptr<AstClause>& clause, ErrorReport& /* report */) {
+    void add(Own<AstClause>& clause, ErrorReport& /* report */) {
         clauses.push_back(std::move(clause));
     }
 
-    void add(std::unique_ptr<AstDirective>& newDirective, ErrorReport& report) {
+    void add(Own<AstDirective>& newDirective, ErrorReport& report) {
         // Check if directive already exists
-        auto foundItem = std::find_if(
-                directives.begin(), directives.end(), [&](const std::unique_ptr<AstDirective>& directive) {
+        auto foundItem =
+                std::find_if(directives.begin(), directives.end(), [&](const Own<AstDirective>& directive) {
                     return directive->getQualifiedName() == newDirective->getQualifiedName();
                 });
         // if yes, add error
@@ -124,16 +122,16 @@ struct ComponentContent {
  */
 ComponentContent getInstantiatedContent(AstProgram& program, const AstComponentInit& componentInit,
         const AstComponent* enclosingComponent, const ComponentLookup& componentLookup,
-        std::vector<std::unique_ptr<AstClause>>& orphans, ErrorReport& report,
-        const TypeBinding& binding = TypeBinding(), unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
+        std::vector<Own<AstClause>>& orphans, ErrorReport& report, const TypeBinding& binding = TypeBinding(),
+        unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
 
 /**
  * Collects clones of all the content in the given component and its base components.
  */
 void collectContent(AstProgram& program, const AstComponent& component, const TypeBinding& binding,
         const AstComponent* enclosingComponent, const ComponentLookup& componentLookup, ComponentContent& res,
-        std::vector<std::unique_ptr<AstClause>>& orphans, const std::set<std::string>& overridden,
-        ErrorReport& report, unsigned int maxInstantiationDepth) {
+        std::vector<Own<AstClause>>& orphans, const std::set<std::string>& overridden, ErrorReport& report,
+        unsigned int maxInstantiationDepth) {
     // start with relations and clauses of the base components
     for (const auto& base : component.getBaseComponents()) {
         const AstComponent* comp = componentLookup.getComponent(enclosingComponent, base->getName(), binding);
@@ -183,7 +181,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
     // and continue with the local types
     for (const auto& cur : component.getTypes()) {
         // create a clone
-        std::unique_ptr<AstType> type(cur->clone());
+        Own<AstType> type(cur->clone());
 
         // instantiate elements of union types
         visitDepthFirst(*type, [&](const AstUnionType& type) {
@@ -212,7 +210,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
     // and the local relations
     for (const auto& cur : component.getRelations()) {
         // create a clone
-        std::unique_ptr<AstRelation> rel(cur->clone());
+        Own<AstRelation> rel(cur->clone());
 
         // update attribute types
         for (AstAttribute* attr : rel->getAttributes()) {
@@ -229,7 +227,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
     // and the local directive directives
     for (const auto& directive : component.getDirectives()) {
         // create a clone
-        std::unique_ptr<AstDirective> instantiatedIO(directive->clone());
+        Own<AstDirective> instantiatedIO(directive->clone());
 
         res.add(instantiatedIO, report);
     }
@@ -246,7 +244,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
         if (overridden.count(cur->getHead()->getQualifiedName().getQualifiers()[0]) == 0) {
             AstRelation* rel = index[cur->getHead()->getQualifiedName()];
             if (rel != nullptr) {
-                std::unique_ptr<AstClause> instantiatedClause(cur->clone());
+                Own<AstClause> instantiatedClause(cur->clone());
                 res.add(instantiatedClause, report);
             } else {
                 orphans.emplace_back(cur->clone());
@@ -260,7 +258,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
         AstRelation* rel = index[cur->getHead()->getQualifiedName()];
         if (rel != nullptr) {
             // add orphan to current instance and delete from orphan list
-            std::unique_ptr<AstClause> instantiatedClause(cur->clone());
+            Own<AstClause> instantiatedClause(cur->clone());
             res.add(instantiatedClause, report);
             iter = orphans.erase(iter);
         } else {
@@ -271,7 +269,7 @@ void collectContent(AstProgram& program, const AstComponent& component, const Ty
 
 ComponentContent getInstantiatedContent(AstProgram& program, const AstComponentInit& componentInit,
         const AstComponent* enclosingComponent, const ComponentLookup& componentLookup,
-        std::vector<std::unique_ptr<AstClause>>& orphans, ErrorReport& report, const TypeBinding& binding,
+        std::vector<Own<AstClause>>& orphans, ErrorReport& report, const TypeBinding& binding,
         unsigned int maxDepth) {
     // start with an empty list
     ComponentContent res;
@@ -438,7 +436,7 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     auto* componentLookup = translationUnit.getAnalysis<ComponentLookup>();
 
     for (const auto& cur : program.instantiations) {
-        std::vector<std::unique_ptr<AstClause>> orphans;
+        std::vector<Own<AstClause>> orphans;
 
         ComponentContent content = getInstantiatedContent(
                 program, *cur, nullptr, *componentLookup, orphans, translationUnit.getErrorReport());

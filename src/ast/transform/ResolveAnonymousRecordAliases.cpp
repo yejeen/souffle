@@ -41,8 +41,8 @@ std::map<std::string, const AstRecordInit*> ResolveAnonymousRecordAliases::findV
         AstTranslationUnit& tu, const AstClause& clause) {
     std::map<std::string, const AstRecordInit*> variableRecordMap;
 
-    auto isVariable = [](AstNode* node) -> bool { return dynamic_cast<AstVariable*>(node) != nullptr; };
-    auto isRecord = [](AstNode* node) -> bool { return dynamic_cast<AstRecordInit*>(node) != nullptr; };
+    auto isVariable = [](AstNode* node) -> bool { return isA<AstVariable>(node); };
+    auto isRecord = [](AstNode* node) -> bool { return isA<AstRecordInit>(node); };
 
     auto& typeAnalysis = *tu.getAnalysis<TypeAnalysis>();
     auto groundedTerms = getGroundedTerms(tu, clause);
@@ -99,7 +99,7 @@ bool ResolveAnonymousRecordAliases::replaceNamedVariables(AstTranslationUnit& tu
         ReplaceVariables(std::map<std::string, const AstRecordInit*> varToRecordMap)
                 : varToRecordMap(std::move(varToRecordMap)){};
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto variable = dynamic_cast<AstVariable*>(node.get())) {
                 auto iteratorToRecord = varToRecordMap.find(variable->getName());
                 if (iteratorToRecord != varToRecordMap.end()) {
@@ -127,13 +127,9 @@ bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(AstClause& clause) {
         mutable bool changed{false};
         ReplaceUnnamed() = default;
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
-            auto isUnnamed = [](AstNode* node) -> bool {
-                return dynamic_cast<AstUnnamedVariable*>(node) != nullptr;
-            };
-            auto isRecord = [](AstNode* node) -> bool {
-                return dynamic_cast<AstRecordInit*>(node) != nullptr;
-            };
+        Own<AstNode> operator()(Own<AstNode> node) const override {
+            auto isUnnamed = [](AstNode* node) -> bool { return isA<AstUnnamedVariable>(node); };
+            auto isRecord = [](AstNode* node) -> bool { return isA<AstRecordInit>(node); };
 
             if (auto constraint = dynamic_cast<AstBinaryConstraint*>(node.get())) {
                 auto left = constraint->getLHS();
@@ -142,7 +138,7 @@ bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(AstClause& clause) {
                 bool hasRecord = isRecord(left) || isRecord(right);
                 auto op = constraint->getOperator();
                 if (hasUnnamed && hasRecord && isEqConstraint(op)) {
-                    return std::make_unique<AstBooleanConstraint>(true);
+                    return mk<AstBooleanConstraint>(true);
                 }
             }
 

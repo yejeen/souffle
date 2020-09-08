@@ -16,12 +16,11 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * Transformation pass to inline marked relations

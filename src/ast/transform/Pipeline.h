@@ -16,10 +16,14 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
+#include "ast/transform/Null.h"
+#include "ast/transform/Transformer.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <string>
@@ -28,8 +32,6 @@
 
 namespace souffle {
 
-class AstTranslationUnit;
-
 /**
  * Transformer that holds an arbitrary number of sub-transformations
  */
@@ -37,14 +39,13 @@ class PipelineTransformer : public MetaTransformer {
 public:
     template <typename... Args>
     PipelineTransformer(Args... args) {
-        std::unique_ptr<AstTransformer> tmp[] = {std::move(args)...};
+        Own<AstTransformer> tmp[] = {std::move(args)...};
         for (auto& cur : tmp) {
             pipeline.push_back(std::move(cur));
         }
     }
 
-    PipelineTransformer(std::vector<std::unique_ptr<AstTransformer>> pipeline)
-            : pipeline(std::move(pipeline)) {}
+    PipelineTransformer(VecOwn<AstTransformer> pipeline) : pipeline(std::move(pipeline)) {}
 
     std::vector<AstTransformer*> getSubtransformers() const override {
         return toPtrVector(pipeline);
@@ -55,7 +56,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->setDebugReport();
             } else {
-                i = std::make_unique<DebugReporter>(std::move(i));
+                i = mk<DebugReporter>(std::move(i));
             }
         }
     }
@@ -74,7 +75,7 @@ public:
             if (auto* mt = dynamic_cast<MetaTransformer*>(i.get())) {
                 mt->disableTransformers(transforms);
             } else if (transforms.find(i->getName()) != transforms.end()) {
-                i = std::make_unique<NullTransformer>();
+                i = mk<NullTransformer>();
             }
         }
     }
@@ -84,7 +85,7 @@ public:
     }
 
     PipelineTransformer* clone() const override {
-        std::vector<std::unique_ptr<AstTransformer>> transformers;
+        VecOwn<AstTransformer> transformers;
         for (const auto& transformer : pipeline) {
             transformers.push_back(souffle::clone(transformer));
         }
@@ -92,7 +93,7 @@ public:
     }
 
 protected:
-    std::vector<std::unique_ptr<AstTransformer>> pipeline;
+    VecOwn<AstTransformer> pipeline;
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;
         for (auto& transformer : pipeline) {

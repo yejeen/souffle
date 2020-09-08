@@ -16,13 +16,12 @@
 
 #pragma once
 
+#include "ast/Argument.h"
+#include "ast/Clause.h"
+#include "ast/TranslationUnit.h"
 #include <map>
 
 namespace souffle {
-
-class AstArgument;
-class AstClause;
-class AstTranslationUnit;
 
 /**
  * Analyse the given clause and computes for each contained argument

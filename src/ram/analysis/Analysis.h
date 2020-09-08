@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <string>
 
 namespace souffle {

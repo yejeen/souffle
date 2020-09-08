@@ -16,12 +16,11 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
 #include <string>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 class GroundedTermsChecker : public AstTransformer {
 public:

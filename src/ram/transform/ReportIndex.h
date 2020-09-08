@@ -14,7 +14,10 @@
 
 #pragma once
 
+#include "ram/Condition.h"
+#include "ram/Expression.h"
 #include "ram/Operation.h"
+#include "ram/Program.h"
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/Complexity.h"
 #include "ram/analysis/Index.h"
@@ -27,10 +30,6 @@
 #include <vector>
 
 namespace souffle {
-
-class RamProgram;
-class RamCondition;
-class RamExpression;
 
 /**
  * @class ReportIndexSetsTransformer

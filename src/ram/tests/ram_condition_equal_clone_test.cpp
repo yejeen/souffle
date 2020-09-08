@@ -65,92 +65,86 @@ TEST(RamFalse, CloneAndEquals) {
 
 TEST(RamConjunction, CloneAndEquals) {
     // true /\ false
-    auto a = std::make_unique<RamConjunction>(std::make_unique<RamTrue>(), std::make_unique<RamFalse>());
-    auto b = std::make_unique<RamConjunction>(std::make_unique<RamTrue>(), std::make_unique<RamFalse>());
+    auto a = mk<RamConjunction>(mk<RamTrue>(), mk<RamFalse>());
+    auto b = mk<RamConjunction>(mk<RamTrue>(), mk<RamFalse>());
     EXPECT_EQ(*a, *b);
     EXPECT_NE(a, b);
 
-    std::unique_ptr<RamConjunction> c(a->clone());
+    Own<RamConjunction> c(a->clone());
     EXPECT_EQ(*a, *c);
     EXPECT_NE(a, c);
 
     // true /\ (false /\ true)
-    auto d = std::make_unique<RamConjunction>(std::make_unique<RamTrue>(),
-            std::make_unique<RamConjunction>(std::make_unique<RamFalse>(), std::make_unique<RamTrue>()));
-    auto e = std::make_unique<RamConjunction>(std::make_unique<RamTrue>(),
-            std::make_unique<RamConjunction>(std::make_unique<RamFalse>(), std::make_unique<RamTrue>()));
+    auto d = mk<RamConjunction>(mk<RamTrue>(), mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
+    auto e = mk<RamConjunction>(mk<RamTrue>(), mk<RamConjunction>(mk<RamFalse>(), mk<RamTrue>()));
     EXPECT_EQ(*d, *e);
     EXPECT_NE(d, e);
 
-    std::unique_ptr<RamConjunction> f(d->clone());
+    Own<RamConjunction> f(d->clone());
     EXPECT_EQ(*d, *f);
     EXPECT_NE(d, f);
 
     // (true /\ false) /\ (true /\ (false /\ true))
-    auto a_conj_d = std::make_unique<RamConjunction>(std::move(a), std::move(d));
-    auto b_conj_e = std::make_unique<RamConjunction>(std::move(b), std::move(e));
+    auto a_conj_d = mk<RamConjunction>(std::move(a), std::move(d));
+    auto b_conj_e = mk<RamConjunction>(std::move(b), std::move(e));
     EXPECT_EQ(*a_conj_d, *b_conj_e);
     EXPECT_NE(a_conj_d, b_conj_e);
 
-    auto c_conj_f = std::make_unique<RamConjunction>(std::move(c), std::move(f));
+    auto c_conj_f = mk<RamConjunction>(std::move(c), std::move(f));
     EXPECT_EQ(*c_conj_f, *a_conj_d);
     EXPECT_EQ(*c_conj_f, *b_conj_e);
     EXPECT_NE(c_conj_f, a_conj_d);
     EXPECT_NE(c_conj_f, b_conj_e);
 
-    std::unique_ptr<RamConjunction> a_conj_d_copy(a_conj_d->clone());
+    Own<RamConjunction> a_conj_d_copy(a_conj_d->clone());
     EXPECT_EQ(*a_conj_d, *a_conj_d_copy);
     EXPECT_NE(a_conj_d, a_conj_d_copy);
 }
 
 TEST(RamNegation, CloneAndEquals) {
-    auto a = std::make_unique<RamTrue>();
-    auto neg_a = std::make_unique<RamNegation>(std::move(a));
-    auto b = std::make_unique<RamTrue>();
-    auto neg_b = std::make_unique<RamNegation>(std::move(b));
+    auto a = mk<RamTrue>();
+    auto neg_a = mk<RamNegation>(std::move(a));
+    auto b = mk<RamTrue>();
+    auto neg_b = mk<RamNegation>(std::move(b));
     EXPECT_EQ(*neg_a, *neg_b);
     EXPECT_NE(neg_a, neg_b);
 
-    auto c = std::make_unique<RamFalse>();
-    auto neg_neg_c = std::make_unique<RamNegation>(std::make_unique<RamNegation>(std::move(c)));
-    auto d = std::make_unique<RamFalse>();
-    auto neg_neg_d = std::make_unique<RamNegation>(std::make_unique<RamNegation>(std::move(d)));
+    auto c = mk<RamFalse>();
+    auto neg_neg_c = mk<RamNegation>(mk<RamNegation>(std::move(c)));
+    auto d = mk<RamFalse>();
+    auto neg_neg_d = mk<RamNegation>(mk<RamNegation>(std::move(d)));
     EXPECT_EQ(*neg_neg_c, *neg_neg_d);
     EXPECT_NE(neg_neg_c, neg_neg_d);
 }
 
 TEST(RamConstraint, CloneAndEquals) {
     // constraint t0.1 = t1.0
-    std::unique_ptr<RamExpression> a_lhs(new RamTupleElement(0, 1));
-    std::unique_ptr<RamExpression> a_rhs(new RamTupleElement(1, 0));
-    std::unique_ptr<RamConstraint> a(
-            new RamConstraint(BinaryConstraintOp::EQ, std::move(a_lhs), std::move(a_rhs)));
-    std::unique_ptr<RamExpression> b_lhs(new RamTupleElement(0, 1));
-    std::unique_ptr<RamExpression> b_rhs(new RamTupleElement(1, 0));
-    std::unique_ptr<RamConstraint> b(
-            new RamConstraint(BinaryConstraintOp::EQ, std::move(b_lhs), std::move(b_rhs)));
+    Own<RamExpression> a_lhs(new RamTupleElement(0, 1));
+    Own<RamExpression> a_rhs(new RamTupleElement(1, 0));
+    Own<RamConstraint> a(new RamConstraint(BinaryConstraintOp::EQ, std::move(a_lhs), std::move(a_rhs)));
+    Own<RamExpression> b_lhs(new RamTupleElement(0, 1));
+    Own<RamExpression> b_rhs(new RamTupleElement(1, 0));
+    Own<RamConstraint> b(new RamConstraint(BinaryConstraintOp::EQ, std::move(b_lhs), std::move(b_rhs)));
     EXPECT_EQ(*a, *b);
     EXPECT_NE(a, b);
 
-    std::unique_ptr<RamConstraint> c(a->clone());
+    Own<RamConstraint> c(a->clone());
     EXPECT_EQ(*a, *c);
     EXPECT_EQ(*b, *c);
     EXPECT_NE(a, c);
     EXPECT_NE(b, c);
 
     // constraint t2.0 >= 5
-    std::unique_ptr<RamExpression> d_lhs(new RamTupleElement(2, 0));
-    std::unique_ptr<RamExpression> d_rhs(new RamSignedConstant(5));
-    std::unique_ptr<RamConstraint> d(
-            new RamConstraint(BinaryConstraintOp::EQ, std::move(d_lhs), std::move(d_rhs)));
-    std::unique_ptr<RamExpression> e_lhs(new RamTupleElement(2, 0));
-    std::unique_ptr<RamExpression> e_rhs(new RamSignedConstant(5));
-    std::unique_ptr<RamConstraint> e(
-            new RamConstraint(BinaryConstraintOp::EQ, std::move(e_lhs), std::move(e_rhs)));
+    Own<RamExpression> d_lhs(new RamTupleElement(2, 0));
+    Own<RamExpression> d_rhs(new RamSignedConstant(5));
+    Own<RamConstraint> d(new RamConstraint(BinaryConstraintOp::EQ, std::move(d_lhs), std::move(d_rhs)));
+    Own<RamExpression> e_lhs(new RamTupleElement(2, 0));
+    Own<RamExpression> e_rhs(new RamSignedConstant(5));
+    Own<RamConstraint> e(new RamConstraint(BinaryConstraintOp::EQ, std::move(e_lhs), std::move(e_rhs)));
     EXPECT_EQ(*d, *e);
     EXPECT_NE(d, e);
 
-    std::unique_ptr<RamConstraint> f(d->clone());
+    Own<RamConstraint> f(d->clone());
     EXPECT_EQ(*d, *f);
     EXPECT_EQ(*e, *f);
     EXPECT_NE(d, f);
@@ -160,12 +154,12 @@ TEST(RamConstraint, CloneAndEquals) {
 TEST(RamExistenceCheck, CloneAndEquals) {
     // N(1) in relation N(x:number)
     RamRelation N("N", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
-    std::vector<std::unique_ptr<RamExpression>> tuple_a;
+    VecOwn<RamExpression> tuple_a;
     tuple_a.emplace_back(new RamSignedConstant(1));
-    RamExistenceCheck a(std::make_unique<RamRelationReference>(&N), std::move(tuple_a));
-    std::vector<std::unique_ptr<RamExpression>> tuple_b;
+    RamExistenceCheck a(mk<RamRelationReference>(&N), std::move(tuple_a));
+    VecOwn<RamExpression> tuple_b;
     tuple_b.emplace_back(new RamSignedConstant(1));
-    RamExistenceCheck b(std::make_unique<RamRelationReference>(&N), std::move(tuple_b));
+    RamExistenceCheck b(mk<RamRelationReference>(&N), std::move(tuple_b));
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -179,14 +173,14 @@ TEST(RamExistenceCheck, CloneAndEquals) {
 
     // edge(1,2) in relation edge(x:number,y:number)
     RamRelation edge("edge", 2, 1, {"x", "y"}, {"i", "i"}, RelationRepresentation::BRIE);
-    std::vector<std::unique_ptr<RamExpression>> tuple_d;
+    VecOwn<RamExpression> tuple_d;
     tuple_d.emplace_back(new RamSignedConstant(1));
     tuple_d.emplace_back(new RamSignedConstant(2));
-    RamExistenceCheck d(std::make_unique<RamRelationReference>(&edge), std::move(tuple_d));
-    std::vector<std::unique_ptr<RamExpression>> tuple_e;
+    RamExistenceCheck d(mk<RamRelationReference>(&edge), std::move(tuple_d));
+    VecOwn<RamExpression> tuple_e;
     tuple_e.emplace_back(new RamSignedConstant(1));
     tuple_e.emplace_back(new RamSignedConstant(2));
-    RamExistenceCheck e(std::make_unique<RamRelationReference>(&edge), std::move(tuple_e));
+    RamExistenceCheck e(mk<RamRelationReference>(&edge), std::move(tuple_e));
     EXPECT_EQ(d, e);
     EXPECT_NE(&d, &e);
 
@@ -201,12 +195,12 @@ TEST(RamExistenceCheck, CloneAndEquals) {
 
 TEST(RamProvenanceExistCheck, CloneAndEquals) {
     RamRelation N("N", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
-    std::vector<std::unique_ptr<RamExpression>> tuple_a;
+    VecOwn<RamExpression> tuple_a;
     tuple_a.emplace_back(new RamSignedConstant(1));
-    RamExistenceCheck a(std::make_unique<RamRelationReference>(&N), std::move(tuple_a));
-    std::vector<std::unique_ptr<RamExpression>> tuple_b;
+    RamExistenceCheck a(mk<RamRelationReference>(&N), std::move(tuple_a));
+    VecOwn<RamExpression> tuple_b;
     tuple_b.emplace_back(new RamSignedConstant(1));
-    RamExistenceCheck b(std::make_unique<RamRelationReference>(&N), std::move(tuple_b));
+    RamExistenceCheck b(mk<RamRelationReference>(&N), std::move(tuple_b));
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
 
@@ -221,16 +215,16 @@ TEST(RamProvenanceExistCheck, CloneAndEquals) {
     // address(state:symbol, postCode:number, street:symbol)
     RamRelation address("address", 3, 1, {"state", "postCode", "street"}, {"s", "i", "s"},
             RelationRepresentation::DEFAULT);
-    std::vector<std::unique_ptr<RamExpression>> tuple_d;
+    VecOwn<RamExpression> tuple_d;
     tuple_d.emplace_back(new RamSignedConstant(0));
     tuple_d.emplace_back(new RamSignedConstant(2000));
     tuple_d.emplace_back(new RamSignedConstant(0));
-    RamProvenanceExistenceCheck d(std::make_unique<RamRelationReference>(&address), std::move(tuple_d));
-    std::vector<std::unique_ptr<RamExpression>> tuple_e;
+    RamProvenanceExistenceCheck d(mk<RamRelationReference>(&address), std::move(tuple_d));
+    VecOwn<RamExpression> tuple_e;
     tuple_e.emplace_back(new RamSignedConstant(0));
     tuple_e.emplace_back(new RamSignedConstant(2000));
     tuple_e.emplace_back(new RamSignedConstant(0));
-    RamProvenanceExistenceCheck e(std::make_unique<RamRelationReference>(&address), std::move(tuple_e));
+    RamProvenanceExistenceCheck e(mk<RamRelationReference>(&address), std::move(tuple_e));
     EXPECT_EQ(d, e);
     EXPECT_NE(&d, &e);
 
@@ -246,8 +240,8 @@ TEST(RamProvenanceExistCheck, CloneAndEquals) {
 TEST(RamEmptinessCheck, CloneAndEquals) {
     // Check A(x:number)
     RamRelation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
-    RamEmptinessCheck a(std::make_unique<RamRelationReference>(&A));
-    RamEmptinessCheck b(std::make_unique<RamRelationReference>(&A));
+    RamEmptinessCheck a(mk<RamRelationReference>(&A));
+    RamEmptinessCheck b(mk<RamRelationReference>(&A));
     EXPECT_EQ(a, b);
     EXPECT_NE(&a, &b);
     RamEmptinessCheck* c = a.clone();

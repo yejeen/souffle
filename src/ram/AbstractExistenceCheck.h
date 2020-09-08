@@ -39,8 +39,7 @@ namespace souffle {
  */
 class RamAbstractExistenceCheck : public RamCondition {
 public:
-    RamAbstractExistenceCheck(
-            std::unique_ptr<RamRelationReference> relRef, std::vector<std::unique_ptr<RamExpression>> vals)
+    RamAbstractExistenceCheck(Own<RamRelationReference> relRef, VecOwn<RamExpression> vals)
             : relationRef(std::move(relRef)), values(std::move(vals)) {
         assert(relationRef != nullptr && "Relation reference is a nullptr");
         for (const auto& v : values) {
@@ -81,7 +80,7 @@ protected:
     void print(std::ostream& os) const override {
         os << "("
            << join(values, ",",
-                      [](std::ostream& out, const std::unique_ptr<RamExpression>& value) {
+                      [](std::ostream& out, const Own<RamExpression>& value) {
                           if (!value) {
                               out << "_";
                           } else {
@@ -97,10 +96,10 @@ protected:
     }
 
     /** Relation */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 
     /** Pattern -- nullptr if undefined */
-    std::vector<std::unique_ptr<RamExpression>> values;
+    VecOwn<RamExpression> values;
 };
 
 }  // end of namespace souffle

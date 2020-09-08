@@ -43,7 +43,7 @@ namespace souffle {
  */
 class RamExit : public RamStatement {
 public:
-    RamExit(std::unique_ptr<RamCondition> c) : condition(std::move(c)) {
+    RamExit(Own<RamCondition> c) : condition(std::move(c)) {
         assert(condition && "condition is a nullptr");
     }
 
@@ -75,7 +75,7 @@ protected:
     }
 
     /** exit condition */
-    std::unique_ptr<RamCondition> condition;
+    Own<RamCondition> condition;
 };
 
 }  // end of namespace souffle

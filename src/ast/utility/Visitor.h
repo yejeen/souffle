@@ -28,8 +28,10 @@
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
+#include "ast/Constant.h"
 #include "ast/Constraint.h"
 #include "ast/Counter.h"
+#include "ast/Functor.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
@@ -45,6 +47,8 @@
 #include "ast/StringConstant.h"
 #include "ast/SubroutineArgument.h"
 #include "ast/SubsetType.h"
+#include "ast/Term.h"
+#include "ast/Type.h"
 #include "ast/TypeCast.h"
 #include "ast/UnionType.h"
 #include "ast/UnnamedVariable.h"
@@ -361,7 +365,7 @@ void visitDepthFirst(const std::vector<T*>& list, const Lambda& fun) {
  * @param args a list of extra parameters to be forwarded to the visitor
  */
 template <typename T, typename Lambda>
-void visitDepthFirst(const std::vector<std::unique_ptr<T>>& list, const Lambda& fun) {
+void visitDepthFirst(const VecOwn<T>& list, const Lambda& fun) {
     for (const auto& cur : list) {
         visitDepthFirst(*cur, fun);
     }

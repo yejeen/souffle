@@ -19,21 +19,77 @@
 #include "FunctorOps.h"
 #include "Global.h"
 #include "RelationTag.h"
+#include "ram/AbstractParallel.h"
+#include "ram/Aggregate.h"
+#include "ram/AutoIncrement.h"
+#include "ram/Break.h"
+#include "ram/Call.h"
+#include "ram/Choice.h"
+#include "ram/Clear.h"
 #include "ram/Condition.h"
+#include "ram/Conjunction.h"
+#include "ram/Constraint.h"
+#include "ram/DebugInfo.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
+#include "ram/Exit.h"
 #include "ram/Expression.h"
+#include "ram/Extend.h"
+#include "ram/False.h"
+#include "ram/Filter.h"
+#include "ram/FloatConstant.h"
+#include "ram/IO.h"
+#include "ram/IndexAggregate.h"
+#include "ram/IndexChoice.h"
+#include "ram/IndexScan.h"
+#include "ram/IntrinsicOperator.h"
+#include "ram/LogRelationTimer.h"
+#include "ram/LogSize.h"
+#include "ram/LogTimer.h"
+#include "ram/Loop.h"
+#include "ram/Negation.h"
+#include "ram/NestedIntrinsicOperator.h"
+#include "ram/NestedOperation.h"
 #include "ram/Node.h"
 #include "ram/Operation.h"
+#include "ram/PackRecord.h"
+#include "ram/Parallel.h"
+#include "ram/ParallelAggregate.h"
+#include "ram/ParallelChoice.h"
+#include "ram/ParallelIndexAggregate.h"
+#include "ram/ParallelIndexChoice.h"
+#include "ram/ParallelIndexScan.h"
+#include "ram/ParallelScan.h"
 #include "ram/Program.h"
+#include "ram/Project.h"
+#include "ram/ProvenanceExistenceCheck.h"
+#include "ram/Query.h"
 #include "ram/Relation.h"
+#include "ram/RelationOperation.h"
 #include "ram/RelationSize.h"
+#include "ram/Scan.h"
+#include "ram/Sequence.h"
+#include "ram/SignedConstant.h"
 #include "ram/Statement.h"
+#include "ram/SubroutineArgument.h"
+#include "ram/SubroutineReturn.h"
+#include "ram/Swap.h"
 #include "ram/TranslationUnit.h"
+#include "ram/True.h"
+#include "ram/TupleElement.h"
+#include "ram/TupleOperation.h"
+#include "ram/UndefValue.h"
+#include "ram/UnpackRecord.h"
+#include "ram/UnsignedConstant.h"
+#include "ram/UserDefinedOperator.h"
 #include "ram/Utils.h"
 #include "ram/Visitor.h"
 #include "ram/analysis/Index.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
@@ -46,8 +102,11 @@
 #include <cctype>
 #include <functional>
 #include <iomanip>
+#include <iterator>
+#include <limits>
 #include <map>
 #include <sstream>
+#include <tuple>
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
@@ -125,8 +184,7 @@ const std::string Synthesiser::getOpContextName(const RamRelation& rel) {
 }
 
 /** Get relation type struct */
-void Synthesiser::generateRelationTypeStruct(
-        std::ostream& out, std::unique_ptr<SynthesiserRelation> relationType) {
+void Synthesiser::generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType) {
     // If this type has been generated already, use the cached version
     if (typeCache.find(relationType->getTypeName()) != typeCache.end()) {
         return;
@@ -322,8 +380,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // into terms that require a context and terms that
             // do not require a context
             const RamOperation* next = &query.getOperation();
-            std::vector<std::unique_ptr<RamCondition>> requireCtx;
-            std::vector<std::unique_ptr<RamCondition>> freeOfCtx;
+            VecOwn<RamCondition> requireCtx;
+            VecOwn<RamCondition> freeOfCtx;
             if (const auto* filter = dynamic_cast<const RamFilter*>(&query.getOperation())) {
                 next = &filter->getOperation();
                 // Check terms of outer filter operation whether they can be pushed before
@@ -2353,7 +2411,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         // defining table
         os << "// -- Table: " << datalogName << "\n";
 
-        os << "std::unique_ptr<" << type << "> " << cppName << " = std::make_unique<" << type << ">();\n";
+        os << "Own<" << type << "> " << cppName << " = mk<" << type << ">();\n";
         if (!rel->isTemp()) {
             os << "souffle::RelationWrapper<";
             os << relCtr++ << ",";

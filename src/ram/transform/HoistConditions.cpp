@@ -31,21 +31,19 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
     bool changed = false;
 
     // helper for collecting conditions from filter operations
-    auto addCondition = [](std::unique_ptr<RamCondition> condition,
-                                std::unique_ptr<RamCondition> c) -> std::unique_ptr<RamCondition> {
+    auto addCondition = [](Own<RamCondition> condition, Own<RamCondition> c) -> Own<RamCondition> {
         if (condition == nullptr) {
             return c;
         } else {
-            return std::make_unique<RamConjunction>(std::move(condition), std::move(c));
+            return mk<RamConjunction>(std::move(condition), std::move(c));
         }
     };
 
     // hoist conditions to the most outer scope if they
     // don't depend on RamTupleOperations
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::unique_ptr<RamCondition> newCondition;
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        Own<RamCondition> newCondition;
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition& condition = filter->getCondition();
                 // if filter condition is independent of any RamTupleOperation,
@@ -66,16 +64,14 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
             // insert new filter operation at outer-most level of the query
             changed = true;
             auto* nestedOp = const_cast<RamOperation*>(&mQuery->getOperation());
-            mQuery->rewrite(
-                    nestedOp, std::make_unique<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
+            mQuery->rewrite(nestedOp, mk<RamFilter>(std::move(newCondition), souffle::clone(nestedOp)));
         }
     });
 
     // hoist conditions for each RamTupleOperation operation
     visitDepthFirst(program, [&](const RamTupleOperation& search) {
-        std::unique_ptr<RamCondition> newCondition;
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        Own<RamCondition> newCondition;
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition& condition = filter->getCondition();
                 // if filter condition matches level of RamTupleOperation,
@@ -95,8 +91,8 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
         if (newCondition != nullptr) {
             // insert new filter operation after the search operation
             changed = true;
-            tupleOp->rewrite(&tupleOp->getOperation(), std::make_unique<RamFilter>(std::move(newCondition),
-                                                               souffle::clone(&tupleOp->getOperation())));
+            tupleOp->rewrite(&tupleOp->getOperation(),
+                    mk<RamFilter>(std::move(newCondition), souffle::clone(&tupleOp->getOperation())));
         }
     });
     return changed;

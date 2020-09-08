@@ -19,9 +19,9 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/utility/NodeMapper.h"
-#include "ast/utility/Utils.h"
 #include "reports/ErrorReport.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <vector>
 
@@ -36,7 +36,7 @@ bool AstUserDefinedFunctorsTransformer::transform(AstTranslationUnit& translatio
         UserFunctorRewriter(const AstProgram& program, ErrorReport& report)
                 : program(program), report(report){};
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             node->apply(*this);
 
             if (auto* userFunctor = dynamic_cast<AstUserDefinedFunctor*>(node.get())) {

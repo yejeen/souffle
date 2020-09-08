@@ -14,14 +14,14 @@
 
 #pragma once
 
+#include "ast/Clause.h"
+#include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <memory>
 #include <string>
 
 namespace souffle {
-
-class AstClause;
-class AstTranslationUnit;
 
 /**
  * Transformation pass to eliminate grounded aliases.
@@ -41,7 +41,7 @@ public:
      * @param clause the clause to be processed
      * @return a modified clone of the processed clause
      */
-    static std::unique_ptr<AstClause> resolveAliases(const AstClause& clause);
+    static Own<AstClause> resolveAliases(const AstClause& clause);
 
     /**
      * Removes trivial equalities of the form t = t from the given clause.
@@ -49,7 +49,7 @@ public:
      * @param clause the clause to be processed
      * @return a modified clone of the given clause
      */
-    static std::unique_ptr<AstClause> removeTrivialEquality(const AstClause& clause);
+    static Own<AstClause> removeTrivialEquality(const AstClause& clause);
 
     /**
      * Removes complex terms in atoms, replacing them with constrained variables.
@@ -57,7 +57,7 @@ public:
      * @param clause the clause to be processed
      * @return a modified clone of the processed clause
      */
-    static std::unique_ptr<AstClause> removeComplexTermsInAtoms(const AstClause& clause);
+    static Own<AstClause> removeComplexTermsInAtoms(const AstClause& clause);
 
     ResolveAliasesTransformer* clone() const override {
         return new ResolveAliasesTransformer();

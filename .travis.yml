@@ -89,7 +89,7 @@ jobs:
     <<: *osxgcc
     name: "OSX gcc non-eval"
     env:
-    - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS="-j8,-c -j8"
+    - SOUFFLE_CATEGORY=Unit,Interface,Profile SOUFFLE_CONFS="-j8,-c -j8"
   - stage: Testing
     name: "Linux clang non-eval"
     <<: *docker

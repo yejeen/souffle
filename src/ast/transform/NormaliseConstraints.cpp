@@ -20,6 +20,7 @@
 #include "ast/Node.h"
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
+#include "ast/Relation.h"
 #include "ast/StringConstant.h"
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
@@ -36,7 +37,6 @@
 #include <vector>
 
 namespace souffle {
-class AstRelation;
 
 bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
@@ -68,7 +68,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
             return changeCount;
         }
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* stringConstant = dynamic_cast<AstStringConstant*>(node.get())) {
                 // string constant found
                 changeCount++;
@@ -79,7 +79,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 newVariableName << boundPrefix << changeCount << "_" << constantValue << "_s";
 
                 // create new constraint (+abdulX = constant)
-                auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
+                auto newVariable = mk<AstVariable>(newVariableName.str());
                 constraints.insert(new AstBinaryConstraint(
                         BinaryConstraintOp::EQ, souffle::clone(newVariable), souffle::clone(stringConstant)));
 
@@ -99,13 +99,13 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                                     : BinaryConstraintOp::EQ;
 
                 // create new constraint (+abdulX = constant)
-                auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
+                auto newVariable = mk<AstVariable>(newVariableName.str());
                 constraints.insert(new AstBinaryConstraint(
                         opEq, souffle::clone(newVariable), souffle::clone(numberConstant)));
 
                 // update constant to be the variable created
                 return newVariable;
-            } else if (dynamic_cast<AstUnnamedVariable*>(node.get()) != nullptr) {
+            } else if (isA<AstUnnamedVariable>(node.get())) {
                 // underscore found
                 changeCount++;
 
@@ -113,7 +113,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 std::stringstream newVariableName;
                 newVariableName << "+underscore" << changeCount;
 
-                return std::make_unique<AstVariable>(newVariableName.str());
+                return mk<AstVariable>(newVariableName.str());
             }
 
             node->apply(*this);
@@ -138,7 +138,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
             changed = changed || update.hasChanged();
 
             for (AstBinaryConstraint* constraint : constraints) {
-                clause->addToBody(std::unique_ptr<AstBinaryConstraint>(constraint));
+                clause->addToBody(Own<AstBinaryConstraint>(constraint));
             }
         }
     }

@@ -39,7 +39,7 @@
 
 namespace souffle {
 
-using ExpressionPair = std::pair<std::unique_ptr<RamExpression>, std::unique_ptr<RamExpression>>;
+using ExpressionPair = std::pair<Own<RamExpression>, Own<RamExpression>>;
 
 ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
         const RamConstraint* binRelOp, size_t& element, int identifier) {
@@ -49,7 +49,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(rhs)};
+                return {mk<RamUndefValue>(), clone(rhs)};
             }
         }
         // <expr> <= Tuple[level, element]
@@ -57,7 +57,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {clone(lhs), std::make_unique<RamUndefValue>()};
+                return {clone(lhs), mk<RamUndefValue>()};
             }
         }
     }
@@ -68,7 +68,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {clone(rhs), std::make_unique<RamUndefValue>()};
+                return {clone(rhs), mk<RamUndefValue>()};
             }
         }
         // <expr> >= Tuple[level, element]
@@ -76,7 +76,7 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(lhs)};
+                return {mk<RamUndefValue>(), clone(lhs)};
             }
         }
     }
@@ -88,12 +88,12 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                std::vector<std::unique_ptr<RamExpression>> expressions;
+                VecOwn<RamExpression> expressions;
                 expressions.push_back(clone(rhs));
-                expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
+                expressions.push_back(mk<RamSignedConstant>(RamDomain(1)));
 
-                return {std::make_unique<RamUndefValue>(),
-                        std::make_unique<RamIntrinsicOperator>(FunctorOp::SUB, std::move(expressions))};
+                return {mk<RamUndefValue>(),
+                        mk<RamIntrinsicOperator>(FunctorOp::SUB, std::move(expressions))};
             }
         }
         // <expr> < Tuple[level, element]
@@ -103,12 +103,12 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                std::vector<std::unique_ptr<RamExpression>> expressions;
+                VecOwn<RamExpression> expressions;
                 expressions.push_back(souffle::clone(lhs));
-                expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
+                expressions.push_back(mk<RamSignedConstant>(RamDomain(1)));
 
-                return {std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
-                        std::make_unique<RamUndefValue>()};
+                return {mk<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
+                        mk<RamUndefValue>()};
             }
         }
     }
@@ -121,12 +121,12 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                std::vector<std::unique_ptr<RamExpression>> expressions;
+                VecOwn<RamExpression> expressions;
                 expressions.push_back(clone(rhs));
-                expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
+                expressions.push_back(mk<RamSignedConstant>(RamDomain(1)));
 
-                return {std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
-                        std::make_unique<RamUndefValue>()};
+                return {mk<RamIntrinsicOperator>(FunctorOp::ADD, std::move(expressions)),
+                        mk<RamUndefValue>()};
             }
         }
         // <expr> > Tuple[level, element]
@@ -136,16 +136,16 @@ ExpressionPair MakeIndexTransformer::getSignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                std::vector<std::unique_ptr<RamExpression>> expressions;
+                VecOwn<RamExpression> expressions;
                 expressions.push_back(clone(lhs));
-                expressions.push_back(std::make_unique<RamSignedConstant>(RamDomain(1)));
+                expressions.push_back(mk<RamSignedConstant>(RamDomain(1)));
 
-                return {std::make_unique<RamUndefValue>(),
-                        std::make_unique<RamIntrinsicOperator>(FunctorOp::SUB, std::move(expressions))};
+                return {mk<RamUndefValue>(),
+                        mk<RamIntrinsicOperator>(FunctorOp::SUB, std::move(expressions))};
             }
         }
     }
-    return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
+    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
 }
 
 ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
@@ -156,7 +156,7 @@ ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(rhs)};
+                return {mk<RamUndefValue>(), clone(rhs)};
             }
         }
         // <expr> <= Tuple[level, element]
@@ -164,7 +164,7 @@ ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {clone(lhs), std::make_unique<RamUndefValue>()};
+                return {clone(lhs), mk<RamUndefValue>()};
             }
         }
     }
@@ -174,7 +174,7 @@ ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {clone(rhs), std::make_unique<RamUndefValue>()};
+                return {clone(rhs), mk<RamUndefValue>()};
             }
         }
         // <expr> >= Tuple[level, element]
@@ -182,11 +182,11 @@ ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(lhs)};
+                return {mk<RamUndefValue>(), clone(lhs)};
             }
         }
     }
-    return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
+    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
 }
 
 ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
@@ -197,7 +197,7 @@ ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(rhs)};
+                return {mk<RamUndefValue>(), clone(rhs)};
             }
         }
         // <expr> <= Tuple[level, element]
@@ -205,7 +205,7 @@ ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {clone(lhs), std::make_unique<RamUndefValue>()};
+                return {clone(lhs), mk<RamUndefValue>()};
             }
         }
     }
@@ -216,7 +216,7 @@ ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
             const RamExpression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {clone(rhs), std::make_unique<RamUndefValue>()};
+                return {clone(rhs), mk<RamUndefValue>()};
             }
         }
         // <expr> >= Tuple[level, element]
@@ -224,11 +224,11 @@ ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
             const RamExpression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {std::make_unique<RamUndefValue>(), clone(lhs)};
+                return {mk<RamUndefValue>(), clone(lhs)};
             }
         }
     }
-    return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
+    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
 }
 
 // Retrieves the <expr1> <= Tuple[level, element] <= <expr2> part of the constraint as a pair { <expr1>,
@@ -259,17 +259,16 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
             return getFloatExpressionPair(binRelOp, element, identifier);
         }
     }
-    return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
+    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
 }
 
-std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
-        const std::vector<std::string>& attributeTypes, RamPattern& queryPattern, bool& indexable,
-        std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier) {
+Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::string>& attributeTypes,
+        RamPattern& queryPattern, bool& indexable, VecOwn<RamCondition> conditionList, int identifier) {
     // Remaining conditions which cannot be handled by an index
-    std::unique_ptr<RamCondition> condition;
-    auto addCondition = [&](std::unique_ptr<RamCondition> c) {
+    Own<RamCondition> condition;
+    auto addCondition = [&](Own<RamCondition> c) {
         if (condition != nullptr) {
-            condition = std::make_unique<RamConjunction>(std::move(condition), std::move(c));
+            condition = mk<RamConjunction>(std::move(condition), std::move(c));
         } else {
             condition = std::move(c);
         }
@@ -278,8 +277,8 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
     // Build query pattern and remaining condition
     for (auto& cond : conditionList) {
         size_t element = 0;
-        std::unique_ptr<RamExpression> lowerExpression;
-        std::unique_ptr<RamExpression> upperExpression;
+        Own<RamExpression> lowerExpression;
+        Own<RamExpression> upperExpression;
         std::tie(lowerExpression, upperExpression) = getLowerUpperExpression(cond.get(), element, identifier);
 
         // we have new bounds if at least one is defined
@@ -309,19 +308,19 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
                 // simply hoist <expr1> = <expr2> to the outer loop
                 if (!isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
                     // FIXME: `FEQ` handling; need to know if the expr is a float exp or not
-                    addCondition(std::make_unique<RamConstraint>(getEqConstraint(type),
+                    addCondition(mk<RamConstraint>(getEqConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new lower bound i.e. Tuple[level, element] >= <expr2>
                 // we need to hoist <expr1> >= <expr2> to the outer loop
                 else if (!isRamUndefValue(lowerExpression.get()) && isRamUndefValue(upperExpression.get())) {
-                    addCondition(std::make_unique<RamConstraint>(getGreaterEqualConstraint(type),
+                    addCondition(mk<RamConstraint>(getGreaterEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new upper bound i.e. Tuple[level, element] <= <expr2>
                 // we need to hoist <expr1> <= <expr2> to the outer loop
                 else if (isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
-                    addCondition(std::make_unique<RamConstraint>(getLessEqualConstraint(type),
+                    addCondition(mk<RamConstraint>(getLessEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(upperExpression)));
                 }
                 // if either bound is defined but they aren't equal we must consider the cases for updating
@@ -335,13 +334,13 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
                     // if Tuple[level, element] >= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> >= <expr1> to the outer loop
                     if (!isRamUndefValue(queryPattern.first[element].get())) {
-                        addCondition(std::make_unique<RamConstraint>(getGreaterEqualConstraint(type),
+                        addCondition(mk<RamConstraint>(getGreaterEqualConstraint(type),
                                 souffle::clone(lowerExpression), std::move(queryPattern.first[element])));
                     }
                     // if Tuple[level, element] <= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> <= <expr1> to the outer loop
                     if (!isRamUndefValue(queryPattern.second[element].get())) {
-                        addCondition(std::make_unique<RamConstraint>(getLessEqualConstraint(type),
+                        addCondition(mk<RamConstraint>(getLessEqualConstraint(type),
                                 souffle::clone(upperExpression), std::move(queryPattern.second[element])));
                     }
                     // finally replace bounds with equality constraint
@@ -350,21 +349,21 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
                     // if we have a new lower bound
                 } else if (!isRamUndefValue(lowerExpression.get())) {
                     // we want the tightest lower bound so we take the max
-                    std::vector<std::unique_ptr<RamExpression>> maxArguments;
+                    VecOwn<RamExpression> maxArguments;
                     maxArguments.push_back(std::move(queryPattern.first[element]));
                     maxArguments.push_back(std::move(lowerExpression));
 
                     queryPattern.first[element] =
-                            std::make_unique<RamIntrinsicOperator>(getMaxOp(type), std::move(maxArguments));
+                            mk<RamIntrinsicOperator>(getMaxOp(type), std::move(maxArguments));
                     // if we have a new upper bound
                 } else if (!isRamUndefValue(upperExpression.get())) {
                     // we want the tightest upper bound so we take the min
-                    std::vector<std::unique_ptr<RamExpression>> minArguments;
+                    VecOwn<RamExpression> minArguments;
                     minArguments.push_back(std::move(queryPattern.second[element]));
                     minArguments.push_back(std::move(upperExpression));
 
                     queryPattern.second[element] =
-                            std::make_unique<RamIntrinsicOperator>(getMinOp(type), std::move(minArguments));
+                            mk<RamIntrinsicOperator>(getMinOp(type), std::move(minArguments));
                 }
             }
         } else {
@@ -374,60 +373,59 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
 
     // Avoid null-pointers for condition and query pattern
     if (condition == nullptr) {
-        condition = std::make_unique<RamTrue>();
+        condition = mk<RamTrue>();
     }
     return condition;
 }
 
-std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAggregate* agg) {
+Own<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAggregate* agg) {
     if (dynamic_cast<const RamTrue*>(&agg->getCondition()) == nullptr) {
         const RamRelation& rel = agg->getRelation();
         int identifier = agg->getTupleId();
         RamPattern queryPattern;
         for (unsigned int i = 0; i < rel.getArity(); ++i) {
-            queryPattern.first.push_back(std::make_unique<RamUndefValue>());
-            queryPattern.second.push_back(std::make_unique<RamUndefValue>());
+            queryPattern.first.push_back(mk<RamUndefValue>());
+            queryPattern.second.push_back(mk<RamUndefValue>());
         }
 
         bool indexable = false;
-        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern,
-                indexable, toConjunctionList(&agg->getCondition()), identifier);
+        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
+                toConjunctionList(&agg->getCondition()), identifier);
         if (indexable) {
-            return std::make_unique<RamIndexAggregate>(souffle::clone(&agg->getOperation()),
-                    agg->getFunction(), std::make_unique<RamRelationReference>(&rel),
-                    souffle::clone(&agg->getExpression()), std::move(condition), std::move(queryPattern),
-                    agg->getTupleId());
+            return mk<RamIndexAggregate>(souffle::clone(&agg->getOperation()), agg->getFunction(),
+                    mk<RamRelationReference>(&rel), souffle::clone(&agg->getExpression()),
+                    std::move(condition), std::move(queryPattern), agg->getTupleId());
         }
     }
     return nullptr;
 }
 
-std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* scan) {
+Own<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* scan) {
     if (const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
         const RamRelation& rel = scan->getRelation();
         const int identifier = scan->getTupleId();
         RamPattern queryPattern;
         for (unsigned int i = 0; i < rel.getArity(); ++i) {
-            queryPattern.first.push_back(std::make_unique<RamUndefValue>());
-            queryPattern.second.push_back(std::make_unique<RamUndefValue>());
+            queryPattern.first.push_back(mk<RamUndefValue>());
+            queryPattern.second.push_back(mk<RamUndefValue>());
         }
 
         bool indexable = false;
-        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern,
-                indexable, toConjunctionList(&filter->getCondition()), identifier);
+        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
+                toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
-            std::unique_ptr<RamOperation> op = souffle::clone(&filter->getOperation());
+            Own<RamOperation> op = souffle::clone(&filter->getOperation());
             if (!isRamTrue(condition.get())) {
-                op = std::make_unique<RamFilter>(std::move(condition), std::move(op));
+                op = mk<RamFilter>(std::move(condition), std::move(op));
             }
-            return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern), std::move(op), scan->getProfileText());
+            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier, std::move(queryPattern),
+                    std::move(op), scan->getProfileText());
         }
     }
     return nullptr;
 }
 
-std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIndexScan* iscan) {
+Own<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIndexScan* iscan) {
     if (const auto* filter = dynamic_cast<const RamFilter*>(&iscan->getOperation())) {
         const RamRelation& rel = iscan->getRelation();
         const int identifier = iscan->getTupleId();
@@ -438,17 +436,17 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
 
         bool indexable = false;
         // strengthen the pattern with construct pattern
-        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(),
-                strengthenedPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
+        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), strengthenedPattern,
+                indexable, toConjunctionList(&filter->getCondition()), identifier);
 
         if (indexable) {
             // Merge Index Pattern here
 
-            std::unique_ptr<RamOperation> op = souffle::clone(&filter->getOperation());
+            Own<RamOperation> op = souffle::clone(&filter->getOperation());
             if (!isRamTrue(condition.get())) {
-                op = std::make_unique<RamFilter>(std::move(condition), std::move(op));
+                op = mk<RamFilter>(std::move(condition), std::move(op));
             }
-            return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
+            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier,
                     std::move(strengthenedPattern), std::move(op), iscan->getProfileText());
         }
     }
@@ -458,22 +456,21 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
 bool MakeIndexTransformer::makeIndex(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> scanRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> scanRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamScan* scan = dynamic_cast<RamScan*>(node.get())) {
                 if (scan->getRelation().getRepresentation() != RelationRepresentation::INFO) {
-                    if (std::unique_ptr<RamOperation> op = rewriteScan(scan)) {
+                    if (Own<RamOperation> op = rewriteScan(scan)) {
                         changed = true;
                         node = std::move(op);
                     }
                 }
             } else if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
-                if (std::unique_ptr<RamOperation> op = rewriteIndexScan(iscan)) {
+                if (Own<RamOperation> op = rewriteIndexScan(iscan)) {
                     changed = true;
                     node = std::move(op);
                 }
             } else if (const RamAggregate* agg = dynamic_cast<RamAggregate*>(node.get())) {
-                if (std::unique_ptr<RamOperation> op = rewriteAggregate(agg)) {
+                if (Own<RamOperation> op = rewriteAggregate(agg)) {
                     changed = true;
                     node = std::move(op);
                 }

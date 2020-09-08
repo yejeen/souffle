@@ -19,6 +19,7 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/IndexOperation.h"
+#include "ram/IndexScan.h"
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
@@ -52,8 +53,8 @@ namespace souffle {
  */
 class RamParallelIndexScan : public RamIndexScan, public RamAbstractParallel {
 public:
-    RamParallelIndexScan(std::unique_ptr<RamRelationReference> rel, int ident, RamPattern queryPattern,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamParallelIndexScan(Own<RamRelationReference> rel, int ident, RamPattern queryPattern,
+            Own<RamOperation> nested, std::string profileText = "")
             : RamIndexScan(std::move(rel), ident, std::move(queryPattern), std::move(nested), profileText) {}
 
     RamParallelIndexScan* clone() const override {

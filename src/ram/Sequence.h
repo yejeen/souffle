@@ -32,11 +32,10 @@ namespace souffle {
  */
 class RamSequence : public RamListStatement {
 public:
-    RamSequence(std::vector<std::unique_ptr<RamStatement>> statements)
-            : RamListStatement(std::move(statements)) {}
+    RamSequence(VecOwn<RamStatement> statements) : RamListStatement(std::move(statements)) {}
     RamSequence() : RamListStatement() {}
     template <typename... Stmts>
-    RamSequence(std::unique_ptr<RamStatement> first, std::unique_ptr<Stmts>... rest)
+    RamSequence(Own<RamStatement> first, Own<Stmts>... rest)
             : RamListStatement(std::move(first), std::move(rest)...) {}
 
     RamSequence* clone() const override {

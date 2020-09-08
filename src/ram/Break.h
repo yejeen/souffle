@@ -44,8 +44,7 @@ namespace souffle {
  */
 class RamBreak : public RamAbstractConditional {
 public:
-    RamBreak(std::unique_ptr<RamCondition> cond, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamBreak(Own<RamCondition> cond, Own<RamOperation> nested, std::string profileText = "")
             : RamAbstractConditional(std::move(cond), std::move(nested), std::move(profileText)) {}
 
     RamBreak* clone() const override {

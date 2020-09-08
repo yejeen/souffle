@@ -17,7 +17,7 @@
 #include "ram/Node.h"
 #include "ram/NodeMapper.h"
 #include "ram/Operation.h"
-#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <iosfwd>
 #include <memory>
@@ -47,9 +47,9 @@ namespace souffle {
  */
 class RamNestedOperation : public RamOperation {
 public:
-    RamNestedOperation(std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamNestedOperation(Own<RamOperation> nested, std::string profileText = "")
             : nestedOperation(std::move(nested)), profileText(std::move(profileText)) {
-        assert(nullptr != nestedOperation);
+        assert(nestedOperation != nullptr);
     }
 
     RamNestedOperation* clone() const override = 0;
@@ -83,7 +83,7 @@ protected:
     }
 
     /** Nested operation */
-    std::unique_ptr<RamOperation> nestedOperation;
+    Own<RamOperation> nestedOperation;
 
     /** Text used by the profiler */
     const std::string profileText;

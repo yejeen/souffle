@@ -21,11 +21,15 @@
 #include "GraphUtils.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
+#include "ast/AlgebraicDataType.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
+#include "ast/BranchDeclaration.h"
+#include "ast/BranchInit.h"
 #include "ast/Clause.h"
+#include "ast/Constant.h"
 #include "ast/Counter.h"
 #include "ast/Directive.h"
 #include "ast/ExecutionOrder.h"
@@ -68,7 +72,7 @@
 #include "parser/SrcLocation.h"
 #include "reports/ErrorReport.h"
 #include "souffle/BinaryConstraintOps.h"
-#include "souffle/RamTypes.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -89,7 +93,6 @@
 #include <vector>
 
 namespace souffle {
-class AstConstant;
 
 struct AstSemanticCheckerImpl {
     AstTranslationUnit& tu;
@@ -673,7 +676,7 @@ void AstSemanticCheckerImpl::checkUnionType(const AstUnionType& type) {
     /* check that union types do not mix different primitive types */
     for (const auto* type : program.getTypes()) {
         // We are only interested in unions here.
-        if (dynamic_cast<const AstUnionType*>(type) == nullptr) {
+        if (!isA<AstUnionType>(type)) {
             continue;
         }
 
@@ -816,8 +819,7 @@ void AstSemanticCheckerImpl::checkIO() {
 }
 
 static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
-        const std::vector<AstLiteral*>& literals,
-        const std::set<std::unique_ptr<AstArgument>>& groundedArguments) {
+        const std::vector<AstLiteral*>& literals, const std::set<Own<AstArgument>>& groundedArguments) {
     // Node-mapper that replaces aggregators with new (unique) variables
     struct M : public AstNodeMapper {
         // Variables introduced to replace aggregators
@@ -827,9 +829,9 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
             return aggregatorVariables;
         }
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             static int numReplaced = 0;
-            if (dynamic_cast<AstAggregator*>(node.get()) != nullptr) {
+            if (isA<AstAggregator>(node.get())) {
                 // Replace the aggregator with a variable
                 std::stringstream newVariableName;
                 newVariableName << "+aggr_var_" << numReplaced++;
@@ -837,7 +839,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
                 // Keep track of which variables are bound to aggregators
                 aggregatorVariables.insert(newVariableName.str());
 
-                return std::make_unique<AstVariable>(newVariableName.str());
+                return mk<AstVariable>(newVariableName.str());
             }
             node->apply(*this);
             return node;
@@ -849,12 +851,12 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     // Create two versions of the original clause
 
     // Clause 1 - will remain equivalent to the original clause in terms of variable groundedness
-    auto originalClause = std::make_unique<AstClause>();
-    originalClause->setHead(std::make_unique<AstAtom>("*"));
+    auto originalClause = mk<AstClause>();
+    originalClause->setHead(mk<AstAtom>("*"));
 
     // Clause 2 - will have aggregators replaced with intrinsically grounded variables
-    auto aggregatorlessClause = std::make_unique<AstClause>();
-    aggregatorlessClause->setHead(std::make_unique<AstAtom>("*"));
+    auto aggregatorlessClause = mk<AstClause>();
+    aggregatorlessClause->setHead(mk<AstAtom>("*"));
 
     // Construct both clauses in the same manner to match the original clause
     // Must keep track of the subnode in Clause 1 that each subnode in Clause 2 matches to
@@ -884,17 +886,17 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     aggregatorlessClause->apply(update);
 
     // Create a dummy atom to force certain arguments to be grounded in the aggregatorlessClause
-    auto groundingAtomAggregatorless = std::make_unique<AstAtom>("grounding_atom");
-    auto groundingAtomOriginal = std::make_unique<AstAtom>("grounding_atom");
+    auto groundingAtomAggregatorless = mk<AstAtom>("grounding_atom");
+    auto groundingAtomOriginal = mk<AstAtom>("grounding_atom");
 
     // Force the new aggregator variables to be grounded in the aggregatorless clause
     const std::set<std::string>& aggregatorVariables = update.getAggregatorVariables();
     for (const std::string& str : aggregatorVariables) {
-        groundingAtomAggregatorless->addArgument(std::make_unique<AstVariable>(str));
+        groundingAtomAggregatorless->addArgument(mk<AstVariable>(str));
     }
 
     // Force the given grounded arguments to be grounded in both clauses
-    for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
+    for (const Own<AstArgument>& arg : groundedArguments) {
         groundingAtomAggregatorless->addArgument(souffle::clone(arg));
         groundingAtomOriginal->addArgument(souffle::clone(arg));
     }
@@ -908,7 +910,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     //   - The argument is also ungrounded in Clause 1 - handled by another check
     //   - The argument is grounded in Clause 1 => the argument was grounded in the
     //     first clause somewhere along the line by an aggregator-body - not allowed!
-    std::set<std::unique_ptr<AstArgument>> newlyGroundedArguments;
+    std::set<Own<AstArgument>> newlyGroundedArguments;
     auto originalGrounded = getGroundedTerms(tu, *originalClause);
     for (auto&& pair : getGroundedTerms(tu, *aggregatorlessClause)) {
         if (!pair.second && originalGrounded[identicalSubnodeMap[pair.first]]) {
@@ -920,7 +922,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     }
 
     // All previously grounded are still grounded
-    for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
+    for (const Own<AstArgument>& arg : groundedArguments) {
         newlyGroundedArguments.insert(souffle::clone(arg));
     }
 
@@ -944,14 +946,14 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
         std::vector<AstLiteral*> bodyLiterals = clause.getBodyLiterals();
 
         // Add in all head variables as new ungrounded body literals
-        auto headVariables = std::make_unique<AstAtom>("*");
+        auto headVariables = mk<AstAtom>("*");
         visitDepthFirst(*clause.getHead(),
                 [&](const AstVariable& var) { headVariables->addArgument(souffle::clone(&var)); });
-        auto headNegation = std::make_unique<AstNegation>(std::move(headVariables));
+        auto headNegation = mk<AstNegation>(std::move(headVariables));
         bodyLiterals.push_back(headNegation.get());
 
         // Perform the check
-        std::set<std::unique_ptr<AstArgument>> groundedArguments;
+        std::set<Own<AstArgument>> groundedArguments;
         for (auto&& invalidArgument : usesInvalidWitness(tu, bodyLiterals, groundedArguments)) {
             report.addError(
                     "Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in "
@@ -1106,7 +1108,7 @@ void AstSemanticCheckerImpl::checkInlining() {
         AstRelation* associatedRelation = getRelation(program, atom.getQualifiedName());
         if (associatedRelation != nullptr && isInline(associatedRelation)) {
             visitDepthFirst(atom, [&](const AstArgument& arg) {
-                if (dynamic_cast<const AstCounter*>(&arg) != nullptr) {
+                if (isA<AstCounter>(&arg)) {
                     report.addError(
                             "Cannot inline literal containing a counter argument '$'", arg.getSrcLoc());
                 }
@@ -1118,7 +1120,7 @@ void AstSemanticCheckerImpl::checkInlining() {
     for (const AstRelation* rel : inlinedRelations) {
         for (AstClause* clause : getClauses(program, *rel)) {
             visitDepthFirst(*clause, [&](const AstArgument& arg) {
-                if (dynamic_cast<const AstCounter*>(&arg) != nullptr) {
+                if (isA<AstCounter>(&arg)) {
                     report.addError(
                             "Cannot inline clause containing a counter argument '$'", arg.getSrcLoc());
                 }
@@ -1211,10 +1213,10 @@ void AstSemanticCheckerImpl::checkInlining() {
     //  - lastSrcLoc is the source location of the last visited node
     std::function<std::pair<bool, SrcLocation>(const AstNode*)> checkInvalidUnderscore =
             [&](const AstNode* node) {
-                if (dynamic_cast<const AstUnnamedVariable*>(node) != nullptr) {
+                if (isA<AstUnnamedVariable>(node)) {
                     // Found an invalid underscore
                     return std::make_pair(true, node->getSrcLoc());
-                } else if (dynamic_cast<const AstAggregator*>(node) != nullptr) {
+                } else if (isA<AstAggregator>(node)) {
                     // Don't care about underscores within aggregators
                     return std::make_pair(false, node->getSrcLoc());
                 }

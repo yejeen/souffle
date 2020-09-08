@@ -30,8 +30,8 @@
 namespace souffle {
 
 /** Pattern type for lower/upper bound */
-using RamPattern =
-        std::pair<std::vector<std::unique_ptr<RamExpression>>, std::vector<std::unique_ptr<RamExpression>>>;
+using RamBound = VecOwn<RamExpression>;
+using RamPattern = std::pair<RamBound, RamBound>;
 
 /**
  * @class RamIndexScan
@@ -47,8 +47,8 @@ using RamPattern =
  */
 class RamIndexScan : public RamIndexOperation {
 public:
-    RamIndexScan(std::unique_ptr<RamRelationReference> r, int ident, RamPattern queryPattern,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamIndexScan(Own<RamRelationReference> r, int ident, RamPattern queryPattern, Own<RamOperation> nested,
+            std::string profileText = "")
             : RamIndexOperation(std::move(r), ident, std::move(queryPattern), std::move(nested),
                       std::move(profileText)) {}
 

@@ -11,10 +11,13 @@
 #include "ram/Relation.h"
 #include "ram/analysis/Index.h"
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <set>
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace souffle {
 
@@ -71,7 +74,7 @@ public:
     virtual void generateTypeStruct(std::ostream& out) = 0;
 
     /** Factory method to generate a SynthesiserRelation */
-    static std::unique_ptr<SynthesiserRelation> getSynthesiserRelation(
+    static Own<SynthesiserRelation> getSynthesiserRelation(
             const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance);
 
 protected:

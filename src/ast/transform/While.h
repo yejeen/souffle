@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ast/TranslationUnit.h"
 #include "ast/transform/DebugReporter.h"
 #include "ast/transform/Meta.h"
 #include "ast/transform/Null.h"
@@ -28,17 +29,15 @@
 
 namespace souffle {
 
-class AstTranslationUnit;
-
 /**
  * Transformer that repeatedly executes a sub-transformer while a condition is met
  */
 class WhileTransformer : public MetaTransformer {
 public:
-    WhileTransformer(std::function<bool()> cond, std::unique_ptr<AstTransformer> transformer)
+    WhileTransformer(std::function<bool()> cond, Own<AstTransformer> transformer)
             : condition(std::move(cond)), transformer(std::move(transformer)) {}
 
-    WhileTransformer(bool cond, std::unique_ptr<AstTransformer> transformer)
+    WhileTransformer(bool cond, Own<AstTransformer> transformer)
             : condition([=]() { return cond; }), transformer(std::move(transformer)) {}
 
     std::vector<AstTransformer*> getSubtransformers() const override {
@@ -48,7 +47,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
             mt->setDebugReport();
         } else {
-            transformer = std::make_unique<DebugReporter>(std::move(transformer));
+            transformer = mk<DebugReporter>(std::move(transformer));
         }
     }
 
@@ -63,7 +62,7 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(transformer->getName()) != transforms.end()) {
-            transformer = std::make_unique<NullTransformer>();
+            transformer = mk<NullTransformer>();
         }
     }
 
@@ -77,7 +76,7 @@ public:
 
 private:
     std::function<bool()> condition;
-    std::unique_ptr<AstTransformer> transformer;
+    Own<AstTransformer> transformer;
 
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;

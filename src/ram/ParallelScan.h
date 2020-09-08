@@ -16,26 +16,18 @@
 
 #pragma once
 
-#include "AggregateOp.h"
 #include "ram/AbstractParallel.h"
-#include "ram/Condition.h"
-#include "ram/Expression.h"
-#include "ram/Node.h"
-#include "ram/NodeMapper.h"
+#include "ram/Operation.h"
 #include "ram/Relation.h"
+#include "ram/RelationOperation.h"
 #include "ram/Scan.h"
-#include "ram/Utils.h"
-#include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
-#include <cassert>
-#include <cstddef>
 #include <iosfwd>
 #include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
-#include <vector>
 
 namespace souffle {
 
@@ -53,8 +45,8 @@ namespace souffle {
  */
 class RamParallelScan : public RamScan, public RamAbstractParallel {
 public:
-    RamParallelScan(std::unique_ptr<RamRelationReference> rel, int ident,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+    RamParallelScan(
+            Own<RamRelationReference> rel, int ident, Own<RamOperation> nested, std::string profileText = "")
             : RamScan(std::move(rel), ident, std::move(nested), profileText) {}
 
     RamParallelScan* clone() const override {

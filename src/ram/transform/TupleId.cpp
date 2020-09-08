@@ -42,13 +42,11 @@ bool TupleIdTransformer::reorderOperations(RamProgram& program) {
             ctr++;
         });
 
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> elementRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> elementRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (auto* element = dynamic_cast<RamTupleElement*>(node.get())) {
                 if (reorder[element->getTupleId()] != element->getTupleId()) {
                     changed = true;
-                    node = std::make_unique<RamTupleElement>(
-                            reorder[element->getTupleId()], element->getElement());
+                    node = mk<RamTupleElement>(reorder[element->getTupleId()], element->getElement());
                 }
             }
             node->apply(makeLambdaRamMapper(elementRewriter));

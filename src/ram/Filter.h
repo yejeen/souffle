@@ -44,8 +44,7 @@ namespace souffle {
  */
 class RamFilter : public RamAbstractConditional {
 public:
-    RamFilter(std::unique_ptr<RamCondition> cond, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+    RamFilter(Own<RamCondition> cond, Own<RamOperation> nested, std::string profileText = "")
             : RamAbstractConditional(std::move(cond), std::move(nested), std::move(profileText)) {}
 
     RamFilter* clone() const override {

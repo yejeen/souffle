@@ -94,9 +94,9 @@ void normaliseInlinedHeads(AstProgram& program) {
 
         for (AstClause* clause : getClauses(program, *rel)) {
             // Set up the new clause with an empty body and no arguments in the head
-            auto newClause = std::make_unique<AstClause>();
+            auto newClause = mk<AstClause>();
             newClause->setSrcLoc(clause->getSrcLoc());
-            auto clauseHead = std::make_unique<AstAtom>(clause->getHead()->getQualifiedName());
+            auto clauseHead = mk<AstAtom>(clause->getHead()->getQualifiedName());
 
             // Add in everything in the original body
             for (AstLiteral* lit : clause->getBodyLiterals()) {
@@ -109,7 +109,7 @@ void normaliseInlinedHeads(AstProgram& program) {
                     // Found a constant in the head, so replace it with a variable
                     std::stringstream newVar;
                     newVar << "<new_var_" << newVarCount++ << ">";
-                    clauseHead->addArgument(std::make_unique<AstVariable>(newVar.str()));
+                    clauseHead->addArgument(mk<AstVariable>(newVar.str()));
 
                     auto* const c_num = dynamic_cast<const AstNumericConstant*>(constant);
                     assert((!c_num || c_num->getType()) && "numeric constant wasn't bound to a type");
@@ -118,8 +118,8 @@ void normaliseInlinedHeads(AstProgram& program) {
                                         : BinaryConstraintOp::EQ;
 
                     // Add a body constraint to set the variable's value to be the original constant
-                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(
-                            opEq, std::make_unique<AstVariable>(newVar.str()), souffle::clone(constant)));
+                    newClause->addToBody(mk<AstBinaryConstraint>(
+                            opEq, mk<AstVariable>(newVar.str()), souffle::clone(constant)));
                 } else {
                     // Already a variable
                     clauseHead->addArgument(souffle::clone(arg));
@@ -146,7 +146,7 @@ void nameInlinedUnderscores(AstProgram& program) {
         M(std::set<AstQualifiedName> inlinedRelations, bool replaceUnderscores)
                 : inlinedRelations(std::move(inlinedRelations)), replaceUnderscores(replaceUnderscores) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             static int underscoreCount = 0;
 
             if (!replaceUnderscores) {
@@ -160,13 +160,13 @@ void nameInlinedUnderscores(AstProgram& program) {
                         return node;
                     }
                 }
-            } else if (dynamic_cast<AstUnnamedVariable*>(node.get()) != nullptr) {
+            } else if (isA<AstUnnamedVariable>(node.get())) {
                 // Give a unique name to the underscored variable
                 // TODO (azreika): need a more consistent way of handling internally generated variables in
                 // general
                 std::stringstream newVarName;
                 newVarName << "<underscore_" << underscoreCount++ << ">";
-                return std::make_unique<AstVariable>(newVarName.str());
+                return mk<AstVariable>(newVarName.str());
             }
 
             node->apply(*this);
@@ -208,10 +208,6 @@ bool containsInlinedAtom(const AstProgram& program, const AstClause& clause) {
  * Returns false only if matched argument pairs are found to be incompatible.
  */
 bool reduceSubstitution(std::vector<std::pair<AstArgument*, AstArgument*>>& sub) {
-    // Type-Checking functions
-    auto isConstant = [&](AstArgument* arg) { return dynamic_cast<AstConstant*>(arg) != nullptr; };
-    auto isRecord = [&](AstArgument* arg) { return dynamic_cast<AstRecordInit*>(arg) != nullptr; };
-
     // Keep trying to reduce the substitutions until we reach a fixed point.
     // Note that at this point no underscores ('_') or counters ('$') should appear.
     bool done = false;
@@ -230,11 +226,11 @@ bool reduceSubstitution(std::vector<std::pair<AstArgument*, AstArgument*>>& sub)
                 // Get rid of redundant `x = x`
                 sub.erase(sub.begin() + i);
                 done = false;
-            } else if (isConstant(lhs) && isConstant(rhs)) {
+            } else if (isA<AstConstant>(lhs) && isA<AstConstant>(rhs)) {
                 // Both are constants but not equal (prev case => !=)
                 // Failed to unify!
                 return false;
-            } else if (isRecord(lhs) && isRecord(rhs)) {
+            } else if (isA<AstRecordInit>(lhs) && isA<AstRecordInit>(rhs)) {
                 // Note: we will not deal with the case where only one side is
                 // a record and the other is a variable, as variables can be records
                 // on a deeper level.
@@ -254,7 +250,8 @@ bool reduceSubstitution(std::vector<std::pair<AstArgument*, AstArgument*>>& sub)
                 // Get rid of the record equality
                 sub.erase(sub.begin() + i);
                 done = false;
-            } else if ((isRecord(lhs) && isConstant(rhs)) || (isConstant(lhs) && isRecord(rhs))) {
+            } else if ((isA<AstRecordInit>(lhs) && isA<AstConstant>(rhs)) ||
+                       (isA<AstConstant>(lhs) && isA<AstRecordInit>(rhs))) {
                 // A record =/= a constant
                 return false;
             }
@@ -311,7 +308,7 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
     struct VariableRenamer : public AstNodeMapper {
         int varnum;
         VariableRenamer(int varnum) : varnum(varnum) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 // Rename the variable
                 auto newVar = souffle::clone(var);
@@ -494,7 +491,7 @@ void renameVariables(AstArgument* arg) {
     struct M : public AstNodeMapper {
         int varnum;
         M(int varnum) : varnum(varnum) {}
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 auto newVar = souffle::clone(var);
                 std::stringstream newName;
@@ -525,8 +522,8 @@ AstArgument* combineAggregators(std::vector<AstAggregator*> aggrs, std::string f
 
     AstArgument* rhs = combineAggregators(std::vector<AstAggregator*>(aggrs.begin() + 1, aggrs.end()), fun);
 
-    AstArgument* result = new AstIntrinsicFunctor(
-            std::move(fun), std::unique_ptr<AstArgument>(aggrs[0]), std::unique_ptr<AstArgument>(rhs));
+    AstArgument* result =
+            new AstIntrinsicFunctor(std::move(fun), Own<AstArgument>(aggrs[0]), Own<AstArgument>(rhs));
 
     return result;
 }
@@ -555,9 +552,8 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
 
                 // Create a new aggregator per version of the target expression
                 for (AstArgument* newArg : argumentVersions.getVector()) {
-                    auto* newAggr =
-                            new AstAggregator(aggr->getOperator(), std::unique_ptr<AstArgument>(newArg));
-                    std::vector<std::unique_ptr<AstLiteral>> newBody;
+                    auto* newAggr = new AstAggregator(aggr->getOperator(), Own<AstArgument>(newArg));
+                    VecOwn<AstLiteral> newBody;
                     for (AstLiteral* lit : aggr->getBodyLiterals()) {
                         newBody.push_back(souffle::clone(lit));
                     }
@@ -586,13 +582,13 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                     // Create an aggregator (with the same operation) for each possible body
                     std::vector<AstAggregator*> aggrVersions;
                     for (std::vector<AstLiteral*> inlineVersions : literalVersions.getVector()) {
-                        std::unique_ptr<AstArgument> target;
+                        Own<AstArgument> target;
                         if (aggr->getTargetExpression() != nullptr) {
                             target = souffle::clone(aggr->getTargetExpression());
                         }
                         auto* newAggr = new AstAggregator(aggr->getOperator(), std::move(target));
 
-                        std::vector<std::unique_ptr<AstLiteral>> newBody;
+                        VecOwn<AstLiteral> newBody;
                         // Add in everything except the current literal being replaced
                         for (size_t j = 0; j < bodyLiterals.size(); j++) {
                             if (i != j) {
@@ -602,7 +598,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
 
                         // Add in everything new that replaces that literal
                         for (AstLiteral* addedLit : inlineVersions) {
-                            newBody.push_back(std::unique_ptr<AstLiteral>(addedLit));
+                            newBody.push_back(Own<AstLiteral>(addedLit));
                         }
 
                         newAggr->setBody(std::move(newBody));
@@ -650,7 +646,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                 changed = true;
                 for (AstArgument* newArgVersion : argumentVersions.getVector()) {
                     // same functor but with new argument version
-                    std::vector<std::unique_ptr<AstArgument>> argsCopy;
+                    VecOwn<AstArgument> argsCopy;
                     size_t j = 0;
                     for (auto& functorArg : functor->getArguments()) {
                         if (j == i) {
@@ -682,8 +678,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
         if (argumentVersions.isValid()) {
             changed = true;
             for (AstArgument* newArg : argumentVersions.getVector()) {
-                AstArgument* newTypeCast =
-                        new AstTypeCast(std::unique_ptr<AstArgument>(newArg), cast->getType());
+                AstArgument* newTypeCast = new AstTypeCast(Own<AstArgument>(newArg), cast->getType());
                 versions.push_back(newTypeCast);
             }
         }
@@ -698,7 +693,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                     auto* newRecordArg = new AstRecordInit();
                     for (size_t j = 0; j < recordArguments.size(); j++) {
                         if (i == j) {
-                            newRecordArg->addArgument(std::unique_ptr<AstArgument>(newArgumentVersion));
+                            newRecordArg->addArgument(Own<AstArgument>(newArgumentVersion));
                         } else {
                             newRecordArg->addArgument(souffle::clone(recordArguments[j]));
                         }
@@ -745,7 +740,7 @@ NullableVector<AstAtom*> getInlinedAtom(AstProgram& program, AstAtom& atom) {
             // Create a new atom per new version of the argument
             for (AstArgument* newArgument : argumentVersions.getVector()) {
                 auto args = atom.getArguments();
-                std::vector<std::unique_ptr<AstArgument>> newArgs;
+                VecOwn<AstArgument> newArgs;
                 for (size_t j = 0; j < args.size(); j++) {
                     if (j == i) {
                         newArgs.emplace_back(newArgument);
@@ -871,7 +866,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
             changed = true;
             for (AstArgument* newLhs : lhsVersions.getVector()) {
                 AstLiteral* newLit = new AstBinaryConstraint(constraint->getOperator(),
-                        std::unique_ptr<AstArgument>(newLhs), souffle::clone(constraint->getRHS()));
+                        Own<AstArgument>(newLhs), souffle::clone(constraint->getRHS()));
                 versions.push_back(newLit);
             }
         } else {
@@ -880,7 +875,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
                 changed = true;
                 for (AstArgument* newRhs : rhsVersions.getVector()) {
                     AstLiteral* newLit = new AstBinaryConstraint(constraint->getOperator(),
-                            souffle::clone(constraint->getLHS()), std::unique_ptr<AstArgument>(newRhs));
+                            souffle::clone(constraint->getLHS()), Own<AstArgument>(newRhs));
                     versions.push_back(newLit);
                 }
             }
@@ -926,7 +921,7 @@ std::vector<AstClause*> getInlinedClause(AstProgram& program, const AstClause& c
             auto* newClause = new AstClause();
             newClause->setSrcLoc(clause.getSrcLoc());
 
-            newClause->setHead(std::unique_ptr<AstAtom>(newHead));
+            newClause->setHead(Own<AstAtom>(newHead));
 
             // The body will remain unchanged
             for (AstLiteral* lit : clause.getBodyLiterals()) {
@@ -962,7 +957,7 @@ std::vector<AstClause*> getInlinedClause(AstProgram& program, const AstClause& c
                 std::vector<std::vector<AstLiteral*>> bodyVersions = litVersions.getVector();
 
                 // Create the base clause with the current literal removed
-                auto baseClause = std::unique_ptr<AstClause>(cloneHead(&clause));
+                auto baseClause = Own<AstClause>(cloneHead(&clause));
                 for (AstLiteral* oldLit : bodyLiterals) {
                     if (currLit != oldLit) {
                         baseClause->addToBody(souffle::clone(oldLit));
@@ -975,7 +970,7 @@ std::vector<AstClause*> getInlinedClause(AstProgram& program, const AstClause& c
                     // Add in the current set of literals replacing the inlined literal
                     // In Case 2, each body contains exactly one literal
                     for (AstLiteral* newLit : body) {
-                        replacementClause->addToBody(std::unique_ptr<AstLiteral>(newLit));
+                        replacementClause->addToBody(Own<AstLiteral>(newLit));
                     }
 
                     versions.push_back(replacementClause);
@@ -1035,7 +1030,7 @@ bool InlineRelationsTransformer::transform(AstTranslationUnit& translationUnit) 
                     // Replace the clause with these equivalent versions
                     clausesToDelete.insert(clause);
                     for (AstClause* replacementClause : newClauses) {
-                        program.addClause(std::unique_ptr<AstClause>(replacementClause));
+                        program.addClause(Own<AstClause>(replacementClause));
                     }
 
                     // We've changed the program this iteration

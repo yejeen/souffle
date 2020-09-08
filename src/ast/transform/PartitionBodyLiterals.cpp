@@ -24,6 +24,7 @@
 #include "ast/Variable.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <ostream>
@@ -156,13 +157,13 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
             // Create the extracted relation and clause for the component
             // newrelX() <- disconnectedLiterals(x).
-            auto newRelation = std::make_unique<AstRelation>();
+            auto newRelation = mk<AstRelation>();
             newRelation->setQualifiedName(newRelationName);
             program.addRelation(std::move(newRelation));
 
             auto* disconnectedClause = new AstClause();
             disconnectedClause->setSrcLoc(clause.getSrcLoc());
-            disconnectedClause->setHead(std::make_unique<AstAtom>(newRelationName));
+            disconnectedClause->setHead(mk<AstAtom>(newRelationName));
 
             // Find the body literals for this connected component
             std::vector<AstLiteral*> associatedLiterals;
@@ -193,7 +194,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
         // Add the new propositions to the clause first
         for (AstAtom* newAtom : replacementAtoms) {
-            replacementClause->addToBody(std::unique_ptr<AstLiteral>(newAtom));
+            replacementClause->addToBody(Own<AstLiteral>(newAtom));
         }
 
         // Add the remaining body literals to the clause
@@ -218,7 +219,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
 
     // Adjust the program
     for (AstClause* newClause : clausesToAdd) {
-        program.addClause(std::unique_ptr<AstClause>(newClause));
+        program.addClause(Own<AstClause>(newClause));
     }
 
     for (const AstClause* oldClause : clausesToRemove) {

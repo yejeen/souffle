@@ -15,10 +15,37 @@
  ***********************************************************************/
 
 #include "ram/analysis/Level.h"
+#include "ram/Aggregate.h"
+#include "ram/AutoIncrement.h"
+#include "ram/Break.h"
+#include "ram/Choice.h"
 #include "ram/Condition.h"
+#include "ram/Conjunction.h"
+#include "ram/Constant.h"
+#include "ram/Constraint.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
+#include "ram/False.h"
+#include "ram/Filter.h"
+#include "ram/IndexAggregate.h"
+#include "ram/IndexChoice.h"
+#include "ram/IndexScan.h"
+#include "ram/IntrinsicOperator.h"
+#include "ram/Negation.h"
 #include "ram/Node.h"
 #include "ram/Operation.h"
+#include "ram/PackRecord.h"
+#include "ram/Project.h"
+#include "ram/ProvenanceExistenceCheck.h"
+#include "ram/Scan.h"
+#include "ram/SubroutineArgument.h"
+#include "ram/SubroutineReturn.h"
+#include "ram/True.h"
+#include "ram/TupleElement.h"
+#include "ram/UndefValue.h"
+#include "ram/UnpackRecord.h"
+#include "ram/UserDefinedOperator.h"
 #include "ram/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
@@ -223,9 +250,7 @@ int RamLevelAnalysis::getLevel(const RamNode* node) const {
         }
     };
 
-    assert((dynamic_cast<const RamExpression*>(node) != nullptr ||
-                   dynamic_cast<const RamCondition*>(node) != nullptr ||
-                   dynamic_cast<const RamOperation*>(node) != nullptr) &&
+    assert((isA<RamExpression>(node) || isA<RamCondition>(node) || isA<RamOperation>(node)) &&
             "not an expression/condition/operation");
     return ValueLevelVisitor().visit(node);
 }

@@ -42,8 +42,7 @@ namespace souffle {
  */
 class RamDebugInfo : public RamStatement, public RamAbstractLog {
 public:
-    RamDebugInfo(std::unique_ptr<RamStatement> stmt, std::string msg)
-            : RamAbstractLog(std::move(stmt), std::move(msg)) {}
+    RamDebugInfo(Own<RamStatement> stmt, std::string msg) : RamAbstractLog(std::move(stmt), std::move(msg)) {}
 
     std::vector<const RamNode*> getChildNodes() const override {
         return RamAbstractLog::getChildNodes();

@@ -37,7 +37,7 @@ namespace souffle {
 class RamUserDefinedOperator : public RamAbstractOperator {
 public:
     RamUserDefinedOperator(std::string n, std::vector<TypeAttribute> argsTypes, TypeAttribute returnType,
-            bool stateful, std::vector<std::unique_ptr<RamExpression>> args)
+            bool stateful, VecOwn<RamExpression> args)
             : RamAbstractOperator(std::move(args)), name(std::move(n)), argsTypes(std::move(argsTypes)),
               returnType(returnType), stateful(stateful) {
         assert(argsTypes.size() == args.size());
@@ -79,9 +79,9 @@ protected:
         if (stateful) {
             os << "_stateful";
         }
-        os << "(" << join(arguments, ",", [](std::ostream& out, const std::unique_ptr<RamExpression>& arg) {
-            out << *arg;
-        }) << ")";
+        os << "("
+           << join(arguments, ",", [](std::ostream& out, const Own<RamExpression>& arg) { out << *arg; })
+           << ")";
     }
 
     bool equal(const RamNode& node) const override {
