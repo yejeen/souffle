@@ -21,9 +21,12 @@ export GETOPT_INCLUDE="$(cygpath -w $(pwd)/vcpkg/installed/x64-windows/include)"
 make -j$(nproc)
 make check || true
 cd tests
-./testsuite -v -d -x || TESTS_RESULT=$?
+set +e
+./testsuite -v -d -x
+TESTS_RESULT=\$?
+set -e
 find testsuite.dir/ \( -name "*.err" -or -name "*.out" \) -printf "===== %p =====" -exec cat \{\} \;
-exit $TESTS_RESULT
+exit \$TESTS_RESULT
 EOF
 
 chmod +x run-msvc-test.sh
