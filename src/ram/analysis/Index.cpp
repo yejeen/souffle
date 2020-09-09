@@ -259,6 +259,9 @@ void MinIndexSelection::solve() {
         return;
     }
 
+    // discharge multiple inequalities
+    removeExtraInequalities();
+
     // map the signatures of each search to a unique index for the matching problem
     AttributeIndex currentIndex = 1;
     for (SearchSignature s : searches) {
@@ -376,7 +379,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
             Chain a;
             a.push_back(node);
             chainToOrder.push_back(a);
-            removeExtraInequalities();
             return chainToOrder;
         }
     }
@@ -394,7 +396,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
     }
 
     assert(!chainToOrder.empty());
-    removeExtraInequalities();
     return chainToOrder;
 }
 
@@ -416,21 +417,19 @@ void MinIndexSelection::updateSearch(SearchSignature oldSearch, SearchSignature 
 }
 
 void MinIndexSelection::removeExtraInequalities() {
-    for (auto chain : chainToOrder) {
-        for (auto oldSearch : chain) {
-            auto newSearch = oldSearch;
-            bool seenInequality = false;
-            for (size_t i = 0; i < oldSearch.arity(); ++i) {
-                if (oldSearch[i] == AttributeConstraint::Inequal) {
-                    if (seenInequality) {
-                        newSearch[i] = AttributeConstraint::None;
-                    } else {
-                        seenInequality = true;
-                    }
+    for (auto oldSearch : searches) {
+        auto newSearch = oldSearch;
+        bool seenInequality = false;
+        for (size_t i = 0; i < oldSearch.arity(); ++i) {
+            if (oldSearch[i] == AttributeConstraint::Inequal) {
+                if (seenInequality) {
+                    newSearch[i] = AttributeConstraint::None;
+                } else {
+                    seenInequality = true;
                 }
             }
-            updateSearch(oldSearch, newSearch);
         }
+        updateSearch(oldSearch, newSearch);
     }
 }
 
@@ -453,6 +452,18 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     // do not support indexed inequalities with provenance
     if (Global::config().has("provenance")) {
         return allInequalities;
+    }
+
+    // if we are in the interpreter then we only permit signed inequalities
+    AttributeSet inequalitiesNotSigned;
+    for (size_t i = 0; i < s.arity(); ++i) {
+        if (s[i] == AttributeConstraint::Inequal && rel.getAttributeTypes()[i][0] != 'i') {
+            inequalitiesNotSigned.insert(i);
+        }
+    }
+    if (!Global::config().has("compile") && !Global::config().has("dl-program") &&
+            !Global::config().has("generate") && !Global::config().has("swig")) {
+        return inequalitiesNotSigned;
     }
 
     return dischargedMap[s];
