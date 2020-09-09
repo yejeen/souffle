@@ -31,37 +31,39 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
-bool ADTtoRecordsTransformer::transform(AstTranslationUnit& tu) {
-    struct ADTsFuneral : public AstNodeMapper {
+bool ADTtoRecordsTransformer::transform(TranslationUnit& tu) {
+    struct ADTsFuneral : public NodeMapper {
         mutable bool changed{false};
-        AstTranslationUnit& tu;
-        const SumTypeBranchesAnalysis& sumTypesBranches = *tu.getAnalysis<SumTypeBranchesAnalysis>();
+        TranslationUnit& tu;
+        const analysis::SumTypeBranchesAnalysis& sumTypesBranches =
+                *tu.getAnalysis<analysis::SumTypeBranchesAnalysis>();
 
-        ADTsFuneral(AstTranslationUnit& tu) : tu(tu){};
+        ADTsFuneral(TranslationUnit& tu) : tu(tu){};
 
-        Own<AstNode> operator()(Own<AstNode> node) const override {
+        Own<Node> operator()(Own<Node> node) const override {
             // Rewrite sub-expressions first
             node->apply(*this);
 
-            if (!isA<AstBranchInit>(node)) {
+            if (!isA<BranchInit>(node)) {
                 return node;
             }
 
             changed = true;
 
-            auto& adt = *as<AstBranchInit>(node);
+            auto& adt = *as<BranchInit>(node);
 
             auto& type = sumTypesBranches.unsafeGetType(adt.getConstructor());
-            assert(isA<AlgebraicDataType>(type));
+            assert(isA<analysis::AlgebraicDataType>(type));
 
-            auto& branches = as<AlgebraicDataType>(type)->getBranches();
+            auto& branches = as<analysis::AlgebraicDataType>(type)->getBranches();
 
             // Find branch ID.
-            AlgebraicDataType::Branch searchDummy{adt.getConstructor(), {}};
+            analysis::AlgebraicDataType::Branch searchDummy{adt.getConstructor(), {}};
             auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
-                    [](const AlgebraicDataType::Branch& left, const AlgebraicDataType::Branch& right) {
+                    [](const analysis::AlgebraicDataType::Branch& left,
+                            const analysis::AlgebraicDataType::Branch& right) {
                         return left.name < right.name;
                     });
 
@@ -69,21 +71,21 @@ bool ADTtoRecordsTransformer::transform(AstTranslationUnit& tu) {
             auto branchID = std::distance(std::begin(branches), iterToBranch);
 
             // Collect branch arguments
-            VecOwn<AstArgument> branchArguments;
+            VecOwn<Argument> branchArguments;
             for (auto* arg : adt.getArguments()) {
                 branchArguments.emplace_back(arg->clone());
             }
 
             // Store branch arguments as record [branch_args...]
-            auto branchArgsAsRecord = mk<AstArgument, AstRecordInit>(std::move(branchArguments));
+            auto branchArgsAsRecord = mk<Argument, RecordInit>(std::move(branchArguments));
 
             // Arguments for the resulting record [branch_id, [branch_args...]].
-            VecOwn<AstArgument> finalRecordArgs;
+            VecOwn<Argument> finalRecordArgs;
 
-            finalRecordArgs.push_back(mk<AstArgument, AstNumericConstant>(branchID));
+            finalRecordArgs.push_back(mk<Argument, NumericConstant>(branchID));
             finalRecordArgs.push_back(std::move(branchArgsAsRecord));
 
-            return mk<AstRecordInit>(std::move(finalRecordArgs), adt.getSrcLoc());
+            return mk<RecordInit>(std::move(finalRecordArgs), adt.getSrcLoc());
         }
     };
 
@@ -92,4 +94,4 @@ bool ADTtoRecordsTransformer::transform(AstTranslationUnit& tu) {
     return mapper.changed;
 }
 
-}  // namespace souffle
+}  // namespace souffle::ast::transform

@@ -24,17 +24,17 @@
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/Type.h"
 #include "reports/DebugReport.h"
+#include "reports/ErrorReport.h"
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
 
-namespace souffle {
-class ErrorReport;
+namespace souffle::ast {
 
 /**
- * @class AstTranslationUnit
+ * @class TranslationUnit
  * @brief Translation unit class for the translation pipeline
  *
  * The translation unit class consisting of
@@ -42,12 +42,12 @@ class ErrorReport;
  * cached analysis results.
  */
 
-class AstTranslationUnit {
+class TranslationUnit {
 public:
-    AstTranslationUnit(Own<AstProgram> program, ErrorReport& e, DebugReport& d)
+    TranslationUnit(Own<Program> program, ErrorReport& e, DebugReport& d)
             : program(std::move(program)), errorReport(e), debugReport(d) {}
 
-    virtual ~AstTranslationUnit() = default;
+    virtual ~TranslationUnit() = default;
 
     /** get analysis: analysis is generated on the fly if not present */
     template <class Analysis>
@@ -62,8 +62,8 @@ public:
             if (debug) {
                 std::stringstream ss;
                 analyses[name]->print(ss);
-                if (!isA<PrecedenceGraphAnalysis>(analyses[name].get()) &&
-                        !isA<SCCGraphAnalysis>(analyses[name].get())) {
+                if (!isA<analysis::PrecedenceGraphAnalysis>(analyses[name].get()) &&
+                        !isA<analysis::SCCGraphAnalysis>(analyses[name].get())) {
                     debugReport.addSection(name, "Ast Analysis [" + name + "]", ss.str());
                 } else {
                     debugReport.addSection(
@@ -75,12 +75,12 @@ public:
     }
 
     /** Return the program */
-    AstProgram* getProgram() {
+    Program* getProgram() {
         return program.get();
     }
 
     /** Return the program */
-    const AstProgram* getProgram() const {
+    const Program* getProgram() const {
         return program.get();
     }
 
@@ -111,10 +111,10 @@ public:
 
 private:
     /** Cached analyses */
-    mutable std::map<std::string, Own<AstAnalysis>> analyses;
+    mutable std::map<std::string, Own<analysis::Analysis>> analyses;
 
     /** AST program */
-    Own<AstProgram> program;
+    Own<Program> program;
 
     /** Error report capturing errors while compiling */
     ErrorReport& errorReport;
@@ -123,4 +123,4 @@ private:
     DebugReport& debugReport;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast

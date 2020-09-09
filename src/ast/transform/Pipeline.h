@@ -30,7 +30,7 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformer that holds an arbitrary number of sub-transformations
@@ -39,15 +39,15 @@ class PipelineTransformer : public MetaTransformer {
 public:
     template <typename... Args>
     PipelineTransformer(Args... args) {
-        Own<AstTransformer> tmp[] = {std::move(args)...};
+        Own<Transformer> tmp[] = {std::move(args)...};
         for (auto& cur : tmp) {
             pipeline.push_back(std::move(cur));
         }
     }
 
-    PipelineTransformer(VecOwn<AstTransformer> pipeline) : pipeline(std::move(pipeline)) {}
+    PipelineTransformer(VecOwn<Transformer> pipeline) : pipeline(std::move(pipeline)) {}
 
-    std::vector<AstTransformer*> getSubtransformers() const override {
+    std::vector<Transformer*> getSubtransformers() const override {
         return toPtrVector(pipeline);
     }
 
@@ -85,7 +85,7 @@ public:
     }
 
     PipelineTransformer* clone() const override {
-        VecOwn<AstTransformer> transformers;
+        VecOwn<Transformer> transformers;
         for (const auto& transformer : pipeline) {
             transformers.push_back(souffle::clone(transformer));
         }
@@ -93,8 +93,8 @@ public:
     }
 
 protected:
-    VecOwn<AstTransformer> pipeline;
-    bool transform(AstTranslationUnit& translationUnit) override {
+    VecOwn<Transformer> pipeline;
+    bool transform(TranslationUnit& translationUnit) override {
         bool changed = false;
         for (auto& transformer : pipeline) {
             changed |= applySubtransformer(translationUnit, transformer.get());
@@ -103,4 +103,4 @@ protected:
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

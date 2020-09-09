@@ -415,7 +415,7 @@ int main(int argc, char** argv) {
     // parse file
     ErrorReport errReport(Global::config().has("no-warn"));
     DebugReport debugReport;
-    Own<AstTranslationUnit> astTranslationUnit =
+    Own<ast::TranslationUnit> astTranslationUnit =
             ParserDriver::parseTranslationUnit("<stdin>", in, errReport, debugReport);
 
     // close input pipe
@@ -443,52 +443,73 @@ int main(int argc, char** argv) {
     // ------- rewriting / optimizations -------------
 
     /* set up additional global options based on pragma declaratives */
-    (mk<AstPragmaChecker>())->apply(*astTranslationUnit);
+    (mk<ast::transform::PragmaChecker>())->apply(*astTranslationUnit);
 
     /* construct the transformation pipeline */
 
     // Equivalence pipeline
-    auto equivalencePipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
-            mk<FixpointTransformer>(mk<MinimiseProgramTransformer>()),
-            mk<ReplaceSingletonVariablesTransformer>(), mk<RemoveRelationCopiesTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(), mk<RemoveRedundantRelationsTransformer>());
+    auto equivalencePipeline =
+            mk<ast::transform::PipelineTransformer>(mk<ast::transform::NameUnnamedVariablesTransformer>(),
+                    mk<ast::transform::FixpointTransformer>(mk<ast::transform::MinimiseProgramTransformer>()),
+                    mk<ast::transform::ReplaceSingletonVariablesTransformer>(),
+                    mk<ast::transform::RemoveRelationCopiesTransformer>(),
+                    mk<ast::transform::RemoveEmptyRelationsTransformer>(),
+                    mk<ast::transform::RemoveRedundantRelationsTransformer>());
 
     // Magic-Set pipeline
-    auto magicPipeline = mk<PipelineTransformer>(mk<MagicSetTransformer>(), mk<ResolveAliasesTransformer>(),
-            mk<RemoveRelationCopiesTransformer>(), mk<RemoveEmptyRelationsTransformer>(),
-            mk<RemoveRedundantRelationsTransformer>(), souffle::clone(equivalencePipeline));
+    auto magicPipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::MagicSetTransformer>(),
+            mk<ast::transform::ResolveAliasesTransformer>(),
+            mk<ast::transform::RemoveRelationCopiesTransformer>(),
+            mk<ast::transform::RemoveEmptyRelationsTransformer>(),
+            mk<ast::transform::RemoveRedundantRelationsTransformer>(), souffle::clone(equivalencePipeline));
 
     // Partitioning pipeline
-    auto partitionPipeline = mk<PipelineTransformer>(mk<NameUnnamedVariablesTransformer>(),
-            mk<PartitionBodyLiteralsTransformer>(), mk<ReplaceSingletonVariablesTransformer>());
+    auto partitionPipeline =
+            mk<ast::transform::PipelineTransformer>(mk<ast::transform::NameUnnamedVariablesTransformer>(),
+                    mk<ast::transform::PartitionBodyLiteralsTransformer>(),
+                    mk<ast::transform::ReplaceSingletonVariablesTransformer>());
 
     // Provenance pipeline
-    auto provenancePipeline = mk<ConditionalTransformer>(Global::config().has("provenance"),
-            mk<PipelineTransformer>(mk<ProvenanceTransformer>(), mk<PolymorphicObjectsTransformer>()));
+    auto provenancePipeline = mk<ast::transform::ConditionalTransformer>(Global::config().has("provenance"),
+            mk<ast::transform::PipelineTransformer>(mk<ast::transform::ProvenanceTransformer>(),
+                    mk<ast::transform::PolymorphicObjectsTransformer>()));
 
     // Main pipeline
-    auto pipeline = mk<PipelineTransformer>(mk<AstComponentChecker>(),
-            mk<ComponentInstantiationTransformer>(), mk<IODefaultsTransformer>(),
-            mk<UniqueAggregationVariablesTransformer>(), mk<AstUserDefinedFunctorsTransformer>(),
-            mk<FixpointTransformer>(
-                    mk<PipelineTransformer>(mk<ResolveAnonymousRecordAliases>(), mk<FoldAnonymousRecords>())),
-            mk<PolymorphicObjectsTransformer>(), mk<AstSemanticChecker>(), mk<ADTtoRecordsTransformer>(),
-            mk<MaterializeSingletonAggregationTransformer>(),
-            mk<FixpointTransformer>(mk<MaterializeAggregationQueriesTransformer>()),
-            mk<ResolveAliasesTransformer>(), mk<RemoveTypecastsTransformer>(),
-            mk<RemoveBooleanConstraintsTransformer>(), mk<ResolveAliasesTransformer>(),
-            mk<MinimiseProgramTransformer>(), mk<InlineRelationsTransformer>(),
-            mk<PolymorphicObjectsTransformer>(), mk<GroundedTermsChecker>(), mk<ResolveAliasesTransformer>(),
-            mk<RemoveRedundantRelationsTransformer>(), mk<RemoveRelationCopiesTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(), mk<ReplaceSingletonVariablesTransformer>(),
-            mk<FixpointTransformer>(mk<PipelineTransformer>(
-                    mk<ReduceExistentialsTransformer>(), mk<RemoveRedundantRelationsTransformer>())),
-            mk<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
-            std::move(equivalencePipeline), mk<RemoveRelationCopiesTransformer>(), std::move(magicPipeline),
-            mk<ReorderLiteralsTransformer>(), mk<RemoveRedundantSumsTransformer>(),
-            mk<RemoveEmptyRelationsTransformer>(), mk<AddNullariesToAtomlessAggregatesTransformer>(),
-            mk<PolymorphicObjectsTransformer>(), mk<ReorderLiteralsTransformer>(),
-            mk<AstExecutionPlanChecker>(), std::move(provenancePipeline), mk<IOAttributesTransformer>());
+    auto pipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::ComponentChecker>(),
+            mk<ast::transform::ComponentInstantiationTransformer>(),
+            mk<ast::transform::IODefaultsTransformer>(),
+            mk<ast::transform::UniqueAggregationVariablesTransformer>(),
+            mk<ast::transform::UserDefinedFunctorsTransformer>(),
+            mk<ast::transform::FixpointTransformer>(mk<ast::transform::PipelineTransformer>(
+                    mk<ast::transform::ResolveAnonymousRecordAliases>(),
+                    mk<ast::transform::FoldAnonymousRecords>())),
+            mk<ast::transform::PolymorphicObjectsTransformer>(), mk<ast::transform::SemanticChecker>(),
+            mk<ast::transform::ADTtoRecordsTransformer>(),
+            mk<ast::transform::MaterializeSingletonAggregationTransformer>(),
+            mk<ast::transform::FixpointTransformer>(
+                    mk<ast::transform::MaterializeAggregationQueriesTransformer>()),
+            mk<ast::transform::ResolveAliasesTransformer>(), mk<ast::transform::RemoveTypecastsTransformer>(),
+            mk<ast::transform::RemoveBooleanConstraintsTransformer>(),
+            mk<ast::transform::ResolveAliasesTransformer>(), mk<ast::transform::MinimiseProgramTransformer>(),
+            mk<ast::transform::InlineRelationsTransformer>(),
+            mk<ast::transform::PolymorphicObjectsTransformer>(), mk<ast::transform::GroundedTermsChecker>(),
+            mk<ast::transform::ResolveAliasesTransformer>(),
+            mk<ast::transform::RemoveRedundantRelationsTransformer>(),
+            mk<ast::transform::RemoveRelationCopiesTransformer>(),
+            mk<ast::transform::RemoveEmptyRelationsTransformer>(),
+            mk<ast::transform::ReplaceSingletonVariablesTransformer>(),
+            mk<ast::transform::FixpointTransformer>(mk<ast::transform::PipelineTransformer>(
+                    mk<ast::transform::ReduceExistentialsTransformer>(),
+                    mk<ast::transform::RemoveRedundantRelationsTransformer>())),
+            mk<ast::transform::RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
+            std::move(equivalencePipeline), mk<ast::transform::RemoveRelationCopiesTransformer>(),
+            std::move(magicPipeline), mk<ast::transform::ReorderLiteralsTransformer>(),
+            mk<ast::transform::RemoveRedundantSumsTransformer>(),
+            mk<ast::transform::RemoveEmptyRelationsTransformer>(),
+            mk<ast::transform::AddNullariesToAtomlessAggregatesTransformer>(),
+            mk<ast::transform::PolymorphicObjectsTransformer>(),
+            mk<ast::transform::ReorderLiteralsTransformer>(), mk<ast::transform::ExecutionPlanChecker>(),
+            std::move(provenancePipeline), mk<ast::transform::IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {
@@ -540,21 +561,21 @@ int main(int argc, char** argv) {
 
         // Output the precedence graph in graphviz dot format and return
         if (Global::config().get("show") == "precedence-graph") {
-            astTranslationUnit->getAnalysis<PrecedenceGraphAnalysis>()->print(std::cout);
+            astTranslationUnit->getAnalysis<ast::analysis::PrecedenceGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
 
         // Output the scc graph in graphviz dot format and return
         if (Global::config().get("show") == "scc-graph") {
-            astTranslationUnit->getAnalysis<SCCGraphAnalysis>()->print(std::cout);
+            astTranslationUnit->getAnalysis<ast::analysis::SCCGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
 
         // Output the type analysis
         if (Global::config().get("show") == "type-analysis") {
-            astTranslationUnit->getAnalysis<TypeAnalysis>()->print(std::cout);
+            astTranslationUnit->getAnalysis<ast::analysis::TypeAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }

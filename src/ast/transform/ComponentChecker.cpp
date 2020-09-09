@@ -34,28 +34,28 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
-bool AstComponentChecker::transform(AstTranslationUnit& translationUnit) {
-    AstProgram& program = *translationUnit.getProgram();
-    ComponentLookup& componentLookup = *translationUnit.getAnalysis<ComponentLookup>();
+bool ComponentChecker::transform(TranslationUnit& translationUnit) {
+    Program& program = *translationUnit.getProgram();
+    analysis::ComponentLookup& componentLookup = *translationUnit.getAnalysis<analysis::ComponentLookup>();
     ErrorReport& report = translationUnit.getErrorReport();
     checkComponents(report, program, componentLookup);
     checkComponentNamespaces(report, program);
     return false;
 }
 
-const AstComponent* AstComponentChecker::checkComponentNameReference(ErrorReport& report,
-        const AstComponent* enclosingComponent, const ComponentLookup& componentLookup,
-        const std::string& name, const SrcLocation& loc, const TypeBinding& binding) {
-    const AstQualifiedName& forwarded = binding.find(name);
+const Component* ComponentChecker::checkComponentNameReference(ErrorReport& report,
+        const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
+        const std::string& name, const SrcLocation& loc, const analysis::TypeBinding& binding) {
+    const QualifiedName& forwarded = binding.find(name);
     if (!forwarded.empty()) {
         // for forwarded types we do not check anything, because we do not know
         // what the actual type will be
         return nullptr;
     }
 
-    const AstComponent* c = componentLookup.getComponent(enclosingComponent, name, binding);
+    const Component* c = componentLookup.getComponent(enclosingComponent, name, binding);
     if (c == nullptr) {
         report.addError("Referencing undefined component " + name, loc);
         return nullptr;
@@ -64,11 +64,11 @@ const AstComponent* AstComponentChecker::checkComponentNameReference(ErrorReport
     return c;
 }
 
-void AstComponentChecker::checkComponentReference(ErrorReport& report, const AstComponent* enclosingComponent,
-        const ComponentLookup& componentLookup, const AstComponentType& type, const SrcLocation& loc,
-        const TypeBinding& binding) {
+void ComponentChecker::checkComponentReference(ErrorReport& report, const Component* enclosingComponent,
+        const analysis::ComponentLookup& componentLookup, const ast::ComponentType& type,
+        const SrcLocation& loc, const analysis::TypeBinding& binding) {
     // check whether targeted component exists
-    const AstComponent* c = checkComponentNameReference(
+    const Component* c = checkComponentNameReference(
             report, enclosingComponent, componentLookup, type.getName(), loc, binding);
     if (c == nullptr) {
         return;
@@ -80,8 +80,9 @@ void AstComponentChecker::checkComponentReference(ErrorReport& report, const Ast
     }
 }
 
-void AstComponentChecker::checkComponentInit(ErrorReport& report, const AstComponent* enclosingComponent,
-        const ComponentLookup& componentLookup, const AstComponentInit& init, const TypeBinding& binding) {
+void ComponentChecker::checkComponentInit(ErrorReport& report, const Component* enclosingComponent,
+        const analysis::ComponentLookup& componentLookup, const ComponentInit& init,
+        const analysis::TypeBinding& binding) {
     checkComponentReference(
             report, enclosingComponent, componentLookup, *init.getComponentType(), init.getSrcLoc(), binding);
 
@@ -96,8 +97,9 @@ void AstComponentChecker::checkComponentInit(ErrorReport& report, const AstCompo
     //}
 }
 
-void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent* enclosingComponent,
-        const ComponentLookup& componentLookup, const AstComponent& component, const TypeBinding& binding) {
+void ComponentChecker::checkComponent(ErrorReport& report, const Component* enclosingComponent,
+        const analysis::ComponentLookup& componentLookup, const Component& component,
+        const analysis::TypeBinding& binding) {
     // -- inheritance --
 
     // Update type binding:
@@ -107,8 +109,8 @@ void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent
     // Type parameter for us here is unknown type that will be bound at the template
     // instantiation time.
     auto parentTypeParameters = component.getComponentType()->getTypeParameters();
-    std::vector<AstQualifiedName> actualParams(parentTypeParameters.size(), "<type parameter>");
-    TypeBinding activeBinding = binding.extend(parentTypeParameters, actualParams);
+    std::vector<QualifiedName> actualParams(parentTypeParameters.size(), "<type parameter>");
+    analysis::TypeBinding activeBinding = binding.extend(parentTypeParameters, actualParams);
 
     // check parents of component
     for (const auto& cur : component.getBaseComponents()) {
@@ -126,8 +128,8 @@ void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent
     }
 
     // get all parents
-    std::set<const AstComponent*> parents;
-    std::function<void(const AstComponent&)> collectParents = [&](const AstComponent& cur) {
+    std::set<const Component*> parents;
+    std::function<void(const Component&)> collectParents = [&](const Component& cur) {
         for (const auto& base : cur.getBaseComponents()) {
             auto c = componentLookup.getComponent(enclosingComponent, base->getName(), binding);
             if (c == nullptr) {
@@ -141,7 +143,7 @@ void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent
     collectParents(component);
 
     // check overrides
-    for (const AstRelation* relation : component.getRelations()) {
+    for (const Relation* relation : component.getRelations()) {
         if (component.getOverridden().count(relation->getQualifiedName().getQualifiers()[0]) != 0u) {
             report.addError("Override of non-inherited relation " +
                                     relation->getQualifiedName().getQualifiers()[0] + " in component " +
@@ -149,8 +151,8 @@ void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent
                     component.getSrcLoc());
         }
     }
-    for (const AstComponent* parent : parents) {
-        for (const AstRelation* relation : parent->getRelations()) {
+    for (const Component* parent : parents) {
+        for (const Relation* relation : parent->getRelations()) {
             if ((component.getOverridden().count(relation->getQualifiedName().getQualifiers()[0]) != 0u) &&
                     !relation->hasQualifier(RelationQualifier::OVERRIDABLE)) {
                 report.addError("Override of non-overridable relation " +
@@ -181,22 +183,22 @@ void AstComponentChecker::checkComponent(ErrorReport& report, const AstComponent
     }
 }
 
-void AstComponentChecker::checkComponents(
-        ErrorReport& report, const AstProgram& program, const ComponentLookup& componentLookup) {
-    for (AstComponent* cur : program.getComponents()) {
-        checkComponent(report, nullptr, componentLookup, *cur, TypeBinding());
+void ComponentChecker::checkComponents(
+        ErrorReport& report, const Program& program, const analysis::ComponentLookup& componentLookup) {
+    for (Component* cur : program.getComponents()) {
+        checkComponent(report, nullptr, componentLookup, *cur, analysis::TypeBinding());
     }
 
-    for (AstComponentInit* cur : program.getComponentInstantiations()) {
-        checkComponentInit(report, nullptr, componentLookup, *cur, TypeBinding());
+    for (ComponentInit* cur : program.getComponentInstantiations()) {
+        checkComponentInit(report, nullptr, componentLookup, *cur, analysis::TypeBinding());
     }
 }
 
 // Check that component names are disjoint from type and relation names.
-void AstComponentChecker::checkComponentNamespaces(ErrorReport& report, const AstProgram& program) {
+void ComponentChecker::checkComponentNamespaces(ErrorReport& report, const Program& program) {
     std::map<std::string, SrcLocation> names;
 
-    // Type and relation name error reporting performed by the AstSemanticChecker instead
+    // Type and relation name error reporting performed by the SemanticChecker instead
 
     // Find all names and report redeclarations as we go.
     for (const auto& type : program.getTypes()) {
@@ -232,4 +234,4 @@ void AstComponentChecker::checkComponentNamespaces(ErrorReport& report, const As
         }
     }
 }
-}  // namespace souffle
+}  // namespace souffle::ast::transform

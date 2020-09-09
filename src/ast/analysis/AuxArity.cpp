@@ -18,9 +18,9 @@
 #include "Global.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::analysis {
 
-size_t AuxiliaryArity::computeArity(const AstRelation* /* relation */) const {
+size_t AuxiliaryArity::computeArity(const Relation* /* relation */) const {
     if (Global::config().has("provenance")) {
         return 2;
     } else {
@@ -28,4 +28,4 @@ size_t AuxiliaryArity::computeArity(const AstRelation* /* relation */) const {
     }
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::analysis

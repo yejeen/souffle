@@ -20,22 +20,22 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
-class AstSemanticChecker : public AstTransformer {
+class SemanticChecker : public Transformer {
 public:
-    ~AstSemanticChecker() override = default;
+    ~SemanticChecker() override = default;
 
     std::string getName() const override {
-        return "AstSemanticChecker";
+        return "SemanticChecker";
     }
 
-    AstSemanticChecker* clone() const override {
-        return new AstSemanticChecker();
+    SemanticChecker* clone() const override {
+        return new SemanticChecker();
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform
