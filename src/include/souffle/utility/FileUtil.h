@@ -50,6 +50,11 @@ inline char* realpath(const char* path, char* resolved_path) {
     return _fullpath(resolved_path, path, PATH_MAX);
 }
 
+/**
+ * Define an alias for the popen and pclose functions on windows
+ */
+#define popen _popen
+#define pclose _pclose
 #endif
 
 namespace souffle {
