@@ -550,8 +550,8 @@ private:
     std::unordered_map<const RamNode*, size_t> indexTable;
     /** Used by index encoding */
     RamIndexAnalysis* isa;
-    /** Points to the current viewContext during the generation.  
-     * It is used to passing viewContext between parent query and its nested parallel operation. 
+    /** Points to the current viewContext during the generation.
+     * It is used to passing viewContext between parent query and its nested parallel operation.
      * As parallel operation requires its own view information. */
     std::shared_ptr<InterpreterViewContext> parentQueryViewContext = nullptr;
     /** Next available location to encode View */
