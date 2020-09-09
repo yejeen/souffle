@@ -23,7 +23,6 @@
 #include <functional>
 #include <string>
 #include <utility>
-#include <sys/resource.h>
 
 namespace souffle {
 
