@@ -269,7 +269,7 @@ inline std::stringstream execStdOut(char const* cmd) {
     FILE* in = popen(cmd, "r");
     std::stringstream data;
     while (in != nullptr) {
-        char c = fgetc(in);
+        int c = fgetc(in);
         if (feof(in) != 0) {
             break;
         }
