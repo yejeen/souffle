@@ -619,7 +619,8 @@ public:
 /**
  * @class InterpreterParallelIndexAggregate
  */
-class InterpreterParallelIndexAggregate : public InterpreterIndexAggregate, public InterpreterAbstractParallel {
+class InterpreterParallelIndexAggregate : public InterpreterIndexAggregate,
+                                          public InterpreterAbstractParallel {
     using InterpreterIndexAggregate::InterpreterIndexAggregate;
 };
 

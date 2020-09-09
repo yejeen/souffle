@@ -21,8 +21,8 @@
 #include "RelationTag.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
-#include "interpreter/InterpreterViewContext.h"
 #include "interpreter/InterpreterRelation.h"
+#include "interpreter/InterpreterViewContext.h"
 #include "ram/AbstractExistenceCheck.h"
 #include "ram/AbstractParallel.h"
 #include "ram/Aggregate.h"
@@ -550,8 +550,9 @@ private:
     std::unordered_map<const RamNode*, size_t> indexTable;
     /** Used by index encoding */
     RamIndexAnalysis* isa;
-    /** Points to the current viewContext during the generation.  It is used to passing viewContext between parent
-     * query and its nested parallel operation. As parallel operation requires its own view information */
+    /** Points to the current viewContext during the generation.  
+     * It is used to passing viewContext between parent query and its nested parallel operation. 
+     * As parallel operation requires its own view information. */
     std::shared_ptr<InterpreterViewContext> parentQueryViewContext = nullptr;
     /** Next available location to encode View */
     size_t viewId = 0;
