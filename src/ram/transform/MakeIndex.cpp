@@ -131,34 +131,43 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
         auto& cond = *it;
         if (auto* binRelOp = dynamic_cast<RamConstraint*>(cond.get())) {
             bool indexable = false;
+            size_t element = 0;
+
             if (isStrictIneqConstraint(binRelOp->getOperator())) {
                 if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
                     const RamExpression* rhs = &binRelOp->getRHS();
                     if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                         indexable = true;
+                        element = lhs->getElement();
                     }
                 }
                 if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
                     const RamExpression* lhs = &binRelOp->getLHS();
                     if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                         indexable = true;
+                        element = rhs->getElement();
                     }
                 }
             }
 
-            if (indexable) {
-                // append the weak version of inequality
-                toAppend.emplace_back(std::make_unique<RamConstraint>(
-                        convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
-                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
-                // append the != constraint
-                toAppend.emplace_back(std::make_unique<RamConstraint>(
-                        convertStrictToNotEqualConstraint(binRelOp->getOperator()),
-                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
+            bool interpreted = !Global::config().has("compile") && !Global::config().has("dl-program") &&
+                               !Global::config().has("generate") && !Global::config().has("swig");
 
-                // remove the strict version of inequality
-                it = conditionList.erase(it);
-                continue;
+            if (indexable) {
+                if (!interpreted || attributeTypes[element][0] == 'i') {
+                    // append the weak version of inequality
+                    toAppend.emplace_back(std::make_unique<RamConstraint>(
+                            convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
+                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
+                    // append the != constraint
+                    toAppend.emplace_back(std::make_unique<RamConstraint>(
+                            convertStrictToNotEqualConstraint(binRelOp->getOperator()),
+                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
+
+                    // remove the strict version of inequality
+                    it = conditionList.erase(it);
+                    continue;
+                }
             }
         }
         ++it;
