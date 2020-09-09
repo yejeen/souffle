@@ -487,8 +487,8 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         out << "}\n";
     }
 
-    // printHintStatistics method
-    out << "void printHintStatistics(std::ostream& o) const {\n";
+    // printStatistics method
+    out << "void printStatistics(std::ostream& o) const {\n";
     for (size_t i = 0; i < numIndexes; i++) {
         out << "o << \" arity " << arity << " direct b-tree index " << i << " lex-order " << inds[i]
             << "\\n\";\n";
@@ -805,8 +805,8 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     out << "return ind_" << masterIndex << ".end();\n";
     out << "}\n";
 
-    // printHintStatistics method
-    out << "void printHintStatistics(std::ostream& o) const {\n";
+    // printStatistics method
+    out << "void printStatistics(std::ostream& o) const {\n";
     for (size_t i = 0; i < numIndexes; i++) {
         out << "o << \" arity " << arity << " indirect b-tree index " << i << " lex-order " << inds[i]
             << "\\n\";\n";
@@ -1078,8 +1078,8 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
     out << "return iterator_" << masterIndex << "(ind_" << masterIndex << ".end());\n";
     out << "}\n";
 
-    // TODO: finish printHintStatistics method
-    out << "void printHintStatistics(std::ostream& o) const {\n";
+    // TODO: finish printStatistics method
+    out << "void printStatistics(std::ostream& o) const {\n";
     for (size_t i = 0; i < numIndexes; i++) {
         out << "o << \" arity " << arity << " brie index " << i << " lex-order " << inds[i] << "\\n\";\n";
         ;
@@ -1298,8 +1298,8 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
     out << "return iterator_" << masterIndex << "(ind_" << masterIndex << ".end());\n";
     out << "}\n";
 
-    // printHintStatistics method
-    out << "void printHintStatistics(std::ostream& o) const {\n";
+    // printStatistics method
+    out << "void printStatistics(std::ostream& o) const {\n";
     out << "o << \" eqrel index: no hint statistics supported\\n\";\n";
     out << "}\n";
 

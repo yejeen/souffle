@@ -2542,7 +2542,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         for (auto rel : prog.getRelations()) {
             auto name = getRelationName(*rel);
             os << "std::cout << \"Statistics for Relation " << name << ":\\n\";\n";
-            os << name << "->printHintStatistics(std::cout);\n";
+            os << name << "->printStatistics(std::cout);\n";
             os << "std::cout << \"\\n\";\n";
         }
     }
