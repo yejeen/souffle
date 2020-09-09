@@ -67,11 +67,10 @@ public:
     /**
      * @brief Rewrite a child node
      */
-    virtual void rewrite(const RamNode* oldNode, std::unique_ptr<RamNode> newNode) {
+    virtual void rewrite(const RamNode* oldNode, Own<RamNode> newNode) {
         assert(oldNode != nullptr && "old node is a null-pointer");
         assert(newNode != nullptr && "new node is a null-pointer");
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> rewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> rewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (oldNode == node.get()) {
                 return std::move(newNode);
             } else {

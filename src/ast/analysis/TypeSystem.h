@@ -429,7 +429,7 @@ public:
     T& createType(const AstQualifiedName& name, Args&&... args) {
         assert(types.find(name) == types.end() && "Error: registering present type!");
         auto* newType = new T(*this, name, std::forward<Args>(args)...);
-        types[name] = std::unique_ptr<Type>(newType);
+        types[name] = Own<Type>(newType);
         return *newType;
     }
 
@@ -495,7 +495,7 @@ private:
     TypeSet initializeConstantTypes();
 
     /** The list of covered types. */
-    std::map<AstQualifiedName, std::unique_ptr<Type>> types;
+    std::map<AstQualifiedName, Own<Type>> types;
 
     const TypeSet constantTypes = initializeConstantTypes();
     const TypeSet constantNumericTypes =

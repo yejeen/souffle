@@ -38,10 +38,9 @@ bool HoistAggregateTransformer::hoistAggregate(RamProgram& program) {
 
     // Hoist a single aggregate to an outer scope that is data-independent.
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::unique_ptr<RamNestedOperation> newAgg;
+        Own<RamNestedOperation> newAgg;
         bool priorTupleOp = false;
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> aggRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> aggRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (isA<RamAggregate>(node.get())) {
                 auto* tupleOp = dynamic_cast<RamTupleOperation*>(node.get());
                 assert(tupleOp != nullptr && "aggregate conversion to tuple operation failed");
@@ -68,11 +67,10 @@ bool HoistAggregateTransformer::hoistAggregate(RamProgram& program) {
     // hoist a single aggregate to an outer scope that is data-dependent on a prior operation.
     visitDepthFirst(program, [&](const RamQuery& query) {
         int newLevel = -1;
-        std::unique_ptr<RamNestedOperation> newAgg;
+        Own<RamNestedOperation> newAgg;
         int priorOpLevel = -1;
 
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> aggRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> aggRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (isA<RamAbstractAggregate>(node.get())) {
                 auto* tupleOp = dynamic_cast<RamTupleOperation*>(node.get());
                 assert(tupleOp != nullptr && "aggregate conversion to nested operation failed");

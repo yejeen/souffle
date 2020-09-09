@@ -76,7 +76,7 @@ public:
      * The method retrieves expression the expression of an equivalence constraint of the
      * format t1.x = <expr> or <expr> = t1.x
      */
-    using ExpressionPair = std::pair<std::unique_ptr<RamExpression>, std::unique_ptr<RamExpression>>;
+    using ExpressionPair = std::pair<Own<RamExpression>, Own<RamExpression>>;
 
     ExpressionPair getExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
     ExpressionPair getLowerUpperExpression(RamCondition* c, size_t& element, int level);
@@ -89,9 +89,8 @@ public:
      * @param Tuple identifier of the indexable operation
      * @result Remaining conditions that could not be transformed to an index
      */
-    std::unique_ptr<RamCondition> constructPattern(const std::vector<std::string>& attributeTypes,
-            RamPattern& queryPattern, bool& indexable,
-            std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
+    Own<RamCondition> constructPattern(const std::vector<std::string>& attributeTypes,
+            RamPattern& queryPattern, bool& indexable, VecOwn<RamCondition> conditionList, int identifier);
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation
@@ -99,7 +98,7 @@ public:
      * @result The result is null if the scan could not be rewritten to an IndexScan;
      *         otherwise the new IndexScan operation is returned.
      */
-    std::unique_ptr<RamOperation> rewriteScan(const RamScan* scan);
+    Own<RamOperation> rewriteScan(const RamScan* scan);
 
     /**
      * @brief Rewrite an index scan operation to an amended index scan operation
@@ -107,7 +106,7 @@ public:
      * @result The result is null if the index scan cannot be amended;
      *         otherwise the new IndexScan operation is returned.
      */
-    std::unique_ptr<RamOperation> rewriteIndexScan(const RamIndexScan* iscan);
+    Own<RamOperation> rewriteIndexScan(const RamIndexScan* iscan);
 
     /**
      * @brief Rewrite an aggregate operation to an indexed aggregate operation
@@ -115,7 +114,7 @@ public:
      * @result The result is null if the aggregate could not be rewritten to an indexed version;
      *         otherwise the new indexed version of the aggregate is returned.
      */
-    std::unique_ptr<RamOperation> rewriteAggregate(const RamAggregate* agg);
+    Own<RamOperation> rewriteAggregate(const RamAggregate* agg);
 
     /**
      * @brief Make indexable RAM operation indexed

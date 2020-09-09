@@ -54,8 +54,8 @@ private:
     RamProgram() = default;
 
 public:
-    RamProgram(std::vector<std::unique_ptr<RamRelation>> rels, std::unique_ptr<RamStatement> main,
-            std::map<std::string, std::unique_ptr<RamStatement>> subs)
+    RamProgram(
+            VecOwn<RamRelation> rels, Own<RamStatement> main, std::map<std::string, Own<RamStatement>> subs)
             : relations(std::move(rels)), main(std::move(main)), subroutines(std::move(subs)) {
         assert(this->main != nullptr && "Main program is a null-pointer");
         for (const auto& rel : relations) {
@@ -112,7 +112,7 @@ public:
             res->subroutines[sub.first] = souffle::clone(sub.second);
         }
         std::map<const RamRelation*, const RamRelation*> refMap;
-        res->apply(makeLambdaRamMapper([&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        res->apply(makeLambdaRamMapper([&](Own<RamNode> node) -> Own<RamNode> {
             // rewire relation references to newly cloned relations
             if (const RamRelationReference* relRef = dynamic_cast<RamRelationReference*>(node.get())) {
                 const RamRelation* rel = refMap[relRef->get()];
@@ -163,13 +163,13 @@ protected:
 
 protected:
     /** Relations of RAM program */
-    std::vector<std::unique_ptr<RamRelation>> relations;
+    VecOwn<RamRelation> relations;
 
     /** Main program */
-    std::unique_ptr<RamStatement> main;
+    Own<RamStatement> main;
 
     /** Subroutines for provenance system */
-    std::map<std::string, std::unique_ptr<RamStatement>> subroutines;
+    std::map<std::string, Own<RamStatement>> subroutines;
 };
 
 }  // end of namespace souffle

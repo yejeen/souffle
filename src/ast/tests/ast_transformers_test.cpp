@@ -48,7 +48,7 @@ TEST(AstTransformers, GroundTermPropagation) {
     ErrorReport errorReport;
     DebugReport debugReport;
     // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .type D <: symbol
                 .decl p(a:D,b:D)
@@ -65,8 +65,8 @@ TEST(AstTransformers, GroundTermPropagation) {
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
             toString(*a));
 
-    std::unique_ptr<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
-    std::unique_ptr<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
+    Own<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
+    Own<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
 
     EXPECT_EQ(
             "p(x,y) :- \n   p(x,y),\n   [x,y] = [x,y],\n   [x,y] = [x,y],\n   [x,y] = [x,y],\n   [x,y] = "
@@ -79,7 +79,7 @@ TEST(AstTransformers, GroundTermPropagation2) {
     ErrorReport errorReport;
     DebugReport debugReport;
     // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                .type D <: symbol
                .decl p(a:D,b:D)
@@ -95,8 +95,8 @@ TEST(AstTransformers, GroundTermPropagation2) {
 
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   x = y,\n   x = a,\n   y = b.", toString(*a));
 
-    std::unique_ptr<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
-    std::unique_ptr<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
+    Own<AstClause> res = ResolveAliasesTransformer::resolveAliases(*a);
+    Own<AstClause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
 
     EXPECT_EQ("p(b,b) :- \n   p(b,b),\n   b = b,\n   b = b,\n   b = b.", toString(*res));
     EXPECT_EQ("p(b,b) :- \n   p(b,b).", toString(*cleaned));
@@ -106,7 +106,7 @@ TEST(AstTransformers, ResolveGroundedAliases) {
     // load some test program
     ErrorReport errorReport;
     DebugReport debugReport;
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .type D <: symbol
                 .decl p(a:D,b:D)
@@ -129,7 +129,7 @@ TEST(AstTransformers, ResolveAliasesWithTermsInAtoms) {
     // load some test program
     ErrorReport errorReport;
     DebugReport debugReport;
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .type D <: symbol
                 .decl p(a:D,b:D)
@@ -167,7 +167,7 @@ TEST(AstTransformers, RemoveRelationCopies) {
     ErrorReport errorReport;
     DebugReport debugReport;
     // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .type D = number
                 .decl a(a:D,b:D)
@@ -212,7 +212,7 @@ TEST(AstTransformers, RemoveRelationCopiesOutput) {
     ErrorReport errorReport;
     DebugReport debugReport;
     // load some test program
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .type D = number
                 .decl a(a:D,b:D)
@@ -246,7 +246,7 @@ TEST(AstTransformers, CheckClausalEquivalence) {
     ErrorReport errorReport;
     DebugReport debugReport;
 
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .decl A(x:number, y:number)
                 .decl B(x:number)
@@ -337,7 +337,7 @@ TEST(AstTransformers, CheckAggregatorEquivalence) {
     ErrorReport errorReport;
     DebugReport debugReport;
 
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .decl A,B,C,D(X:number) input
                 // first and second are equivalent
@@ -400,7 +400,7 @@ TEST(AstTransformers, RemoveClauseRedundancies) {
     ErrorReport errorReport;
     DebugReport debugReport;
 
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 .decl a,b,c(X:number)
                 a(0).
@@ -459,7 +459,7 @@ TEST(AstTransformers, MagicSetComprehensive) {
     ErrorReport e;
     DebugReport d;
 
-    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+    Own<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                 // Stratum 0 - Base Relations
                 .decl BaseOne(X:number) magic

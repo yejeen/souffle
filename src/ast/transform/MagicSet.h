@@ -220,8 +220,8 @@ private:
     std::set<adorned_predicate> headAdornmentsToDo;
     std::set<AstQualifiedName> headAdornmentsSeen;
 
-    std::vector<std::unique_ptr<AstClause>> adornedClauses;
-    std::vector<std::unique_ptr<AstClause>> redundantClauses;
+    VecOwn<AstClause> adornedClauses;
+    VecOwn<AstClause> redundantClauses;
     std::set<AstQualifiedName> relationsToIgnore;
 
     bool transform(AstTranslationUnit& translationUnit) override;
@@ -253,7 +253,7 @@ private:
     }
 
     /** Returns the adorned version of a clause. */
-    std::unique_ptr<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
+    Own<AstClause> adornClause(const AstClause* clause, const std::string& adornmentMarker);
 };
 
 /**
@@ -291,11 +291,10 @@ private:
             std::set<std::string>& variables, const std::vector<const AstBinaryConstraint*> eqConstraints);
 
     /** Creates the magic atom associatd with the given (rel, adornment) pair */
-    static std::unique_ptr<AstAtom> createMagicAtom(const AstAtom* atom);
+    static Own<AstAtom> createMagicAtom(const AstAtom* atom);
 
     /** Creates the magic clause centred around the given magic atom */
-    static std::unique_ptr<AstClause> createMagicClause(const AstAtom* atom,
-            const std::vector<std::unique_ptr<AstAtom>>& constrainingAtoms,
+    static Own<AstClause> createMagicClause(const AstAtom* atom, const VecOwn<AstAtom>& constrainingAtoms,
             const std::vector<const AstBinaryConstraint*> eqConstraints);
 };
 

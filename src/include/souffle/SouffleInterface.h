@@ -151,7 +151,7 @@ public:
          * iterator_base class pointer.
          *
          */
-        std::unique_ptr<iterator_base> iter = nullptr;
+        Own<iterator_base> iter = nullptr;
 
     public:
         /**

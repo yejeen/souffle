@@ -31,14 +31,13 @@ class RamCondition;
 bool ExpandFilterTransformer::expandFilters(RamProgram& program) {
     bool changed = false;
     visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> filterRewriter =
-                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+        std::function<Own<RamNode>(Own<RamNode>)> filterRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
             if (const RamFilter* filter = dynamic_cast<RamFilter*>(node.get())) {
                 const RamCondition* condition = &filter->getCondition();
-                std::vector<std::unique_ptr<RamCondition>> conditionList = toConjunctionList(condition);
+                VecOwn<RamCondition> conditionList = toConjunctionList(condition);
                 if (conditionList.size() > 1) {
                     changed = true;
-                    std::vector<std::unique_ptr<RamFilter>> filters;
+                    VecOwn<RamFilter> filters;
                     for (auto& cond : conditionList) {
                         if (filters.empty()) {
                             filters.emplace_back(mk<RamFilter>(

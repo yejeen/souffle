@@ -68,7 +68,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
             return changeCount;
         }
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* stringConstant = dynamic_cast<AstStringConstant*>(node.get())) {
                 // string constant found
                 changeCount++;
@@ -138,7 +138,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
             changed = changed || update.hasChanged();
 
             for (AstBinaryConstraint* constraint : constraints) {
-                clause->addToBody(std::unique_ptr<AstBinaryConstraint>(constraint));
+                clause->addToBody(Own<AstBinaryConstraint>(constraint));
             }
         }
     }

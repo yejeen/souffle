@@ -36,7 +36,7 @@ namespace souffle {
  */
 class RamExtend : public RamBinRelationStatement {
 public:
-    RamExtend(std::unique_ptr<RamRelationReference> tRef, std::unique_ptr<RamRelationReference> sRef)
+    RamExtend(Own<RamRelationReference> tRef, Own<RamRelationReference> sRef)
             : RamBinRelationStatement(std::move(sRef), std::move(tRef)) {}
 
     /** @brief Get source relation */

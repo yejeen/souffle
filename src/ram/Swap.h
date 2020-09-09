@@ -38,7 +38,7 @@ namespace souffle {
  */
 class RamSwap : public RamBinRelationStatement {
 public:
-    RamSwap(std::unique_ptr<RamRelationReference> f, std::unique_ptr<RamRelationReference> s)
+    RamSwap(Own<RamRelationReference> f, Own<RamRelationReference> s)
             : RamBinRelationStatement(std::move(f), std::move(s)) {}
 
     RamSwap* clone() const override {

@@ -365,7 +365,7 @@ void visitDepthFirst(const std::vector<T*>& list, const Lambda& fun) {
  * @param args a list of extra parameters to be forwarded to the visitor
  */
 template <typename T, typename Lambda>
-void visitDepthFirst(const std::vector<std::unique_ptr<T>>& list, const Lambda& fun) {
+void visitDepthFirst(const VecOwn<T>& list, const Lambda& fun) {
     for (const auto& cur : list) {
         visitDepthFirst(*cur, fun);
     }

@@ -33,7 +33,7 @@ public:
     using GenericIndex<Trie<Arity>>::GenericIndex;
 };
 
-std::unique_ptr<InterpreterIndex> createBrieIndex(const Order& order) {
+Own<InterpreterIndex> createBrieIndex(const Order& order) {
     switch (order.size()) {
         case 0: return mk<NullaryIndex>();
         case 1: return mk<BrieIndex<1>>(order);

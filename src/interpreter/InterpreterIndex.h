@@ -218,12 +218,12 @@ public:
         /**
          * Clone a source with the exact same state
          */
-        virtual std::unique_ptr<Source> clone() = 0;
+        virtual Own<Source> clone() = 0;
     };
 
 private:
     // the source to read data from
-    std::unique_ptr<Source> source = nullptr;
+    Own<Source> source = nullptr;
 
     // an internal buffer for decoded elements
     std::array<TupleRef, BUFFER_SIZE> buffer{};
@@ -235,7 +235,7 @@ private:
     int limit = 0;
 
 public:
-    Stream(std::unique_ptr<Source>&& src) : source(std::move(src)) {
+    Stream(Own<Source>&& src) : source(std::move(src)) {
         loadNext();
     }
 
@@ -259,9 +259,9 @@ public:
     }
 
     template <typename S>
-    Stream(std::unique_ptr<S>&& src) : Stream(std::unique_ptr<Source>(std::move(src))) {}
+    Stream(Own<S>&& src) : Stream(Own<Source>(std::move(src))) {}
 
-    std::unique_ptr<Stream> clone() const {
+    Own<Stream> clone() const {
         if (source == nullptr) {
             return mk<Stream>();
         }
@@ -387,7 +387,7 @@ public:
 };
 
 // A general handler type for index views.
-using IndexViewPtr = std::unique_ptr<IndexView>;
+using IndexViewPtr = Own<IndexView>;
 
 /**
  * An index is an abstraction of a data structure
@@ -592,7 +592,7 @@ class NullaryIndex : public InterpreterIndex {
             return 1;
         }
 
-        std::unique_ptr<Stream::Source> clone() override {
+        Own<Stream::Source> clone() override {
             return mk<Source>(present);
         }
     };
@@ -741,7 +741,7 @@ protected:
             return c;
         }
 
-        std::unique_ptr<Stream::Source> clone() override {
+        Own<Stream::Source> clone() override {
             auto source = mk<Source>(order, cur, end);
             source->buffer = this->buffer;
             return source;
@@ -853,21 +853,21 @@ public:
 };
 
 // The type of index factory functions.
-using IndexFactory = std::unique_ptr<InterpreterIndex> (*)(const Order&);
+using IndexFactory = Own<InterpreterIndex> (*)(const Order&);
 
 // A factory for BTree based index.
-std::unique_ptr<InterpreterIndex> createBTreeIndex(const Order&);
+Own<InterpreterIndex> createBTreeIndex(const Order&);
 
 // A factory for BTree provenance index.
-std::unique_ptr<InterpreterIndex> createBTreeProvenanceIndex(const Order&);
+Own<InterpreterIndex> createBTreeProvenanceIndex(const Order&);
 
 // A factory for Brie based index.
-std::unique_ptr<InterpreterIndex> createBrieIndex(const Order&);
+Own<InterpreterIndex> createBrieIndex(const Order&);
 
 // A factory for indirect index.
-std::unique_ptr<InterpreterIndex> createIndirectIndex(const Order&);
+Own<InterpreterIndex> createIndirectIndex(const Order&);
 
 // A factory for Eqrel index.
-std::unique_ptr<InterpreterIndex> createEqrelIndex(const Order&);
+Own<InterpreterIndex> createEqrelIndex(const Order&);
 
 }  // end of namespace souffle

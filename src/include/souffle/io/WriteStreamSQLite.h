@@ -282,7 +282,7 @@ private:
 
 class WriteSQLiteFactory : public WriteStreamFactory {
 public:
-    std::unique_ptr<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation,
+    Own<WriteStream> getWriter(const std::map<std::string, std::string>& rwOperation,
             const SymbolTable& symbolTable, const RecordTable& recordTable) override {
         return mk<WriteStreamSQLite>(rwOperation, symbolTable, recordTable);
     }

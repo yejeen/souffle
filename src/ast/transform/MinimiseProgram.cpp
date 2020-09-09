@@ -335,7 +335,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
         replaceRedundantRelations(const std::map<AstQualifiedName, AstQualifiedName>& canonicalName)
                 : canonicalName(canonicalName) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             // Remove appearances from children nodes
             node->apply(*this);
 
@@ -370,7 +370,7 @@ bool MinimiseProgramTransformer::removeRedundantClauses(AstTranslationUnit& tran
         return false;
     };
 
-    std::set<std::unique_ptr<AstClause>> clausesToRemove;
+    std::set<Own<AstClause>> clausesToRemove;
     for (const auto* clause : program.getClauses()) {
         if (isRedundant(clause)) {
             clausesToRemove.insert(souffle::clone(clause));
@@ -385,8 +385,8 @@ bool MinimiseProgramTransformer::removeRedundantClauses(AstTranslationUnit& tran
 
 bool MinimiseProgramTransformer::reduceClauseBodies(AstTranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    std::set<std::unique_ptr<AstClause>> clausesToAdd;
-    std::set<std::unique_ptr<AstClause>> clausesToRemove;
+    std::set<Own<AstClause>> clausesToAdd;
+    std::set<Own<AstClause>> clausesToRemove;
 
     for (const auto* clause : program.getClauses()) {
         auto bodyLiterals = clause->getBodyLiterals();

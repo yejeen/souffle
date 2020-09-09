@@ -75,7 +75,7 @@ public:
  */
 class DirectoryEntry : public Entry {
 private:
-    std::map<std::string, std::unique_ptr<Entry>> entries;
+    std::map<std::string, Own<Entry>> entries;
     mutable std::mutex lock;
 
 public:
@@ -92,7 +92,7 @@ public:
     }
 
     // write entry
-    Entry* writeEntry(std::unique_ptr<Entry> entry) {
+    Entry* writeEntry(Own<Entry> entry) {
         assert(entry != nullptr && "null entry");
         std::lock_guard<std::mutex> guard(lock);
         const std::string& key = entry->getKey();
@@ -294,7 +294,7 @@ public:
  */
 class ProfileDatabase {
 private:
-    std::unique_ptr<DirectoryEntry> root;
+    Own<DirectoryEntry> root;
 
 protected:
     /**
@@ -314,7 +314,7 @@ protected:
         return dir;
     }
 
-    void parseJson(const json11::Json& json, std::unique_ptr<DirectoryEntry>& node) {
+    void parseJson(const json11::Json& json, Own<DirectoryEntry>& node) {
         for (auto& cur : json.object_items()) {
             if (cur.second.is_object()) {
                 std::string err;
@@ -368,7 +368,7 @@ public:
         DirectoryEntry* dir = lookupPath(path);
 
         const std::string& key = qualifier.back();
-        std::unique_ptr<SizeEntry> entry = mk<SizeEntry>(key, size);
+        Own<SizeEntry> entry = mk<SizeEntry>(key, size);
         dir->writeEntry(std::move(entry));
     }
 
@@ -379,7 +379,7 @@ public:
         DirectoryEntry* dir = lookupPath(path);
 
         const std::string& key = qualifier.back();
-        std::unique_ptr<TextEntry> entry = mk<TextEntry>(key, text);
+        Own<TextEntry> entry = std::make_unique<TextEntry>(key, text);
         dir->writeEntry(std::move(entry));
     }
 
@@ -390,7 +390,7 @@ public:
         DirectoryEntry* dir = lookupPath(path);
 
         const std::string& key = qualifier.back();
-        std::unique_ptr<DurationEntry> entry = mk<DurationEntry>(key, start, end);
+        Own<DurationEntry> entry = std::make_unique<DurationEntry>(key, start, end);
         dir->writeEntry(std::move(entry));
     }
 
@@ -401,7 +401,7 @@ public:
         DirectoryEntry* dir = lookupPath(path);
 
         const std::string& key = qualifier.back();
-        std::unique_ptr<TimeEntry> entry = mk<TimeEntry>(key, time);
+        Own<TimeEntry> entry = std::make_unique<TimeEntry>(key, time);
         dir->writeEntry(std::move(entry));
     }
 

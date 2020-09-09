@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ram/NodeMapper.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -46,8 +47,8 @@ public:
     /**
      * @brief Applies lambda
      */
-    std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const override {
-        std::unique_ptr<RamNode> result = lambda(std::move(node));
+    Own<RamNode> operator()(Own<RamNode> node) const override {
+        Own<RamNode> result = lambda(std::move(node));
         assert(result != nullptr && "null-pointer in lambda ram-node mapper");
         return result;
     }

@@ -286,12 +286,12 @@ protected:
         }
     }
 
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
+    virtual Own<RamDomain[]> readNextTuple() = 0;
 };
 
 class ReadStreamFactory {
 public:
-    virtual std::unique_ptr<ReadStream> getReader(
+    virtual Own<ReadStream> getReader(
             const std::map<std::string, std::string>&, SymbolTable&, RecordTable&) = 0;
     virtual const std::string& getName() const = 0;
     virtual ~ReadStreamFactory() = default;

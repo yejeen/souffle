@@ -166,7 +166,7 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
 
         renameExistentials(std::set<AstQualifiedName>& relations) : relations(relations) {}
 
-        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+        Own<AstNode> operator()(Own<AstNode> node) const override {
             if (auto* clause = dynamic_cast<AstClause*>(node.get())) {
                 if (relations.find(clause->getHead()->getQualifiedName()) != relations.end()) {
                     // Clause is going to be removed, so don't rename it

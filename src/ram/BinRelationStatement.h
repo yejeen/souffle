@@ -36,7 +36,7 @@ namespace souffle {
  */
 class RamBinRelationStatement : public RamStatement {
 public:
-    RamBinRelationStatement(std::unique_ptr<RamRelationReference> f, std::unique_ptr<RamRelationReference> s)
+    RamBinRelationStatement(Own<RamRelationReference> f, Own<RamRelationReference> s)
             : first(std::move(f)), second(std::move(s)) {
         assert(first->get()->getArity() == second->get()->getArity() && "mismatching arities");
 
@@ -76,10 +76,10 @@ protected:
 
 protected:
     /** first argument of binary statement */
-    std::unique_ptr<RamRelationReference> first;
+    Own<RamRelationReference> first;
 
     /** second argument of binary statement */
-    std::unique_ptr<RamRelationReference> second;
+    Own<RamRelationReference> second;
 };
 
 }  // end of namespace souffle

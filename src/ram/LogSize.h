@@ -33,7 +33,7 @@ namespace souffle {
  */
 class RamLogSize : public RamRelationStatement {
 public:
-    RamLogSize(std::unique_ptr<RamRelationReference> relRef, std::string message)
+    RamLogSize(Own<RamRelationReference> relRef, std::string message)
             : RamRelationStatement(std::move(relRef)), message(std::move(message)) {}
 
     /** @brief Get logging message */

@@ -45,8 +45,7 @@ namespace souffle {
  */
 class RamProject : public RamOperation {
 public:
-    RamProject(std::unique_ptr<RamRelationReference> relRef,
-            std::vector<std::unique_ptr<RamExpression>> expressions)
+    RamProject(Own<RamRelationReference> relRef, VecOwn<RamExpression> expressions)
             : relationRef(std::move(relRef)), expressions(std::move(expressions)) {
         assert(relationRef != nullptr && "Relation reference is a null-pointer");
         for (auto const& expr : expressions) {
@@ -74,7 +73,7 @@ public:
     }
 
     RamProject* clone() const override {
-        std::vector<std::unique_ptr<RamExpression>> newValues;
+        VecOwn<RamExpression> newValues;
         for (auto& expr : expressions) {
             newValues.emplace_back(expr->clone());
         }
@@ -91,8 +90,8 @@ public:
 protected:
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
-        os << "PROJECT (" << join(expressions, ", ", print_deref<std::unique_ptr<RamExpression>>())
-           << ") INTO " << getRelation().getName() << std::endl;
+        os << "PROJECT (" << join(expressions, ", ", print_deref<Own<RamExpression>>()) << ") INTO "
+           << getRelation().getName() << std::endl;
     }
 
     bool equal(const RamNode& node) const override {
@@ -101,10 +100,10 @@ protected:
     }
 
     /** Relation that values are projected into */
-    std::unique_ptr<RamRelationReference> relationRef;
+    Own<RamRelationReference> relationRef;
 
     /* Values (expressions) for projection */
-    std::vector<std::unique_ptr<RamExpression>> expressions;
+    VecOwn<RamExpression> expressions;
 };
 
 }  // namespace souffle

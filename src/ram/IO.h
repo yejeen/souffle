@@ -37,7 +37,7 @@ namespace souffle {
  */
 class RamIO : public RamRelationStatement {
 public:
-    RamIO(std::unique_ptr<RamRelationReference> relRef, std::map<std::string, std::string> directives)
+    RamIO(Own<RamRelationReference> relRef, std::map<std::string, std::string> directives)
             : RamRelationStatement(std::move(relRef)), directives(std::move(directives)) {}
 
     /** @brief get I/O directives */
