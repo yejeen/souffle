@@ -201,7 +201,7 @@ souffle_sources = \
         interpreter/InterpreterIndex.cpp                   \
         interpreter/InterpreterIndex.h                     \
         interpreter/InterpreterNode.h                      \
-        interpreter/InterpreterPreamble.h                  \
+        interpreter/InterpreterViewContext.h               \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \

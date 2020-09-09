@@ -8,11 +8,11 @@
 
 /************************************************************************
  *
- * @file InterpreterPreamble.h
+ * @file InterpreterViewContext.h
  *
- * Declares the InterpreterPreamble class.
- * Each query operation has an InterpreterPreamble associated with it.
- * The preamble contains information about view creation.
+ * Declares the InterpreterViewContext class.
+ * Each Query operation has an InterpreterViewContext assoicated with it.
+ * The view context contains information about views creation during execution.
  ***********************************************************************/
 
 #pragma once
@@ -25,10 +25,10 @@
 namespace souffle {
 
 /**
- * @class InterpreterPreamble
+ * @class InterpreterViewContext
  * @brief This class contains information for views (Hints) creation for RamQuery and RamParallel operation.
  */
-class InterpreterPreamble {
+class InterpreterViewContext {
 public:
     /** @brief Add outer-most filter operation which requires a view.  */
     void addViewOperationForFilter(Own<InterpreterNode> node) {
@@ -80,7 +80,7 @@ public:
         viewInfoForNested.push_back({relId, indexPos, viewPos});
     }
 
-    /** If this preamble contains parallel operation.  */
+    /** If this context has information for parallel operation.  */
     bool isParallel = false;
 
 private:

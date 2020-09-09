@@ -21,7 +21,7 @@
 #include "RelationTag.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
-#include "interpreter/InterpreterPreamble.h"
+#include "interpreter/InterpreterViewContext.h"
 #include "interpreter/InterpreterRelation.h"
 #include "ram/AbstractExistenceCheck.h"
 #include "ram/AbstractParallel.h"
@@ -268,7 +268,7 @@ public:
         size_t relId = encodeRelation(pScan.getRelation());
         auto rel = relations[relId].get();
         auto res = mk<InterpreterParallelScan>(I_ParallelScan, &pScan, rel, visitTupleOperation(pScan));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -286,7 +286,7 @@ public:
         InterpreterSuperInstruction indexOperation = getIndexSuperInstInfo(piscan);
         auto res = mk<InterpreterParallelIndexScan>(I_ParallelIndexScan, &piscan, rel,
                 visitTupleOperation(piscan), encodeIndexPos(piscan), std::move(indexOperation));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -302,7 +302,7 @@ public:
         auto rel = relations[relId].get();
         auto res = mk<InterpreterParallelChoice>(
                 I_ParallelChoice, &pchoice, rel, visit(pchoice.getCondition()), visitTupleOperation(pchoice));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -319,7 +319,7 @@ public:
         auto res = mk<InterpreterParallelIndexChoice>(I_ParallelIndexChoice, &ichoice, rel,
                 visit(ichoice.getCondition()), visit(ichoice.getOperation()), encodeIndexPos(ichoice),
                 std::move(indexOperation));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -341,7 +341,7 @@ public:
         auto res = mk<InterpreterParallelAggregate>(I_ParallelAggregate, &aggregate, rel,
                 visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -361,7 +361,7 @@ public:
         auto res = mk<InterpreterParallelIndexAggregate>(I_ParallelIndexAggregate, &aggregate, rel,
                 visit(aggregate.getExpression()), visit(aggregate.getCondition()),
                 visitTupleOperation(aggregate), encodeView(&aggregate), std::move(indexOperation));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -466,8 +466,8 @@ public:
     }
 
     NodePtr visitQuery(const RamQuery& query) override {
-        std::shared_ptr<InterpreterPreamble> preamble = std::make_shared<InterpreterPreamble>();
-        parentQueryPreamble = preamble;
+        std::shared_ptr<InterpreterViewContext> viewContext = std::make_shared<InterpreterViewContext>();
+        parentQueryViewContext = viewContext;
         // split terms of conditions of outer-most filter operation
         // into terms that require a context and terms that
         // do not require a view
@@ -484,15 +484,15 @@ public:
                     if (requireView(&node)) {
                         needView = true;
                         const auto& rel = getRelationRefForView(&node);
-                        preamble->addViewInfoForFilter(
+                        viewContext->addViewInfoForFilter(
                                 encodeRelation(rel), indexTable[&node], encodeView(&node));
                     }
                 });
 
                 if (needView) {
-                    preamble->addViewOperationForFilter(visit(*cur));
+                    viewContext->addViewOperationForFilter(visit(*cur));
                 } else {
-                    preamble->addViewFreeOperationForFilter(visit(*cur));
+                    viewContext->addViewFreeOperationForFilter(visit(*cur));
                 }
             }
         }
@@ -500,17 +500,17 @@ public:
         visitDepthFirst(*next, [&](const RamNode& node) {
             if (requireView(&node)) {
                 const auto& rel = getRelationRefForView(&node);
-                preamble->addViewInfoForNested(encodeRelation(rel), indexTable[&node], encodeView(&node));
+                viewContext->addViewInfoForNested(encodeRelation(rel), indexTable[&node], encodeView(&node));
             };
         });
 
-        visitDepthFirst(*next, [&](const RamAbstractParallel&) { preamble->isParallel = true; });
+        visitDepthFirst(*next, [&](const RamAbstractParallel&) { viewContext->isParallel = true; });
 
         NodePtrVec children;
         children.push_back(visit(*next));
 
         auto res = mk<InterpreterQuery>(I_Query, &query, visit(*next));
-        res->setPreamble(parentQueryPreamble);
+        res->setViewContext(parentQueryViewContext);
         return res;
     }
 
@@ -550,9 +550,9 @@ private:
     std::unordered_map<const RamNode*, size_t> indexTable;
     /** Used by index encoding */
     RamIndexAnalysis* isa;
-    /** Points to the current preamble during the generation.  It is used to passing preamble between parent
-     * query and its nested parallel operation. */
-    std::shared_ptr<InterpreterPreamble> parentQueryPreamble = nullptr;
+    /** Points to the current viewContext during the generation.  It is used to passing viewContext between parent
+     * query and its nested parallel operation. As parallel operation requires its own view information */
+    std::shared_ptr<InterpreterViewContext> parentQueryViewContext = nullptr;
     /** Next available location to encode View */
     size_t viewId = 0;
     /** Next available location to encode a relation */

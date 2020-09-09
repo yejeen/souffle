@@ -21,7 +21,7 @@
 #include "interpreter/InterpreterGenerator.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
-#include "interpreter/InterpreterPreamble.h"
+#include "interpreter/InterpreterViewContext.h"
 #include "interpreter/InterpreterRelation.h"
 #include "ram/Aggregate.h"
 #include "ram/AutoIncrement.h"
@@ -933,14 +933,14 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(Scan)
 
         CASE(ParallelScan)
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
             auto& rel = *node->getRelation();
 
             auto pStream = rel.partitionScan(numOfThreads);
 
             PARALLEL_START
                 InterpreterContext newCtxt(ctxt);
-                auto viewInfo = preamble->getViewInfoForNested();
+                auto viewInfo = viewContext->getViewInfoForNested();
                 for (const auto& info : viewInfo) {
                     newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
                 }
@@ -977,7 +977,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(IndexScan)
 
         CASE(ParallelIndexScan)
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
             auto& rel = *node->getRelation();
 
             // create pattern tuple for range query
@@ -993,7 +993,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
             PARALLEL_START
                 InterpreterContext newCtxt(ctxt);
-                auto viewInfo = preamble->getViewInfoForNested();
+                auto viewInfo = viewContext->getViewInfoForNested();
                 for (const auto& info : viewInfo) {
                     newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
                 }
@@ -1026,11 +1026,11 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(Choice)
 
         CASE(ParallelChoice)
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
             auto& rel = *node->getRelation();
 
             auto pStream = rel.partitionScan(numOfThreads);
-            auto viewInfo = preamble->getViewInfoForNested();
+            auto viewInfo = viewContext->getViewInfoForNested();
             PARALLEL_START
                 InterpreterContext newCtxt(ctxt);
                 for (const auto& info : viewInfo) {
@@ -1072,10 +1072,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(IndexChoice)
 
         CASE(ParallelIndexChoice)
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
             auto& rel = *node->getRelation();
 
-            auto viewInfo = preamble->getViewInfoForNested();
+            auto viewInfo = viewContext->getViewInfoForNested();
 
             // create pattern tuple for range query
             size_t arity = rel.getArity();
@@ -1128,10 +1128,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
         CASE(ParallelAggregate)
             // TODO (rdowavic): make parallel
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
 
             InterpreterContext newCtxt(ctxt);
-            auto viewInfo = preamble->getViewInfoForNested();
+            auto viewInfo = viewContext->getViewInfoForNested();
             for (const auto& info : viewInfo) {
                 newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
             }
@@ -1146,10 +1146,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
         CASE(ParallelIndexAggregate)
             // TODO (rdowavic): make parallel
-            auto preamble = shadow.getPreamble();
+            auto viewContext = shadow.getViewContext();
 
             InterpreterContext newCtxt(ctxt);
-            auto viewInfo = preamble->getViewInfoForNested();
+            auto viewInfo = viewContext->getViewInfoForNested();
             for (const auto& info : viewInfo) {
                 newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
             }
@@ -1336,10 +1336,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(IO)
 
         CASE(Query)
-            InterpreterPreamble* preamble = shadow.getPreamble();
+            InterpreterViewContext* viewContext = shadow.getViewContext();
 
             // Execute view-free operations in outer filter if any.
-            auto& viewFreeOps = preamble->getOuterFilterViewFreeOps();
+            auto& viewFreeOps = viewContext->getOuterFilterViewFreeOps();
             for (auto& op : viewFreeOps) {
                 if (!execute(op.get(), ctxt)) {
                     return true;
@@ -1347,24 +1347,24 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             }
 
             // Create Views for outer filter operation if any.
-            auto& viewsForOuter = preamble->getViewInfoForFilter();
+            auto& viewsForOuter = viewContext->getViewInfoForFilter();
             for (auto& info : viewsForOuter) {
                 ctxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
             }
 
             // Execute outer filter operation.
-            auto& viewOps = preamble->getOuterFilterViewOps();
+            auto& viewOps = viewContext->getOuterFilterViewOps();
             for (auto& op : viewOps) {
                 if (!execute(op.get(), ctxt)) {
                     return true;
                 }
             }
 
-            if (preamble->isParallel) {
+            if (viewContext->isParallel) {
                 // If Parallel is true, holds views creation unitl parallel instructions.
             } else {
                 // Issue views for nested operation.
-                auto& viewsForNested = preamble->getViewInfoForNested();
+                auto& viewsForNested = viewContext->getViewInfoForNested();
                 for (auto& info : viewsForNested) {
                     ctxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
                 }

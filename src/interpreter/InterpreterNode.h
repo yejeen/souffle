@@ -32,7 +32,7 @@
 #include <vector>
 
 namespace souffle {
-class InterpreterPreamble;
+class InterpreterViewContext;
 class InterpreterRelation;
 class RamNode;
 
@@ -244,22 +244,22 @@ protected:
 /**
  * @class InterpreterAbstractParallel
  * @brief Interpreter node that utilizes parallel execution should inherit from this class.
- *        Enable node with parallelization preamble.
+ *        Enable node with its own view context for parallel execution.
  */
 class InterpreterAbstractParallel {
 public:
-    /** @brief get preamble */
-    inline InterpreterPreamble* getPreamble() const {
-        return preamble.get();
+    /** @brief get view context for operations */
+    inline InterpreterViewContext* getViewContext() const {
+        return viewContext.get();
     }
 
-    /** @brief set preamble */
-    inline void setPreamble(const std::shared_ptr<InterpreterPreamble>& p) {
-        preamble = p;
+    /** @brief set view context */
+    inline void setViewContext(const std::shared_ptr<InterpreterViewContext>& v) {
+        viewContext = v;
     }
 
 protected:
-    std::shared_ptr<InterpreterPreamble> preamble = nullptr;
+    std::shared_ptr<InterpreterViewContext> viewContext = nullptr;
 };
 
 /**
@@ -619,8 +619,7 @@ public:
 /**
  * @class InterpreterParallelIndexAggregate
  */
-class InterpreterParallelIndexAggregate : public InterpreterIndexAggregate,
-                                          public InterpreterAbstractParallel {
+class InterpreterParallelIndexAggregate : public InterpreterIndexAggregate, public InterpreterAbstractParallel {
     using InterpreterIndexAggregate::InterpreterIndexAggregate;
 };
 
