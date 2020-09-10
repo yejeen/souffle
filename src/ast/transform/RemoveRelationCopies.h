@@ -18,7 +18,7 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformation pass to replaces copy of relations by their origin.
@@ -28,7 +28,7 @@ namespace souffle {
  *
  * and no other clause, all occurrences of r will be replaced by s.
  */
-class RemoveRelationCopiesTransformer : public AstTransformer {
+class RemoveRelationCopiesTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "RemoveRelationCopiesTransformer";
@@ -40,16 +40,16 @@ public:
      * @param program the program to be processed
      * @return whether the program was modified
      */
-    static bool removeRelationCopies(AstTranslationUnit& translationUnit);
+    static bool removeRelationCopies(TranslationUnit& translationUnit);
 
     RemoveRelationCopiesTransformer* clone() const override {
         return new RemoveRelationCopiesTransformer();
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override {
+    bool transform(TranslationUnit& translationUnit) override {
         return removeRelationCopies(translationUnit);
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

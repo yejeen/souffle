@@ -20,14 +20,14 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformation to remove typecasts.
  */
-class RemoveTypecastsTransformer : public AstTransformer {
+class RemoveTypecastsTransformer : public Transformer {
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 
 public:
     std::string getName() const override {
@@ -39,4 +39,4 @@ public:
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

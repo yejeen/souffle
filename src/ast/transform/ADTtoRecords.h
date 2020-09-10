@@ -23,9 +23,9 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
-class ADTtoRecordsTransformer : public AstTransformer {
+class ADTtoRecordsTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "ADTtoRecords";
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 };
 
-}  // namespace souffle
+}  // namespace souffle::ast::transform
