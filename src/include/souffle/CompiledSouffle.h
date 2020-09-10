@@ -238,7 +238,7 @@ public:
     void purge() {
         data = false;
     }
-    void printHintStatistics(std::ostream& /* o */, std::string /* prefix */) const {}
+    void printStatistics(std::ostream& /* o */) const {}
 };
 
 /** info relations */
@@ -323,7 +323,7 @@ public:
     void purge() {
         data.clear();
     }
-    void printHintStatistics(std::ostream& /* o */, std::string /* prefix */) const {}
+    void printStatistics(std::ostream& /* o */) const {}
 };
 
 }  // namespace souffle
