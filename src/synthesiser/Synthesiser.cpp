@@ -2688,6 +2688,11 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         // generate method for each subroutine
         subroutineNum = 0;
         for (auto& sub : prog.getSubroutines()) {
+            // silence unused argument warnings on MSVC
+            os << "#ifdef _MSC_VER\n";
+            os << "#pragma warning(disable: 4100)\n";
+            os << "#endif // _MSC_VER\n";
+
             // issue method header
             os << "void "
                << "subroutine_" << subroutineNum
@@ -2706,6 +2711,11 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
 
             // issue end of subroutine
             os << "}\n";
+
+            // restore unused argument warning
+            os << "#ifdef _MSC_VER\n";
+            os << "#pragma warning(default: 4100)\n";
+            os << "#endif // _MSC_VER\n";
             subroutineNum++;
         }
     }
