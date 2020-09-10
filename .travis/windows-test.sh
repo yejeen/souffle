@@ -25,7 +25,7 @@ set +e
 ./testsuite -v -d -x
 TESTS_RESULT=\$?
 set -e
-find testsuite.dir/ \( -name "*.err" -or -name "*.out" \) -printf "===== %p =====" -exec cat \{\} \;
+find testsuite.dir/ \( -name "*.err" -or -name "*.out" \) -printf "===== %p =====\n" -exec cat \{\} \;
 exit \$TESTS_RESULT
 EOF
 
