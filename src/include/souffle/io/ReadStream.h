@@ -220,11 +220,18 @@ protected:
 
         consumeChar(source, ')', pos);
 
-        RamDomain branchValue = recordTable.pack(branchArgs.data(), branchArgs.size());
-
         if (charactersRead != nullptr) {
             *charactersRead = pos - initial_position;
         }
+
+        // Store branch either as [branch_id, [arguments]] or [branch_id, argument].
+        RamDomain branchValue = [&]() -> RamDomain {
+            if (branchArgs.size() != 1) {
+                return recordTable.pack(branchArgs.data(), branchArgs.size());
+            } else {
+                return branchArgs[0];
+            }
+        }();
 
         return recordTable.pack(toVector<RamDomain>(branchIdx, branchValue).data(), 2);
     }
