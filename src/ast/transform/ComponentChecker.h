@@ -45,19 +45,19 @@ private:
     bool transform(TranslationUnit& translationUnit) override;
 
     static const Component* checkComponentNameReference(ErrorReport& report,
-            const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
+            const Component* enclosingComponent, const analysis::ComponentLookupAnalysis& componentLookup,
             const std::string& name, const SrcLocation& loc, const analysis::TypeBinding& binding);
     static void checkComponentReference(ErrorReport& report, const Component* enclosingComponent,
-            const analysis::ComponentLookup& componentLookup, const ast::ComponentType& type,
+            const analysis::ComponentLookupAnalysis& componentLookup, const ast::ComponentType& type,
             const SrcLocation& loc, const analysis::TypeBinding& binding);
     static void checkComponentInit(ErrorReport& report, const Component* enclosingComponent,
-            const analysis::ComponentLookup& componentLookup, const ComponentInit& init,
+            const analysis::ComponentLookupAnalysis& componentLookup, const ComponentInit& init,
             const analysis::TypeBinding& binding);
     static void checkComponent(ErrorReport& report, const Component* enclosingComponent,
-            const analysis::ComponentLookup& componentLookup, const Component& component,
+            const analysis::ComponentLookupAnalysis& componentLookup, const Component& component,
             const analysis::TypeBinding& binding);
-    static void checkComponents(
-            ErrorReport& report, const Program& program, const analysis::ComponentLookup& componentLookup);
+    static void checkComponents(ErrorReport& report, const Program& program,
+            const analysis::ComponentLookupAnalysis& componentLookup);
     static void checkComponentNamespaces(ErrorReport& report, const Program& program);
 };
 

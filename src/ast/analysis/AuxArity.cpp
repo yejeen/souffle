@@ -20,7 +20,7 @@
 
 namespace souffle::ast::analysis {
 
-size_t AuxiliaryArity::computeArity(const Relation* /* relation */) const {
+size_t AuxiliaryArityAnalysis::computeArity(const AstRelation* /* relation */) const {
     if (Global::config().has("provenance")) {
         return 2;
     } else {

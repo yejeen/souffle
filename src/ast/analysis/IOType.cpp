@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file IOType.cpp
+ * @file IOTypeAnalysis.cpp
  *
  * Implements methods to identify a relation as input, output, or printsize.
  *
@@ -29,7 +29,7 @@
 
 namespace souffle::ast::analysis {
 
-void IOType::run(const TranslationUnit& translationUnit) {
+void IOTypeAnalysis::run(const TranslationUnit& translationUnit) {
     const Program& program = *translationUnit.getProgram();
     visitDepthFirst(program, [&](const Directive& directive) {
         auto* relation = getRelation(program, directive.getQualifiedName());
@@ -52,7 +52,7 @@ void IOType::run(const TranslationUnit& translationUnit) {
     });
 }
 
-void IOType::print(std::ostream& os) const {
+void IOTypeAnalysis::print(std::ostream& os) const {
     auto show = [](std::ostream& os, const Relation* r) { os << r->getQualifiedName(); };
     os << "input relations: {" << join(inputRelations, ", ", show) << "}\n";
     os << "output relations: {" << join(outputRelations, ", ", show) << "}\n";

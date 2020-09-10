@@ -1482,7 +1482,7 @@ Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::
 /** translates the given datalog program into an equivalent RAM program  */
 void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translationUnit) {
     // obtain IO Type of relations
-    ioType = translationUnit.getAnalysis<ast::analysis::IOType>();
+    ioType = translationUnit.getAnalysis<ast::analysis::IOTypeAnalysis>();
 
     // obtain type environment from analysis
     typeEnv = &translationUnit.getAnalysis<ast::analysis::TypeEnvironmentAnalysis>()->getTypeEnvironment();
@@ -1501,7 +1501,7 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
             translationUnit.getAnalysis<ast::analysis::RelationScheduleAnalysis>()->schedule();
 
     // get auxiliary arity analysis
-    auxArityAnalysis = translationUnit.getAnalysis<ast::analysis::AuxiliaryArity>();
+    auxArityAnalysis = translationUnit.getAnalysis<ast::analysis::AuxiliaryArityAnalysis>();
 
     // handle the case of an empty SCC graph
     if (sccGraph.getNumberOfSCCs() == 0) return;

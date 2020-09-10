@@ -29,11 +29,11 @@ namespace souffle::ast::analysis {
 /**
  * Determine the auxiliary arity for relations
  */
-class AuxiliaryArity : public Analysis {
+class AuxiliaryArityAnalysis : public Analysis {
 public:
     static constexpr const char* name = "auxiliary-arity";
 
-    AuxiliaryArity() : Analysis(name) {}
+    AuxiliaryArityAnalysis() : Analysis(name) {}
 
     void run(const TranslationUnit& translationUnit) override {
         program = translationUnit.getProgram();

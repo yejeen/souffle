@@ -61,7 +61,7 @@ typedef MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransfor
 
 std::set<QualifiedName> MagicSetTransformer::getIgnoredRelations(const TranslationUnit& tu) {
     const auto& program = *tu.getProgram();
-    const auto& ioTypes = *tu.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *tu.getAnalysis<analysis::IOTypeAnalysis>();
 
     std::set<QualifiedName> relationsToIgnore;
 
@@ -200,7 +200,7 @@ bool NormaliseDatabaseTransformer::transform(TranslationUnit& translationUnit) {
 
 bool NormaliseDatabaseTransformer::partitionIO(TranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
     // Get all relations that are both input and output
     std::set<QualifiedName> relationsToSplit;
@@ -268,7 +268,7 @@ bool NormaliseDatabaseTransformer::partitionIO(TranslationUnit& translationUnit)
 
 bool NormaliseDatabaseTransformer::extractIDB(TranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
     // Helper method to check if an input relation has no associated rules
     auto isStrictlyEDB = [&](const Relation* rel) {
@@ -355,7 +355,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(TranslationUnit& trans
     };
 
     // Get all output relations that need to be normalised
-    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
     std::set<QualifiedName> outputRelationNames;
     for (auto* rel : program.getRelations()) {
         if ((ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel)) && !isStrictlyOutput(rel)) {
@@ -617,7 +617,7 @@ Own<Clause> AdornDatabaseTransformer::adornClause(const Clause* clause, const st
 
 bool AdornDatabaseTransformer::transform(TranslationUnit& translationUnit) {
     auto& program = *translationUnit.getProgram();
-    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
     relationsToIgnore = getIgnoredRelations(translationUnit);
 

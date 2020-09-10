@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ComponentLookup.cpp
+ * @file ComponentLookupAnalysis.cpp
  *
  * Implements the component lookup
  *
@@ -24,7 +24,7 @@
 
 namespace souffle::ast::analysis {
 
-void ComponentLookup::run(const TranslationUnit& translationUnit) {
+void ComponentLookupAnalysis::run(const TranslationUnit& translationUnit) {
     const Program* program = translationUnit.getProgram();
     for (Component* component : program->getComponents()) {
         globalScopeComponents.insert(component);
@@ -39,7 +39,7 @@ void ComponentLookup::run(const TranslationUnit& translationUnit) {
     });
 }
 
-const Component* ComponentLookup::getComponent(
+const Component* ComponentLookupAnalysis::getComponent(
         const Component* scope, const std::string& name, const TypeBinding& activeBinding) const {
     // forward according to binding (we do not do this recursively on purpose)
     QualifiedName boundName = activeBinding.find(name);

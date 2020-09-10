@@ -41,7 +41,7 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(TranslationUnit& tran
     // collect aliases
     alias_map isDirectAliasOf;
 
-    auto* ioType = translationUnit.getAnalysis<analysis::IOType>();
+    auto* ioType = translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
     Program& program = *translationUnit.getProgram();
 

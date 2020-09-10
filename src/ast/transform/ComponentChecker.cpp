@@ -36,9 +36,11 @@
 
 namespace souffle::ast::transform {
 
+using namespace analysis;
+
 bool ComponentChecker::transform(TranslationUnit& translationUnit) {
     Program& program = *translationUnit.getProgram();
-    analysis::ComponentLookup& componentLookup = *translationUnit.getAnalysis<analysis::ComponentLookup>();
+    ComponentLookupAnalysis& componentLookup = *translationUnit.getAnalysis<ComponentLookupAnalysis>();
     ErrorReport& report = translationUnit.getErrorReport();
     checkComponents(report, program, componentLookup);
     checkComponentNamespaces(report, program);
@@ -46,8 +48,8 @@ bool ComponentChecker::transform(TranslationUnit& translationUnit) {
 }
 
 const Component* ComponentChecker::checkComponentNameReference(ErrorReport& report,
-        const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
-        const std::string& name, const SrcLocation& loc, const analysis::TypeBinding& binding) {
+        const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
+        const std::string& name, const SrcLocation& loc, const TypeBinding& binding) {
     const QualifiedName& forwarded = binding.find(name);
     if (!forwarded.empty()) {
         // for forwarded types we do not check anything, because we do not know
@@ -65,8 +67,8 @@ const Component* ComponentChecker::checkComponentNameReference(ErrorReport& repo
 }
 
 void ComponentChecker::checkComponentReference(ErrorReport& report, const Component* enclosingComponent,
-        const analysis::ComponentLookup& componentLookup, const ast::ComponentType& type,
-        const SrcLocation& loc, const analysis::TypeBinding& binding) {
+        const ComponentLookupAnalysis& componentLookup, const ast::ComponentType& type,
+        const SrcLocation& loc, const TypeBinding& binding) {
     // check whether targeted component exists
     const Component* c = checkComponentNameReference(
             report, enclosingComponent, componentLookup, type.getName(), loc, binding);
@@ -81,8 +83,8 @@ void ComponentChecker::checkComponentReference(ErrorReport& report, const Compon
 }
 
 void ComponentChecker::checkComponentInit(ErrorReport& report, const Component* enclosingComponent,
-        const analysis::ComponentLookup& componentLookup, const ComponentInit& init,
-        const analysis::TypeBinding& binding) {
+        const ComponentLookupAnalysis& componentLookup, const ComponentInit& init,
+        const TypeBinding& binding) {
     checkComponentReference(
             report, enclosingComponent, componentLookup, *init.getComponentType(), init.getSrcLoc(), binding);
 
@@ -98,8 +100,8 @@ void ComponentChecker::checkComponentInit(ErrorReport& report, const Component* 
 }
 
 void ComponentChecker::checkComponent(ErrorReport& report, const Component* enclosingComponent,
-        const analysis::ComponentLookup& componentLookup, const Component& component,
-        const analysis::TypeBinding& binding) {
+        const ComponentLookupAnalysis& componentLookup, const Component& component,
+        const TypeBinding& binding) {
     // -- inheritance --
 
     // Update type binding:
@@ -110,7 +112,7 @@ void ComponentChecker::checkComponent(ErrorReport& report, const Component* encl
     // instantiation time.
     auto parentTypeParameters = component.getComponentType()->getTypeParameters();
     std::vector<QualifiedName> actualParams(parentTypeParameters.size(), "<type parameter>");
-    analysis::TypeBinding activeBinding = binding.extend(parentTypeParameters, actualParams);
+    TypeBinding activeBinding = binding.extend(parentTypeParameters, actualParams);
 
     // check parents of component
     for (const auto& cur : component.getBaseComponents()) {
@@ -184,13 +186,13 @@ void ComponentChecker::checkComponent(ErrorReport& report, const Component* encl
 }
 
 void ComponentChecker::checkComponents(
-        ErrorReport& report, const Program& program, const analysis::ComponentLookup& componentLookup) {
+        ErrorReport& report, const Program& program, const ComponentLookupAnalysis& componentLookup) {
     for (Component* cur : program.getComponents()) {
-        checkComponent(report, nullptr, componentLookup, *cur, analysis::TypeBinding());
+        checkComponent(report, nullptr, componentLookup, *cur, TypeBinding());
     }
 
     for (ComponentInit* cur : program.getComponentInstantiations()) {
-        checkComponentInit(report, nullptr, componentLookup, *cur, analysis::TypeBinding());
+        checkComponentInit(report, nullptr, componentLookup, *cur, TypeBinding());
     }
 }
 

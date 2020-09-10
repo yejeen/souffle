@@ -74,7 +74,7 @@ private:
     bool setAttributeParams(TranslationUnit& translationUnit) {
         bool changed = false;
         Program* program = translationUnit.getProgram();
-        auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArity>();
+        auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArityAnalysis>();
 
         for (Directive* io : program->getDirectives()) {
             if (io->getType() == ast::DirectiveType::limitsize) {
@@ -126,7 +126,7 @@ private:
             }
 
             if (Global::config().has("provenance")) {
-                auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArity>();
+                auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArityAnalysis>();
                 std::vector<std::string> originalAttributeNames(
                         attributeNames.begin(), attributeNames.end() - auxArityAnalysis->getArity(rel));
                 io->addDirective("attributeNames", toString(join(originalAttributeNames, delimiter)));
@@ -141,7 +141,7 @@ private:
     bool setAttributeTypes(TranslationUnit& translationUnit) {
         bool changed = false;
         Program* program = translationUnit.getProgram();
-        auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArity>();
+        auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArityAnalysis>();
         auto typeEnv =
                 &translationUnit.getAnalysis<analysis::TypeEnvironmentAnalysis>()->getTypeEnvironment();
 

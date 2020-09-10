@@ -281,7 +281,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(TranslationUnit& trans
     // Note: This reduction is particularly useful in conjunction with the
     // body-partitioning transformation
     Program& program = *translationUnit.getProgram();
-    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOType>();
+    const auto& ioTypes = *translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
     const auto& normalisations = *translationUnit.getAnalysis<analysis::ClauseNormalisationAnalysis>();
 
     // Find all singleton relations to consider

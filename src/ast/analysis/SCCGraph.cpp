@@ -35,7 +35,7 @@ namespace souffle::ast::analysis {
 
 void SCCGraphAnalysis::run(const TranslationUnit& translationUnit) {
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraphAnalysis>();
-    ioType = translationUnit.getAnalysis<IOType>();
+    ioType = translationUnit.getAnalysis<IOTypeAnalysis>();
     sccToRelation.clear();
     relationToScc.clear();
     predecessors.clear();

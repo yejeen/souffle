@@ -71,11 +71,11 @@ private:
     std::map<QualifiedName, QualifiedName> binding;
 };
 
-class ComponentLookup : public Analysis {
+class ComponentLookupAnalysis : public Analysis {
 public:
     static constexpr const char* name = "component-lookup";
 
-    ComponentLookup() : Analysis(name) {}
+    ComponentLookupAnalysis() : Analysis(name) {}
 
     void run(const TranslationUnit& translationUnit) override;
 

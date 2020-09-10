@@ -30,11 +30,11 @@ class TranslationUnit;
 
 namespace analysis {
 
-class IOType : public Analysis {
+class IOTypeAnalysis : public Analysis {
 public:
     static constexpr const char* name = "IO-type-analysis";
 
-    IOType() : Analysis(name) {}
+    IOTypeAnalysis() : Analysis(name) {}
 
     void run(const TranslationUnit& translationUnit) override;
 

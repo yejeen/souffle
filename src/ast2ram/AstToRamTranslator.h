@@ -78,7 +78,7 @@ private:
     const ast::analysis::TypeEnvironment* typeEnv = nullptr;
 
     /** IO Type */
-    const ast::analysis::IOType* ioType = nullptr;
+    const ast::analysis::IOTypeAnalysis* ioType = nullptr;
 
     /** RAM program */
     Own<RamStatement> ramMain;
@@ -93,7 +93,7 @@ private:
     SymbolTable symbolTable;
 
     /** Auxiliary Arity Analysis */
-    const ast::analysis::AuxiliaryArity* auxArityAnalysis = nullptr;
+    const ast::analysis::AuxiliaryArityAnalysis* auxArityAnalysis = nullptr;
 
     /**
      * Concrete attribute
@@ -365,7 +365,7 @@ private:
         Own<RamOperation> filterByConstraints(size_t level, const std::vector<ast::Argument*>& args,
                 Own<RamOperation> op, bool constrainByFunctors = true);
 
-        const ast::analysis::AuxiliaryArity* auxArityAnalysis;
+        const ast::analysis::AuxiliaryArityAnalysis* auxArityAnalysis;
 
     public:
         ClauseTranslator(AstToRamTranslator& translator)

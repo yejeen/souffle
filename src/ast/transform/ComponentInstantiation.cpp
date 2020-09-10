@@ -45,6 +45,8 @@
 
 namespace souffle::ast::transform {
 
+using namespace analysis;
+
 namespace {
 
 static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
@@ -120,16 +122,16 @@ struct ComponentContent {
  * by this init statement enclosed within the given scope.
  */
 ComponentContent getInstantiatedContent(Program& program, const ComponentInit& componentInit,
-        const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
+        const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
         std::vector<Own<Clause>>& orphans, ErrorReport& report,
-        const analysis::TypeBinding& binding = analysis::TypeBinding(),
+        const TypeBinding& binding = analysis::TypeBinding(),
         unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
 
 /**
  * Collects clones of all the content in the given component and its base components.
  */
-void collectContent(Program& program, const Component& component, const analysis::TypeBinding& binding,
-        const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
+void collectContent(Program& program, const Component& component, const TypeBinding& binding,
+        const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
         ComponentContent& res, std::vector<Own<Clause>>& orphans, const std::set<std::string>& overridden,
         ErrorReport& report, unsigned int maxInstantiationDepth) {
     // start with relations and clauses of the base components
@@ -141,7 +143,7 @@ void collectContent(Program& program, const Component& component, const analysis
             const auto& actualParams = base->getTypeParameters();
 
             // update type binding
-            analysis::TypeBinding activeBinding = binding.extend(formalParams, actualParams);
+            TypeBinding activeBinding = binding.extend(formalParams, actualParams);
 
             for (const auto& cur : comp->getInstantiations()) {
                 // instantiate sub-component
@@ -268,8 +270,8 @@ void collectContent(Program& program, const Component& component, const analysis
 }
 
 ComponentContent getInstantiatedContent(Program& program, const ComponentInit& componentInit,
-        const Component* enclosingComponent, const analysis::ComponentLookup& componentLookup,
-        std::vector<Own<Clause>>& orphans, ErrorReport& report, const analysis::TypeBinding& binding,
+        const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
+        std::vector<Own<Clause>>& orphans, ErrorReport& report, const TypeBinding& binding,
         unsigned int maxDepth) {
     // start with an empty list
     ComponentContent res;
@@ -290,7 +292,7 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     // update type biding
     const auto& formalParams = component->getComponentType()->getTypeParameters();
     const auto& actualParams = componentInit.getComponentType()->getTypeParameters();
-    analysis::TypeBinding activeBinding = binding.extend(formalParams, actualParams);
+    TypeBinding activeBinding = binding.extend(formalParams, actualParams);
 
     // instantiated nested components
     for (const auto& cur : component->getInstantiations()) {
@@ -433,7 +435,7 @@ bool ComponentInstantiationTransformer::transform(TranslationUnit& translationUn
 
     Program& program = *translationUnit.getProgram();
 
-    auto* componentLookup = translationUnit.getAnalysis<analysis::ComponentLookup>();
+    auto* componentLookup = translationUnit.getAnalysis<ComponentLookupAnalysis>();
 
     for (const auto& cur : program.instantiations) {
         std::vector<Own<Clause>> orphans;

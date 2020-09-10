@@ -223,7 +223,7 @@ private:
     void scR(const Relation* relation, std::map<const Relation*, size_t>& preOrder, size_t& counter,
             std::stack<const Relation*>& S, std::stack<const Relation*>& P, size_t& numSCCs);
 
-    IOType* ioType = nullptr;
+    IOTypeAnalysis* ioType = nullptr;
 };
 
 }  // namespace analysis
