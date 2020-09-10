@@ -91,7 +91,7 @@ m4_define([TEST_EVAL_FUNCTOR],[
     AT_CHECK(["$SOUFFLE" -g $1.cpp -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-functor-test.sh TESTDIR TESTNAME FACTS PROGRAM], [0])
     cp -r FACTS ./
-    AT_CHECK([./$1.exe $(wslpath -w FACTS) 1>TESTNAME.out 2>>TESTNAME.err], [0])
+    AT_CHECK([./$1.exe 1>TESTNAME.out 2>>TESTNAME.err], [0])
     dos2unix --quiet TESTNAME.out TESTNAME.err
   else
     dnl copy libs from where they were built
