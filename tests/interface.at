@@ -14,7 +14,7 @@ m4_define([TEST_EVAL_INTERFACE],[
   m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
   m4_define([FACTS],[TESTDIR/facts])
   if [[ ! -z "$SOUFFLE_TESTS_MSVC_VARS" ]]; then
-    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./ PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./facts PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-test.sh TESTDIR TESTNAME], [0])
     cp -r FACTS ./
     AT_CHECK([./$1.exe $(wslpath -w FACTS) 1>TESTNAME.out 2>>TESTNAME.err], [0])
@@ -42,7 +42,7 @@ m4_define([TEST_EVAL_ERROR_INTERFACE],[
   m4_define([FACTS],[TESTDIR/facts])
 
   if [[ ! -z "$SOUFFLE_TESTS_MSVC_VARS" ]]; then
-    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./ PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+    AT_CHECK(["$SOUFFLE" -D- -g $1.cpp -F ./facts PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
     AT_CHECK([rm TESTNAME.err],[0])
     AT_CHECK([SOUFFLE_INC=$SOUFFLE_INC $at_dir/msvc-interface-test.sh TESTDIR TESTNAME], [0])
     cp -r FACTS ./
