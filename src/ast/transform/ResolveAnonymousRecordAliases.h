@@ -32,14 +32,14 @@ namespace souffle::ast::transform {
  *
  * The transformer is to be called in conjunction with FoldAnonymousRecords.
  **/
-class ResolveAnonymousRecordAliases : public Transformer {
+class ResolveAnonymousRecordAliasesTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "ResolveAnonymousRecordAliases";
     }
 
-    ResolveAnonymousRecordAliases* clone() const override {
-        return new ResolveAnonymousRecordAliases();
+    ResolveAnonymousRecordAliasesTransformer* clone() const override {
+        return new ResolveAnonymousRecordAliasesTransformer();
     }
 
 private:

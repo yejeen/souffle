@@ -16,11 +16,10 @@
 
 #include "ast/analysis/AuxArity.h"
 #include "Global.h"
-#include <string>
 
 namespace souffle::ast::analysis {
 
-size_t AuxiliaryArityAnalysis::computeArity(const AstRelation* /* relation */) const {
+size_t AuxiliaryArityAnalysis::computeArity(const Relation* /* relation */) const {
     if (Global::config().has("provenance")) {
         return 2;
     } else {

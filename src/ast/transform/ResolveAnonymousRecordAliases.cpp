@@ -37,7 +37,7 @@
 
 namespace souffle::ast::transform {
 
-std::map<std::string, const RecordInit*> ResolveAnonymousRecordAliases::findVariablesRecordMapping(
+std::map<std::string, const RecordInit*> ResolveAnonymousRecordAliasesTransformer::findVariablesRecordMapping(
         TranslationUnit& tu, const Clause& clause) {
     std::map<std::string, const RecordInit*> variableRecordMap;
 
@@ -92,7 +92,7 @@ std::map<std::string, const RecordInit*> ResolveAnonymousRecordAliases::findVari
     return variableRecordMap;
 }
 
-bool ResolveAnonymousRecordAliases::replaceNamedVariables(TranslationUnit& tu, Clause& clause) {
+bool ResolveAnonymousRecordAliasesTransformer::replaceNamedVariables(TranslationUnit& tu, Clause& clause) {
     struct ReplaceVariables : public NodeMapper {
         std::map<std::string, const RecordInit*> varToRecordMap;
 
@@ -122,7 +122,7 @@ bool ResolveAnonymousRecordAliases::replaceNamedVariables(TranslationUnit& tu, C
     return changed;
 }
 
-bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(Clause& clause) {
+bool ResolveAnonymousRecordAliasesTransformer::replaceUnnamedVariable(Clause& clause) {
     struct ReplaceUnnamed : public NodeMapper {
         mutable bool changed{false};
         ReplaceUnnamed() = default;
@@ -154,7 +154,7 @@ bool ResolveAnonymousRecordAliases::replaceUnnamedVariable(Clause& clause) {
     return update.changed;
 }
 
-bool ResolveAnonymousRecordAliases::transform(TranslationUnit& translationUnit) {
+bool ResolveAnonymousRecordAliasesTransformer::transform(TranslationUnit& translationUnit) {
     bool changed = false;
     for (auto* clause : translationUnit.getProgram()->getClauses()) {
         changed |= replaceNamedVariables(translationUnit, *clause);
