@@ -27,7 +27,7 @@ call $SOUFFLE_TESTS_MSVC_VARS
 cl.exe $functor_dir\functors.cpp /std:c++17 /permissive- /nologo /c
 lib functors.obj
 
-cl.exe $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /I $souffle_include /I $GETOPT_INCLUDE /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link functors.lib /link $GETOPT_LIB
+cl.exe $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /I $souffle_include /I $GETOPT_INCLUDE /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link functors.lib $GETOPT_LIB
 EOF
 
 workdir=$(pwd)
