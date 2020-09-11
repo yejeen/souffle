@@ -115,6 +115,8 @@
 
 namespace souffle {
 
+using namespace ram;
+
 // Handle difference in dynamic libraries suffixes.
 #ifdef __APPLE__
 #define dynamicLibSuffix ".dylib";
@@ -161,7 +163,7 @@ RecordTable& InterpreterEngine::getRecordTable() {
     return recordTable;
 }
 
-RamTranslationUnit& InterpreterEngine::getTranslationUnit() {
+TranslationUnit& InterpreterEngine::getTranslationUnit() {
     return tUnit;
 }
 
@@ -252,8 +254,8 @@ void InterpreterEngine::executeMain() {
     } else {
         ProfileEventSingleton::instance().setOutputFile(Global::config().get("profile"));
         // Prepare the frequency table for threaded use
-        const RamProgram& program = tUnit.getProgram();
-        visitDepthFirst(program, [&](const RamTupleOperation& node) {
+        const Program& program = tUnit.getProgram();
+        visitDepthFirst(program, [&](const TupleOperation& node) {
             if (!node.getProfileText().empty()) {
                 frequencies.emplace(node.getProfileText(), std::deque<std::atomic<size_t>>());
                 frequencies[node.getProfileText()].emplace_back(0);
@@ -278,7 +280,7 @@ void InterpreterEngine::executeMain() {
 
         // Store count of rules
         size_t ruleCount = 0;
-        visitDepthFirst(program, [&](const RamQuery&) { ++ruleCount; });
+        visitDepthFirst(program, [&](const Query&) { ++ruleCount; });
         ProfileEventSingleton::instance().makeConfigRecord("ruleCount", std::to_string(ruleCount));
 
         InterpreterContext ctxt;
@@ -298,7 +300,7 @@ void InterpreterEngine::executeMain() {
 }
 
 void InterpreterEngine::generateIR() {
-    const RamProgram& program = tUnit.getProgram();
+    const Program& program = tUnit.getProgram();
     if (subroutine.empty()) {
         for (const auto& sub : program.getSubroutines()) {
             subroutine.push_back(generator.generateTree(*sub.second, program));
@@ -315,7 +317,7 @@ void InterpreterEngine::executeSubroutine(
     ctxt.setReturnValues(ret);
     ctxt.setArguments(args);
     generateIR();
-    const RamProgram& program = tUnit.getProgram();
+    const Program& program = tUnit.getProgram();
     auto subs = program.getSubroutines();
     size_t i = distance(subs.begin(), subs.find(name));
     execute(subroutine[i].get(), ctxt);
@@ -331,7 +333,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
     case (I_##Kind): { \
         return [&]() -> RamDomain { \
             [[maybe_unused]] const auto& shadow = *static_cast<const Interpreter##Kind*>(node); \
-            [[maybe_unused]] const auto& cur = *static_cast<const Ram##Kind*>(node->getShadow());
+            [[maybe_unused]] const auto& cur = *static_cast<const Kind*>(node->getShadow());
 #define ESAC(Kind) \
     }              \
     ();            \
@@ -543,7 +545,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                 case FunctorOp::RANGE:
                 case FunctorOp::URANGE:
                 case FunctorOp::FRANGE:
-                    fatal("ICE: functor `%s` must map onto `RamNestedIntrinsicOperator`", cur.getOperator());
+                    fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", cur.getOperator());
             }
 
             { UNREACHABLE_BAD_CASE_ANALYSIS }
@@ -575,9 +577,9 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             true
 
             switch (cur.getFunction()) {
-                case RamNestedIntrinsicOp::RANGE: return RUN_RANGE(RamSigned);
-                case RamNestedIntrinsicOp::URANGE: return RUN_RANGE(RamUnsigned);
-                case RamNestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
+                case NestedIntrinsicOp::RANGE: return RUN_RANGE(RamSigned);
+                case NestedIntrinsicOp::URANGE: return RUN_RANGE(RamUnsigned);
+                case NestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
             }
 
             { UNREACHABLE_BAD_CASE_ANALYSIS }

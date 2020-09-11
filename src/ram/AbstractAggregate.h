@@ -26,27 +26,27 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram {
 
 /**
- * @class RamAbstractAggregate
+ * @class AbstractAggregate
  * @brief Abstract class for aggregation
  *
  * A particular function (e.g. MIN) is applied given a
  * that a condition holds
  */
-class RamAbstractAggregate {
+class AbstractAggregate {
 public:
-    RamAbstractAggregate(AggregateOp fun, Own<RamExpression> expr, Own<RamCondition> cond)
+    AbstractAggregate(AggregateOp fun, Own<Expression> expr, Own<Condition> cond)
             : function(fun), expression(std::move(expr)), condition(std::move(cond)) {
         assert(condition != nullptr && "Condition is a null-pointer");
         assert(expression != nullptr && "Expression is a null-pointer");
     }
 
-    virtual ~RamAbstractAggregate() = default;
+    virtual ~AbstractAggregate() = default;
 
     /** @brief Get condition */
-    const RamCondition& getCondition() const {
+    const Condition& getCondition() const {
         assert(condition != nullptr && "Condition of aggregate is a null-pointer");
         return *condition;
     }
@@ -57,12 +57,12 @@ public:
     }
 
     /** @brief Get target expression */
-    const RamExpression& getExpression() const {
+    const Expression& getExpression() const {
         assert(expression != nullptr && "Expression of aggregate is a null-pointer");
         return *expression;
     }
 
-    std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const Node*> getChildNodes() const {
         return {expression.get(), condition.get()};
     }
 
@@ -87,8 +87,8 @@ protected:
     }
 
 protected:
-    bool equal(const RamNode& node) const {
-        const auto& other = dynamic_cast<const RamAbstractAggregate&>(node);
+    bool equal(const Node& node) const {
+        const auto& other = dynamic_cast<const AbstractAggregate&>(node);
         return function == other.function && equal_ptr(expression, other.expression) &&
                equal_ptr(condition, other.condition);
     }
@@ -97,10 +97,10 @@ protected:
     AggregateOp function;
 
     /** Aggregation expression */
-    Own<RamExpression> expression;
+    Own<Expression> expression;
 
     /** Aggregation tuple condition */
-    Own<RamCondition> condition;
+    Own<Condition> condition;
 };
 
-}  // namespace souffle
+}  // namespace souffle::ram

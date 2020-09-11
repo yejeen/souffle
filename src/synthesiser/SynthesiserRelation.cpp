@@ -20,6 +20,8 @@
 
 namespace souffle {
 
+using namespace ram;
+
 std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::string>& attributeTypes,
         const std::unordered_set<uint32_t>& attributesUsed) const {
     std::stringstream type;
@@ -37,7 +39,7 @@ std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::s
 }
 
 Own<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
-        const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance) {
+        const Relation& ramRel, const analysis::MinIndexSelection& indexSet, bool isProvenance) {
     SynthesiserRelation* rel;
 
     // Handle the qualifier in souffle code
@@ -110,7 +112,7 @@ void SynthesiserNullaryRelation::generateTypeStruct(std::ostream&) {
 /** Generate index set for a direct indexed relation */
 void SynthesiserDirectRelation::computeIndices() {
     // Generate and set indices
-    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "no full index in relation");
@@ -185,7 +187,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     auto types = relation.getAttributeTypes();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -389,14 +391,14 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     out << "}\n";
 
     // empty lowerUpperRange method
-    out << "range<iterator> lowerUpperRange_" << SearchSignature(arity)
+    out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
         << "(const t_tuple& lower, const t_tuple& upper, context& h) const "
            "{\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
     out << "}\n";
 
-    out << "range<iterator> lowerUpperRange_" << SearchSignature(arity)
+    out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
         << "(const t_tuple& lower, const t_tuple& upper) const {\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
@@ -413,7 +415,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         // count size of search pattern
         size_t eqSize = 0;
         for (size_t column = 0; column < arity; column++) {
-            if (search[column] == AttributeConstraint::Equal) {
+            if (search[column] == analysis::AttributeConstraint::Equal) {
                 eqSize++;
             }
         }
@@ -507,7 +509,7 @@ void SynthesiserIndirectRelation::computeIndices() {
     assert(!isProvenance && "indirect indexes cannot used for provenance");
 
     // Generate and set indices
-    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "no full index in relation");
@@ -553,7 +555,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -734,7 +736,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         // count size of search pattern
         size_t eqSize = 0;
         for (size_t column = 0; column < arity; column++) {
-            if (search[column] == AttributeConstraint::Equal) {
+            if (search[column] == analysis::AttributeConstraint::Equal) {
                 eqSize++;
             }
         }
@@ -825,7 +827,7 @@ void SynthesiserBrieRelation::computeIndices() {
     assert(!isProvenance && "bries cannot be used with provenance");
 
     // Generate and set indices
-    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "No full index in relation");
@@ -880,7 +882,7 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -1031,7 +1033,7 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
         // compute size of sub-index
         size_t indSize = 0;
         for (size_t i = 0; i < arity; i++) {
-            if (search[i] != AttributeConstraint::None) {
+            if (search[i] != analysis::AttributeConstraint::None) {
                 indSize++;
             }
         }
@@ -1131,7 +1133,7 @@ std::string SynthesiserEqrelRelation::getTypeName() {
 void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -1240,11 +1242,11 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
     // lowerUpperRange methods, one for each of the 4 possible search patterns
     size_t arity = 2;
     for (int i = 1; i < 4; i++) {
-        SearchSignature s(arity);
+        analysis::SearchSignature s(arity);
         // if the bit is set then set it in the search signature
         for (size_t j = 0; j < arity; j++) {
             if (i & (1 << j)) {
-                s[j] = AttributeConstraint::Equal;
+                s[j] = analysis::AttributeConstraint::Equal;
             }
         }
 

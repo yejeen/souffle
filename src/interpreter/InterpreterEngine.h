@@ -27,6 +27,7 @@
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <atomic>
 #include <cstddef>
 #include <deque>
@@ -51,10 +52,10 @@ class InterpreterEngine {
     friend InterpreterProgInterface;
 
 public:
-    InterpreterEngine(RamTranslationUnit& tUnit)
+    InterpreterEngine(ram::TranslationUnit& tUnit)
             : profileEnabled(Global::config().has("profile")),
               numOfThreads(std::stoi(Global::config().get("jobs"))), tUnit(tUnit),
-              isa(tUnit.getAnalysis<RamIndexAnalysis>()), generator(isa) {
+              isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), generator(isa) {
 #ifdef _OPENMP
         if (numOfThreads > 0) {
             omp_set_num_threads(numOfThreads);
@@ -80,8 +81,8 @@ private:
     SymbolTable& getSymbolTable();
     /** @brief Return the record table */
     RecordTable& getRecordTable();
-    /** @brief Return the RamTranslationUnit */
-    RamTranslationUnit& getTranslationUnit();
+    /** @brief Return the ram::TranslationUnit */
+    ram::TranslationUnit& getTranslationUnit();
     /** @brief Execute the program */
     RamDomain execute(const InterpreterNode*, InterpreterContext&);
     /** Execute helper. Common part of Aggregate & AggregateIndex. */
@@ -123,9 +124,9 @@ private:
     /** DLL */
     std::vector<void*> dll;
     /** Program */
-    RamTranslationUnit& tUnit;
-    /** RamIndexAnalysis */
-    RamIndexAnalysis* isa;
+    ram::TranslationUnit& tUnit;
+    /** IndexAnalysis */
+    ram::analysis::IndexAnalysis* isa;
     /** Interpreter program generator */
     NodeGenerator generator;
     /** Record Table*/

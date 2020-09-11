@@ -37,10 +37,10 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram {
 
 /**
- * @class RamParallelIndexChoice
+ * @class ParallelIndexChoice
  * @brief Use an index to find a tuple in a relation such that a given condition holds in parallel.
  *
  * For example:
@@ -52,14 +52,14 @@ namespace souffle {
  *      ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamParallelIndexChoice : public RamIndexChoice, public RamAbstractParallel {
+class ParallelIndexChoice : public IndexChoice, public AbstractParallel {
 public:
-    RamParallelIndexChoice(Own<RamRelationReference> r, int ident, Own<RamCondition> cond,
-            RamPattern queryPattern, Own<RamOperation> nested, std::string profileText = "")
-            : RamIndexChoice(std::move(r), ident, std::move(cond), std::move(queryPattern), std::move(nested),
+    ParallelIndexChoice(Own<RelationReference> r, int ident, Own<Condition> cond, RamPattern queryPattern,
+            Own<Operation> nested, std::string profileText = "")
+            : IndexChoice(std::move(r), ident, std::move(cond), std::move(queryPattern), std::move(nested),
                       profileText) {}
 
-    RamParallelIndexChoice* clone() const override {
+    ParallelIndexChoice* clone() const override {
         RamPattern resQueryPattern;
         for (const auto& i : queryPattern.first) {
             resQueryPattern.first.emplace_back(i->clone());
@@ -67,22 +67,22 @@ public:
         for (const auto& i : queryPattern.second) {
             resQueryPattern.second.emplace_back(i->clone());
         }
-        auto* res = new RamParallelIndexChoice(souffle::clone(relationRef), getTupleId(),
-                souffle::clone(condition), std::move(resQueryPattern), souffle::clone(&getOperation()),
-                getProfileText());
+        auto* res =
+                new ParallelIndexChoice(souffle::clone(relationRef), getTupleId(), souffle::clone(condition),
+                        std::move(resQueryPattern), souffle::clone(&getOperation()), getProfileText());
         return res;
     }
 
 protected:
     void print(std::ostream& os, int tabpos) const override {
-        const RamRelation& rel = getRelation();
+        const Relation& rel = getRelation();
         os << times(" ", tabpos);
         os << "PARALLEL CHOICE " << rel.getName() << " AS t" << getTupleId();
         printIndex(os);
         os << " WHERE " << getCondition();
         os << std::endl;
-        RamIndexOperation::print(os, tabpos + 1);
+        IndexOperation::print(os, tabpos + 1);
     }
 };
 
-}  // namespace souffle
+}  // namespace souffle::ram

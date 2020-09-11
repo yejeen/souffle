@@ -29,10 +29,10 @@
 #include <string>
 #include <utility>
 
-namespace souffle {
+namespace souffle::ram {
 
 /**
- * @class RamParallelScan
+ * @class ParallelScan
  * @brief Iterate all tuples of a relation in parallel
  *
  * An example:
@@ -43,14 +43,13 @@ namespace souffle {
  *     ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamParallelScan : public RamScan, public RamAbstractParallel {
+class ParallelScan : public Scan, public AbstractParallel {
 public:
-    RamParallelScan(
-            Own<RamRelationReference> rel, int ident, Own<RamOperation> nested, std::string profileText = "")
-            : RamScan(std::move(rel), ident, std::move(nested), profileText) {}
+    ParallelScan(Own<RelationReference> rel, int ident, Own<Operation> nested, std::string profileText = "")
+            : Scan(std::move(rel), ident, std::move(nested), profileText) {}
 
-    RamParallelScan* clone() const override {
-        return new RamParallelScan(
+    ParallelScan* clone() const override {
+        return new ParallelScan(
                 souffle::clone(relationRef), getTupleId(), souffle::clone(&getOperation()), getProfileText());
     }
 
@@ -59,7 +58,7 @@ protected:
         os << times(" ", tabpos);
         os << "PARALLEL FOR t" << getTupleId();
         os << " IN " << getRelation().getName() << std::endl;
-        RamRelationOperation::print(os, tabpos + 1);
+        RelationOperation::print(os, tabpos + 1);
     }
 };
-}  // namespace souffle
+}  // namespace souffle::ram
