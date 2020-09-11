@@ -30,4 +30,4 @@ exit \$TESTS_RESULT
 EOF
 
 chmod +x run-msvc-test.sh
-wsl ./run-msvc-test.sh
+PATH="$PATH:$(pwd)/vcpkg/installed/x64-windows/bin" wsl ./run-msvc-test.sh
