@@ -150,11 +150,7 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
                 }
             }
 
-            bool interpreted = !Global::config().has("compile") && !Global::config().has("dl-program") &&
-                               !Global::config().has("generate") && !Global::config().has("swig");
-
             if (transformable) {
-                // if (!interpreted || attributeTypes[element][0] == 'i') {
                 // append the weak version of inequality
                 toAppend.emplace_back(std::make_unique<RamConstraint>(
                         convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
@@ -167,7 +163,6 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
                 // remove the strict version of inequality
                 it = conditionList.erase(it);
                 continue;
-                //}
             }
         }
         ++it;
