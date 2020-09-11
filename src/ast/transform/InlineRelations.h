@@ -20,12 +20,12 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformation pass to inline marked relations
  */
-class InlineRelationsTransformer : public AstTransformer {
+class InlineRelationsTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "InlineRelationsTransformer";
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

@@ -47,29 +47,29 @@
 #include <cassert>
 #include <memory>
 
-namespace souffle {
+namespace souffle::ast {
 
-std::string pprint(const AstNode& node) {
+std::string pprint(const Node& node) {
     return toString(node);
 }
 
-std::vector<const AstVariable*> getVariables(const AstNode& root) {
+std::vector<const Variable*> getVariables(const Node& root) {
     // simply collect the list of all variables by visiting all variables
-    std::vector<const AstVariable*> vars;
-    visitDepthFirst(root, [&](const AstVariable& var) { vars.push_back(&var); });
+    std::vector<const Variable*> vars;
+    visitDepthFirst(root, [&](const Variable& var) { vars.push_back(&var); });
     return vars;
 }
 
-std::vector<const AstRecordInit*> getRecords(const AstNode& root) {
+std::vector<const RecordInit*> getRecords(const Node& root) {
     // simply collect the list of all records by visiting all records
-    std::vector<const AstRecordInit*> recs;
-    visitDepthFirst(root, [&](const AstRecordInit& rec) { recs.push_back(&rec); });
+    std::vector<const RecordInit*> recs;
+    visitDepthFirst(root, [&](const RecordInit& rec) { recs.push_back(&rec); });
     return recs;
 }
 
-std::vector<AstClause*> getClauses(const AstProgram& program, const AstQualifiedName& relationName) {
-    std::vector<AstClause*> clauses;
-    for (AstClause* clause : program.getClauses()) {
+std::vector<Clause*> getClauses(const Program& program, const QualifiedName& relationName) {
+    std::vector<Clause*> clauses;
+    for (Clause* clause : program.getClauses()) {
         if (clause->getHead()->getQualifiedName() == relationName) {
             clauses.push_back(clause);
         }
@@ -77,13 +77,13 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstQualified
     return clauses;
 }
 
-std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation& rel) {
+std::vector<Clause*> getClauses(const Program& program, const Relation& rel) {
     return getClauses(program, rel.getQualifiedName());
 }
 
-std::vector<AstDirective*> getDirectives(const AstProgram& program, const AstQualifiedName& relationName) {
-    std::vector<AstDirective*> directives;
-    for (AstDirective* dir : program.getDirectives()) {
+std::vector<Directive*> getDirectives(const Program& program, const QualifiedName& relationName) {
+    std::vector<Directive*> directives;
+    for (Directive* dir : program.getDirectives()) {
         if (dir->getQualifiedName() == relationName) {
             directives.push_back(dir);
         }
@@ -91,11 +91,11 @@ std::vector<AstDirective*> getDirectives(const AstProgram& program, const AstQua
     return directives;
 }
 
-AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name) {
-    return getIf(program.getRelations(), [&](const AstRelation* r) { return r->getQualifiedName() == name; });
+Relation* getRelation(const Program& program, const QualifiedName& name) {
+    return getIf(program.getRelations(), [&](const Relation* r) { return r->getQualifiedName() == name; });
 }
 
-void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name) {
+void removeRelation(TranslationUnit& tu, const QualifiedName& name) {
     if (getRelation(*tu.getProgram(), name) != nullptr) {
         removeRelationClauses(tu, name);
         removeRelationIOs(tu, name);
@@ -103,45 +103,45 @@ void removeRelation(AstTranslationUnit& tu, const AstQualifiedName& name) {
     }
 }
 
-void removeRelationClauses(AstTranslationUnit& tu, const AstQualifiedName& name) {
-    const auto& relDetail = *tu.getAnalysis<RelationDetailCacheAnalysis>();
+void removeRelationClauses(TranslationUnit& tu, const QualifiedName& name) {
+    const auto& relDetail = *tu.getAnalysis<analysis::RelationDetailCacheAnalysis>();
     for (const auto* clause : relDetail.getClauses(name)) {
         tu.getProgram()->removeClause(clause);
     }
 }
 
-void removeRelationIOs(AstTranslationUnit& tu, const AstQualifiedName& name) {
+void removeRelationIOs(TranslationUnit& tu, const QualifiedName& name) {
     auto& program = *tu.getProgram();
     for (const auto* directive : getDirectives(program, name)) {
         program.removeDirective(directive);
     }
 }
 
-const AstRelation* getAtomRelation(const AstAtom* atom, const AstProgram* program) {
+const Relation* getAtomRelation(const Atom* atom, const Program* program) {
     return getRelation(*program, atom->getQualifiedName());
 }
 
-const AstRelation* getHeadRelation(const AstClause* clause, const AstProgram* program) {
+const Relation* getHeadRelation(const Clause* clause, const Program* program) {
     return getAtomRelation(clause->getHead(), program);
 }
 
-std::set<const AstRelation*> getBodyRelations(const AstClause* clause, const AstProgram* program) {
-    std::set<const AstRelation*> bodyRelations;
+std::set<const Relation*> getBodyRelations(const Clause* clause, const Program* program) {
+    std::set<const Relation*> bodyRelations;
     for (const auto& lit : clause->getBodyLiterals()) {
         visitDepthFirst(
-                *lit, [&](const AstAtom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
+                *lit, [&](const Atom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
     }
     for (const auto& arg : clause->getHead()->getArguments()) {
         visitDepthFirst(
-                *arg, [&](const AstAtom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
+                *arg, [&](const Atom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
     }
     return bodyRelations;
 }
 
-size_t getClauseNum(const AstProgram* program, const AstClause* clause) {
+size_t getClauseNum(const Program* program, const Clause* clause) {
     // TODO (azreika): This number might change between the provenance transformer and the AST->RAM
     // translation. Might need a better way to assign IDs to clauses... (see PR #1288).
-    const AstRelation* rel = getRelation(*program, clause->getHead()->getQualifiedName());
+    const Relation* rel = getRelation(*program, clause->getHead()->getQualifiedName());
     assert(rel != nullptr && "clause relation does not exist");
 
     size_t clauseNum = 1;
@@ -159,10 +159,10 @@ size_t getClauseNum(const AstProgram* program, const AstClause* clause) {
     fatal("clause does not exist");
 }
 
-bool hasClauseWithNegatedRelation(const AstRelation* relation, const AstRelation* negRelation,
-        const AstProgram* program, const AstLiteral*& foundLiteral) {
-    for (const AstClause* cl : getClauses(*program, *relation)) {
-        for (const auto* neg : getBodyLiterals<AstNegation>(*cl)) {
+bool hasClauseWithNegatedRelation(const Relation* relation, const Relation* negRelation,
+        const Program* program, const Literal*& foundLiteral) {
+    for (const Clause* cl : getClauses(*program, *relation)) {
+        for (const auto* neg : getBodyLiterals<Negation>(*cl)) {
             if (negRelation == getAtomRelation(neg->getAtom(), program)) {
                 foundLiteral = neg;
                 return true;
@@ -172,12 +172,12 @@ bool hasClauseWithNegatedRelation(const AstRelation* relation, const AstRelation
     return false;
 }
 
-bool hasClauseWithAggregatedRelation(const AstRelation* relation, const AstRelation* aggRelation,
-        const AstProgram* program, const AstLiteral*& foundLiteral) {
-    for (const AstClause* cl : getClauses(*program, *relation)) {
+bool hasClauseWithAggregatedRelation(const Relation* relation, const Relation* aggRelation,
+        const Program* program, const Literal*& foundLiteral) {
+    for (const Clause* cl : getClauses(*program, *relation)) {
         bool hasAgg = false;
-        visitDepthFirst(*cl, [&](const AstAggregator& cur) {
-            visitDepthFirst(cur, [&](const AstAtom& atom) {
+        visitDepthFirst(*cl, [&](const Aggregator& cur) {
+            visitDepthFirst(cur, [&](const Atom& atom) {
                 if (aggRelation == getAtomRelation(&atom, program)) {
                     foundLiteral = &atom;
                     hasAgg = true;
@@ -191,10 +191,10 @@ bool hasClauseWithAggregatedRelation(const AstRelation* relation, const AstRelat
     return false;
 }
 
-bool isRecursiveClause(const AstClause& clause) {
-    AstQualifiedName relationName = clause.getHead()->getQualifiedName();
+bool isRecursiveClause(const Clause& clause) {
+    QualifiedName relationName = clause.getHead()->getQualifiedName();
     bool recursive = false;
-    visitDepthFirst(clause.getBodyLiterals(), [&](const AstAtom& atom) {
+    visitDepthFirst(clause.getBodyLiterals(), [&](const Atom& atom) {
         if (atom.getQualifiedName() == relationName) {
             recursive = true;
         }
@@ -202,7 +202,7 @@ bool isRecursiveClause(const AstClause& clause) {
     return recursive;
 }
 
-bool isFact(const AstClause& clause) {
+bool isFact(const Clause& clause) {
     // there must be a head
     if (clause.getHead() == nullptr) {
         return false;
@@ -214,12 +214,12 @@ bool isFact(const AstClause& clause) {
 
     // and there are no aggregates
     bool hasAggregatesOrMultiResultFunctor = false;
-    visitDepthFirst(*clause.getHead(), [&](const AstArgument& arg) {
-        if (dynamic_cast<const AstAggregator*>(&arg)) {
+    visitDepthFirst(*clause.getHead(), [&](const Argument& arg) {
+        if (dynamic_cast<const Aggregator*>(&arg)) {
             hasAggregatesOrMultiResultFunctor = true;
         }
 
-        auto func = dynamic_cast<const AstIntrinsicFunctor*>(&arg);
+        auto func = dynamic_cast<const IntrinsicFunctor*>(&arg);
         auto info = func ? func->getFunctionInfo() : nullptr;
         if (info && info->multipleResults) {
             hasAggregatesOrMultiResultFunctor = true;
@@ -228,16 +228,16 @@ bool isFact(const AstClause& clause) {
     return !hasAggregatesOrMultiResultFunctor;
 }
 
-bool isRule(const AstClause& clause) {
+bool isRule(const Clause& clause) {
     return (clause.getHead() != nullptr) && !isFact(clause);
 }
 
-bool isProposition(const AstAtom* atom) {
+bool isProposition(const Atom* atom) {
     return atom->getArguments().empty();
 }
 
-AstClause* cloneHead(const AstClause* clause) {
-    auto* clone = new AstClause();
+Clause* cloneHead(const Clause* clause) {
+    auto* clone = new Clause();
     clone->setSrcLoc(clause->getSrcLoc());
     clone->setHead(souffle::clone(clause->getHead()));
     if (clause->getExecutionPlan() != nullptr) {
@@ -246,12 +246,12 @@ AstClause* cloneHead(const AstClause* clause) {
     return clone;
 }
 
-AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>& newOrder) {
+Clause* reorderAtoms(const Clause* clause, const std::vector<unsigned int>& newOrder) {
     // Find all atom positions
     std::vector<unsigned int> atomPositions;
-    std::vector<AstLiteral*> bodyLiterals = clause->getBodyLiterals();
+    std::vector<Literal*> bodyLiterals = clause->getBodyLiterals();
     for (unsigned int i = 0; i < bodyLiterals.size(); i++) {
-        if (isA<AstAtom>(bodyLiterals[i])) {
+        if (isA<Atom>(bodyLiterals[i])) {
             atomPositions.push_back(i);
         }
     }
@@ -265,11 +265,11 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     assert(std::is_permutation(nopOrder.begin(), nopOrder.end(), newOrder.begin()));
 
     // Create a new clause with the given atom order, leaving the rest unchanged
-    AstClause* newClause = cloneHead(clause);
+    Clause* newClause = cloneHead(clause);
     unsigned int currentAtom = 0;
     for (unsigned int currentLiteral = 0; currentLiteral < bodyLiterals.size(); currentLiteral++) {
-        AstLiteral* literalToAdd = bodyLiterals[currentLiteral];
-        if (isA<AstAtom>(literalToAdd)) {
+        Literal* literalToAdd = bodyLiterals[currentLiteral];
+        if (isA<Atom>(literalToAdd)) {
             // Atoms should be reordered
             literalToAdd = bodyLiterals[atomPositions[newOrder[currentAtom++]]];
         }
@@ -279,18 +279,18 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
     return newClause;
 }
 
-void negateConstraintInPlace(AstConstraint& constraint) {
-    if (auto* bcstr = dynamic_cast<AstBooleanConstraint*>(&constraint)) {
+void negateConstraintInPlace(Constraint& constraint) {
+    if (auto* bcstr = dynamic_cast<BooleanConstraint*>(&constraint)) {
         bcstr->set(!bcstr->isTrue());
-    } else if (auto* cstr = dynamic_cast<AstBinaryConstraint*>(&constraint)) {
+    } else if (auto* cstr = dynamic_cast<BinaryConstraint*>(&constraint)) {
         cstr->setOperator(souffle::negatedConstraintOp(cstr->getOperator()));
     } else {
         fatal("Unknown ast-constraint type");
     }
 }
 
-IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicFunctor& func) {
-    auto typeAttrs = [&](const AstArgument* arg) -> std::set<TypeAttribute> {
+IntrinsicFunctors validOverloads(const analysis::TypeAnalysis& typing, const ast::IntrinsicFunctor& func) {
+    auto typeAttrs = [&](const Argument* arg) -> std::set<TypeAttribute> {
         auto&& types = typing.getTypes(arg);
         if (types.isAll())
             return {TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float,
@@ -304,17 +304,18 @@ IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicF
     auto retTys = typeAttrs(&func);
     auto argTys = map(func.getArguments(), typeAttrs);
 
-    auto candidates = filterNot(functorBuiltIn(func.getFunction()), [&](const IntrinsicFunctor& x) -> bool {
-        if (!x.variadic && argTys.size() != x.params.size()) return true;  // arity mismatch?
+    auto candidates =
+            filterNot(functorBuiltIn(func.getFunction()), [&](const souffle::IntrinsicFunctor& x) -> bool {
+                if (!x.variadic && argTys.size() != x.params.size()) return true;  // arity mismatch?
 
-        for (size_t i = 0; i < argTys.size(); ++i)
-            if (!contains(argTys[i], x.params[x.variadic ? 0 : i])) return true;
+                for (size_t i = 0; i < argTys.size(); ++i)
+                    if (!contains(argTys[i], x.params[x.variadic ? 0 : i])) return true;
 
-        return !contains(retTys, x.result);
-    });
+                return !contains(retTys, x.result);
+            });
 
-    std::sort(
-            candidates.begin(), candidates.end(), [&](const IntrinsicFunctor& a, const IntrinsicFunctor& b) {
+    std::sort(candidates.begin(), candidates.end(),
+            [&](const souffle::IntrinsicFunctor& a, const souffle::IntrinsicFunctor& b) {
                 if (a.result != b.result) return a.result < b.result;
                 if (a.variadic != b.variadic) return a.variadic < b.variadic;
                 return std::lexicographical_compare(
@@ -323,14 +324,14 @@ IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicF
     return candidates;
 }
 
-bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) {
-    struct rename_atoms : public AstNodeMapper {
+bool renameAtoms(Node& node, const std::map<QualifiedName, QualifiedName>& oldToNew) {
+    struct rename_atoms : public NodeMapper {
         mutable bool changed{false};
-        const std::map<AstQualifiedName, AstQualifiedName>& oldToNew;
-        rename_atoms(const std::map<AstQualifiedName, AstQualifiedName>& oldToNew) : oldToNew(oldToNew) {}
-        Own<AstNode> operator()(Own<AstNode> node) const override {
+        const std::map<QualifiedName, QualifiedName>& oldToNew;
+        rename_atoms(const std::map<QualifiedName, QualifiedName>& oldToNew) : oldToNew(oldToNew) {}
+        Own<Node> operator()(Own<Node> node) const override {
             node->apply(*this);
-            if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
+            if (auto* atom = dynamic_cast<Atom*>(node.get())) {
                 if (contains(oldToNew, atom->getQualifiedName())) {
                     auto renamedAtom = souffle::clone(atom);
                     renamedAtom->setQualifiedName(oldToNew.at(atom->getQualifiedName()));
@@ -346,4 +347,4 @@ bool renameAtoms(AstNode& node, const std::map<AstQualifiedName, AstQualifiedNam
     return update.changed;
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::ast
