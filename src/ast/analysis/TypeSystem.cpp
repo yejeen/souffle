@@ -23,7 +23,7 @@
 #include <cassert>
 #include <initializer_list>
 
-namespace souffle {
+namespace souffle::ast::analysis {
 
 void SubsetType::print(std::ostream& out) const {
     out << tfm::format("%s <: %s", getName(), baseType.getName());
@@ -64,7 +64,7 @@ TypeSet TypeEnvironment::initializePrimitiveTypes() {
 #undef CREATE_PRIMITIVE
 }
 
-bool TypeEnvironment::isType(const AstQualifiedName& ident) const {
+bool TypeEnvironment::isType(const QualifiedName& ident) const {
     return types.find(ident) != types.end();
 }
 
@@ -72,11 +72,11 @@ bool TypeEnvironment::isType(const Type& type) const {
     return this == &type.getTypeEnvironment();
 }
 
-const Type& TypeEnvironment::getType(const AstQualifiedName& ident) const {
+const Type& TypeEnvironment::getType(const QualifiedName& ident) const {
     return *types.at(ident);
 }
 
-const Type& TypeEnvironment::getType(const AstType& astTypeDeclaration) const {
+const Type& TypeEnvironment::getType(const ast::Type& astTypeDeclaration) const {
     return getType(astTypeDeclaration.getQualifiedName());
 }
 
@@ -389,4 +389,4 @@ bool areEquivalentTypes(const Type& a, const Type& b) {
     return isSubtypeOf(a, b) && isSubtypeOf(b, a);
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::analysis

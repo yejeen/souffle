@@ -27,20 +27,20 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformer that repeatedly executes a sub-transformer while a condition is met
  */
 class WhileTransformer : public MetaTransformer {
 public:
-    WhileTransformer(std::function<bool()> cond, Own<AstTransformer> transformer)
+    WhileTransformer(std::function<bool()> cond, Own<Transformer> transformer)
             : condition(std::move(cond)), transformer(std::move(transformer)) {}
 
-    WhileTransformer(bool cond, Own<AstTransformer> transformer)
+    WhileTransformer(bool cond, Own<Transformer> transformer)
             : condition([=]() { return cond; }), transformer(std::move(transformer)) {}
 
-    std::vector<AstTransformer*> getSubtransformers() const override {
+    std::vector<Transformer*> getSubtransformers() const override {
         return {transformer.get()};
     }
     void setDebugReport() override {
@@ -76,9 +76,9 @@ public:
 
 private:
     std::function<bool()> condition;
-    Own<AstTransformer> transformer;
+    Own<Transformer> transformer;
 
-    bool transform(AstTranslationUnit& translationUnit) override {
+    bool transform(TranslationUnit& translationUnit) override {
         bool changed = false;
         while (condition()) {
             changed |= applySubtransformer(translationUnit, transformer.get());
@@ -87,4 +87,4 @@ private:
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

@@ -28,14 +28,14 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformer that repeatedly executes a sub-transformer until no changes are made
  */
 class FixpointTransformer : public MetaTransformer {
 public:
-    FixpointTransformer(Own<AstTransformer> transformer) : transformer(std::move(transformer)) {}
+    FixpointTransformer(Own<Transformer> transformer) : transformer(std::move(transformer)) {}
 
     void setDebugReport() override {
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
@@ -45,7 +45,7 @@ public:
         }
     }
 
-    std::vector<AstTransformer*> getSubtransformers() const override {
+    std::vector<Transformer*> getSubtransformers() const override {
         return {transformer.get()};
     }
 
@@ -73,8 +73,8 @@ public:
     }
 
 private:
-    Own<AstTransformer> transformer;
-    bool transform(AstTranslationUnit& translationUnit) override {
+    Own<Transformer> transformer;
+    bool transform(TranslationUnit& translationUnit) override {
         bool changed = false;
         while (applySubtransformer(translationUnit, transformer.get())) {
             changed = true;
@@ -83,4 +83,4 @@ private:
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

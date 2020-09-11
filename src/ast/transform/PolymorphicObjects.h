@@ -21,14 +21,14 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformation pass to determine instances of polymorphic object
  * objects = Functors (plus, minus...) ∪ binary constraints (>, ≥ ...) ∪ aggregation ∪ numeric constants
  */
 
-class PolymorphicObjectsTransformer : public AstTransformer {
+class PolymorphicObjectsTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "PolymorphicObjectsTransformer";
@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

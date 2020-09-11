@@ -27,7 +27,7 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Transformation pass which wraps another transformation pass and generates
@@ -36,10 +36,9 @@ namespace souffle {
  */
 class DebugReporter : public MetaTransformer {
 public:
-    DebugReporter(Own<AstTransformer> wrappedTransformer)
-            : wrappedTransformer(std::move(wrappedTransformer)) {}
+    DebugReporter(Own<Transformer> wrappedTransformer) : wrappedTransformer(std::move(wrappedTransformer)) {}
 
-    std::vector<AstTransformer*> getSubtransformers() const override {
+    std::vector<Transformer*> getSubtransformers() const override {
         return {wrappedTransformer.get()};
     }
 
@@ -69,11 +68,11 @@ public:
     }
 
 private:
-    Own<AstTransformer> wrappedTransformer;
+    Own<Transformer> wrappedTransformer;
 
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
 
-    void generateDebugReport(AstTranslationUnit& tu, const std::string& preTransformDatalog);
+    void generateDebugReport(TranslationUnit& tu, const std::string& preTransformDatalog);
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

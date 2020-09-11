@@ -24,13 +24,13 @@
 #include "ast/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
 /**
  * Replaces literals containing single-valued aggregates with
  * a synthesised relation
  */
-class MaterializeSingletonAggregationTransformer : public AstTransformer {
+class MaterializeSingletonAggregationTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "MaterializeSingletonAggregationTransformer";
@@ -41,23 +41,23 @@ public:
     }
 
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(TranslationUnit& translationUnit) override;
     /**
      * Determines whether an aggregate is single-valued,
      * ie the aggregate does not depend on the outer scope.
      */
-    static bool isSingleValued(const AstAggregator& agg, const AstClause& clause);
+    static bool isSingleValued(const Aggregator& agg, const Clause& clause);
     /**
      * findUniqueVariableName returns a variable name that hasn't appeared
      * in the given clause.
      */
-    static std::string findUniqueVariableName(const AstClause& clause);
+    static std::string findUniqueVariableName(const Clause& clause);
     /**
      * findUniqueAggregateRelationName returns a synthesised aggregate
      * relation name that hasn't appeared
      * in the given clause.
      */
-    static std::string findUniqueAggregateRelationName(const AstProgram& program);
+    static std::string findUniqueAggregateRelationName(const Program& program);
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform

@@ -19,20 +19,20 @@
 #include "ast/TranslationUnit.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ast::transform {
 
-class AstTransformer {
+class Transformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit) = 0;
+    virtual bool transform(TranslationUnit& translationUnit) = 0;
 
 public:
-    virtual ~AstTransformer() = default;
+    virtual ~Transformer() = default;
 
-    bool apply(AstTranslationUnit& translationUnit);
+    bool apply(TranslationUnit& translationUnit);
 
     virtual std::string getName() const = 0;
 
-    virtual AstTransformer* clone() const = 0;
+    virtual Transformer* clone() const = 0;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ast::transform
