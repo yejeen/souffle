@@ -76,14 +76,21 @@ bool ADTtoRecordsTransformer::transform(TranslationUnit& tu) {
                 branchArguments.emplace_back(arg->clone());
             }
 
-            // Store branch arguments as record [branch_args...]
-            auto branchArgsAsRecord = mk<Argument, RecordInit>(std::move(branchArguments));
+            // Branch is stored either as [branch_id, [arguments]]
+            // or [branch_id, argument] in case of a single argument.
+            auto branchArgs = [&]() -> Own<ast::Argument> {
+                if (branchArguments.size() != 1) {
+                    return mk<Argument, RecordInit>(std::move(branchArguments));
+                } else {
+                    return std::move(branchArguments.at(0));
+                }
+            }();
 
-            // Arguments for the resulting record [branch_id, [branch_args...]].
+            // Arguments for the resulting record [branch_id, branch_args].
             VecOwn<Argument> finalRecordArgs;
 
             finalRecordArgs.push_back(mk<Argument, NumericConstant>(branchID));
-            finalRecordArgs.push_back(std::move(branchArgsAsRecord));
+            finalRecordArgs.push_back(std::move(branchArgs));
 
             return mk<RecordInit>(std::move(finalRecordArgs), adt.getSrcLoc());
         }
