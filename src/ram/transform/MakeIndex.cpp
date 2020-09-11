@@ -154,20 +154,20 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
                                !Global::config().has("generate") && !Global::config().has("swig");
 
             if (transformable) {
-                if (!interpreted || attributeTypes[element][0] == 'i') {
-                    // append the weak version of inequality
-                    toAppend.emplace_back(std::make_unique<RamConstraint>(
-                            convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
-                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
-                    // append the != constraint
-                    toAppend.emplace_back(std::make_unique<RamConstraint>(
-                            convertStrictToNotEqualConstraint(binRelOp->getOperator()),
-                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
+                // if (!interpreted || attributeTypes[element][0] == 'i') {
+                // append the weak version of inequality
+                toAppend.emplace_back(std::make_unique<RamConstraint>(
+                        convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
+                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
+                // append the != constraint
+                toAppend.emplace_back(std::make_unique<RamConstraint>(
+                        convertStrictToNotEqualConstraint(binRelOp->getOperator()),
+                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
 
-                    // remove the strict version of inequality
-                    it = conditionList.erase(it);
-                    continue;
-                }
+                // remove the strict version of inequality
+                it = conditionList.erase(it);
+                continue;
+                //}
             }
         }
         ++it;
