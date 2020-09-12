@@ -71,14 +71,17 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                     changed = true;
 
                     if (!isRamUndefValue(pattern.first[i])) {
-                        lowerBound = mk<RamConstraint>(BinaryConstraintOp::GE,
+                        lowerBound = mk<RamConstraint>(
+                                getGreaterEqualConstraint(
+                                        indexOperation->getRelation().getAttributeTypes()[i]),
                                 mk<RamTupleElement>(indexOperation->getTupleId(), i),
                                 souffle::clone(pattern.first[i]));
                         condition = addCondition(std::move(condition), souffle::clone(lowerBound));
                     }
 
                     if (!isRamUndefValue(pattern.second[i])) {
-                        upperBound = mk<RamConstraint>(BinaryConstraintOp::LE,
+                        upperBound = mk<RamConstraint>(
+                                getLessEqualConstraint(indexOperation->getRelation().getAttributeTypes()[i]),
                                 mk<RamTupleElement>(indexOperation->getTupleId(), i),
                                 souffle::clone(pattern.second[i]));
                         condition = addCondition(std::move(condition), souffle::clone(upperBound));

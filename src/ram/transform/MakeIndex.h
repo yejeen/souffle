@@ -78,10 +78,7 @@ public:
      */
     using ExpressionPair = std::pair<Own<RamExpression>, Own<RamExpression>>;
 
-    ExpressionPair getSignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
-    ExpressionPair getUnsignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
-    ExpressionPair getFloatExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
-
+    ExpressionPair getExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
     ExpressionPair getLowerUpperExpression(RamCondition* c, size_t& element, int level);
 
     /**
