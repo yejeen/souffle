@@ -128,44 +128,44 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
     std::vector<std::unique_ptr<RamCondition>> toAppend;
     auto it = conditionList.begin();
     while (it != conditionList.end()) {
-        auto& cond = *it;
-        if (auto* binRelOp = dynamic_cast<RamConstraint*>(cond.get())) {
-            bool transformable = false;
-            size_t element = 0;
+        auto* binRelOp = dynamic_cast<RamConstraint*>(it->get());
+        if (binRelOp == nullptr) {
+            ++it;
+            continue;
+        }
 
-            if (isStrictIneqConstraint(binRelOp->getOperator())) {
-                if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-                    const RamExpression* rhs = &binRelOp->getRHS();
-                    if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
-                        transformable = true;
-                        element = lhs->getElement();
-                    }
-                }
-                if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-                    const RamExpression* lhs = &binRelOp->getLHS();
-                    if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
-                        transformable = true;
-                        element = rhs->getElement();
-                    }
+        bool transformable = false;
+
+        if (isStrictIneqConstraint(binRelOp->getOperator())) {
+            if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
+                const RamExpression* rhs = &binRelOp->getRHS();
+                if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
+                    transformable = true;
                 }
             }
-
-            if (transformable) {
-                // append the weak version of inequality
-                toAppend.emplace_back(std::make_unique<RamConstraint>(
-                        convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
-                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
-                // append the != constraint
-                toAppend.emplace_back(std::make_unique<RamConstraint>(
-                        convertStrictToNotEqualConstraint(binRelOp->getOperator()),
-                        clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
-
-                // remove the strict version of inequality
-                it = conditionList.erase(it);
-                continue;
+            if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
+                const RamExpression* lhs = &binRelOp->getLHS();
+                if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
+                    transformable = true;
+                }
             }
         }
-        ++it;
+
+        if (transformable) {
+            // append the weak version of inequality
+            toAppend.emplace_back(std::make_unique<RamConstraint>(
+                    convertStrictToWeakIneqConstraint(binRelOp->getOperator()), clone(&binRelOp->getLHS()),
+                    clone(&binRelOp->getRHS())));
+            // append the != constraint
+            toAppend.emplace_back(std::make_unique<RamConstraint>(
+                    convertStrictToNotEqualConstraint(binRelOp->getOperator()), clone(&binRelOp->getLHS()),
+                    clone(&binRelOp->getRHS())));
+
+            // remove the strict version of inequality
+            it = conditionList.erase(it);
+        } else {
+            ++it;
+        }
     }
 
     std::transform(toAppend.begin(), toAppend.end(), std::back_inserter(conditionList),
