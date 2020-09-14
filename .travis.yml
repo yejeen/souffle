@@ -73,6 +73,7 @@ jobs:
   - stage: Testing
     os: windows
     language: cpp
+    name: Windows WSL interface without OMP
     before_script:
       - choco install wsl-ubuntu-1804 --ignorechecksums
       - choco install visualstudio2019community -y --version 16.7.2.0 --params="--installPath 'C:\\VS' --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows10SDK --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --includeRecommended --passive --wait"
