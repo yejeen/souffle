@@ -56,7 +56,7 @@ Own<RamOperation> ChoiceConversionTransformer::rewriteScan(const RamScan* scan) 
         const int identifier = scan->getTupleId();
 
         return mk<RamChoice>(mk<RamRelationReference>(&scan->getRelation()), identifier,
-                souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
+                souffle::clone(&filter->getCondition()), souffle::clone(&filter->getOperation()),
                 scan->getProfileText());
     }
     return nullptr;
