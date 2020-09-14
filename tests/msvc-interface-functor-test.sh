@@ -24,7 +24,7 @@ souffle_include=$(wslpath -w $test_dir_wsl/include)
 # program to execute.
 cat <<EOF > $test_dir_wsl/compile.bat
 call $SOUFFLE_TESTS_MSVC_VARS
-cl.exe $functor_dir\functors.cpp /std:c++17 /permissive- /nologo /I $souffle_include /c
+cl.exe $functor_dir\functors.cpp /std:c++17 /permissive- /nologo /I $souffle_include /EHsc /c
 lib functors.obj
 
 cl.exe $TESTNAME.cpp /Fe: $TESTNAME.exe /std:c++17 /permissive- /nologo /I $souffle_include /I $GETOPT_INCLUDE /EHsc /W4 /WX /D_CRT_SECURE_NO_WARNINGS /link functors.lib $GETOPT_LIB
