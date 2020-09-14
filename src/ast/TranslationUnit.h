@@ -89,11 +89,6 @@ public:
         return errorReport;
     }
 
-    /** Return error report */
-    const ErrorReport& getErrorReport() const {
-        return errorReport;
-    }
-
     /** Destroy all cached analyses of translation unit */
     void invalidateAnalyses() {
         analyses.clear();
@@ -101,11 +96,6 @@ public:
 
     /** Return debug report */
     DebugReport& getDebugReport() {
-        return debugReport;
-    }
-
-    /** Return debug report */
-    const DebugReport& getDebugReport() const {
         return debugReport;
     }
 
