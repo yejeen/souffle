@@ -21,17 +21,17 @@
 #include <cassert>
 #include <memory>
 
-namespace souffle {
+namespace souffle::ram {
 
-class RamNode;
+class Node;
 
 /**
- * @class RamNodeMapper
+ * @class NodeMapper
  * @brief An abstract class for manipulating RAM Nodes by substitution
  */
-class RamNodeMapper {
+class NodeMapper {
 public:
-    virtual ~RamNodeMapper() = default;
+    virtual ~NodeMapper() = default;
 
     /**
      * @brief Abstract replacement method for a node.
@@ -40,17 +40,17 @@ public:
      * will be destroyed by the mapper and the returned node
      * will become owned by the caller.
      */
-    virtual Own<RamNode> operator()(Own<RamNode> node) const = 0;
+    virtual Own<Node> operator()(Own<Node> node) const = 0;
 
     /**
      * @brief Wrapper for any subclass of the RAM node hierarchy performing type casts.
      */
     template <typename T>
     Own<T> operator()(Own<T> node) const {
-        Own<RamNode> resPtr = (*this)(Own<RamNode>(static_cast<RamNode*>(node.release())));
+        Own<Node> resPtr = (*this)(Own<Node>(static_cast<Node*>(node.release())));
         assert(isA<T>(resPtr.get()) && "Invalid target node!");
         return Own<T>(dynamic_cast<T*>(resPtr.release()));
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ram

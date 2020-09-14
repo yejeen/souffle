@@ -19,7 +19,7 @@
 #include "ram/transform/Transformer.h"
 #include <string>
 
-namespace souffle {
+namespace souffle::ram::transform {
 
 /**
  * @class ParallelTransformer
@@ -42,7 +42,7 @@ namespace souffle {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
  */
-class ParallelTransformer : public RamTransformer {
+class ParallelTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "ParallelTransformer";
@@ -53,12 +53,12 @@ public:
      * @param program Program that is transformed
      * @return Flag showing whether the program has been changed by the transformation
      */
-    bool parallelizeOperations(RamProgram& program);
+    bool parallelizeOperations(Program& program);
 
 protected:
-    bool transform(RamTranslationUnit& translationUnit) override {
+    bool transform(TranslationUnit& translationUnit) override {
         return parallelizeOperations(translationUnit.getProgram());
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ram::transform

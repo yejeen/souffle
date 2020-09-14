@@ -112,6 +112,7 @@
 #include <vector>
 
 namespace souffle {
+
 /**
  * Executes a binary file.
  */
@@ -584,26 +585,31 @@ int main(int argc, char** argv) {
     // ------- execution -------------
     /* translate AST to RAM */
     debugReport.startSection();
-    Own<RamTranslationUnit> ramTranslationUnit = AstToRamTranslator().translateUnit(*astTranslationUnit);
+    Own<ram::TranslationUnit> ramTranslationUnit = AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
-    Own<RamTransformer> ramTransform = mk<RamTransformerSequence>(
-            mk<RamLoopTransformer>(mk<RamTransformerSequence>(mk<ExpandFilterTransformer>(),
-                    mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>())),
-            mk<RamLoopTransformer>(mk<IndexedInequalityTransformer>()), mk<IfConversionTransformer>(),
-            mk<ChoiceConversionTransformer>(), mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
-            mk<RamLoopTransformer>(
-                    mk<RamTransformerSequence>(mk<HoistAggregateTransformer>(), mk<TupleIdTransformer>())),
-            mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(), mk<CollapseFiltersTransformer>(),
-            mk<EliminateDuplicatesTransformer>(), mk<ReorderConditionsTransformer>(),
-            mk<RamLoopTransformer>(mk<ReorderFilterBreak>()),
-            mk<RamConditionalTransformer>(
-                    // job count of 0 means all cores are used.
-                    []() -> bool { return std::stoi(Global::config().get("jobs")) != 1; },
-                    mk<ParallelTransformer>()),
-            mk<ReportIndexTransformer>());
+    // Apply RAM transforms
+    {
+        using namespace ram::transform;
+        Own<Transformer> ramTransform = mk<TransformerSequence>(
+                mk<LoopTransformer>(mk<TransformerSequence>(mk<ExpandFilterTransformer>(),
+                        mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>())),
+                mk<LoopTransformer>(mk<IndexedInequalityTransformer>()), mk<IfConversionTransformer>(),
+                mk<ChoiceConversionTransformer>(), mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
+                mk<LoopTransformer>(
+                        mk<TransformerSequence>(mk<HoistAggregateTransformer>(), mk<TupleIdTransformer>())),
+                mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(),
+                mk<CollapseFiltersTransformer>(), mk<EliminateDuplicatesTransformer>(),
+                mk<ReorderConditionsTransformer>(), mk<LoopTransformer>(mk<ReorderFilterBreak>()),
+                mk<ConditionalTransformer>(
+                        // job count of 0 means all cores are used.
+                        []() -> bool { return std::stoi(Global::config().get("jobs")) != 1; },
+                        mk<ParallelTransformer>()),
+                mk<ReportIndexTransformer>());
 
-    ramTransform->apply(*ramTranslationUnit);
+        ramTransform->apply(*ramTranslationUnit);
+    }
+
     if (ramTranslationUnit->getErrorReport().getNumIssues() != 0) {
         std::cerr << ramTranslationUnit->getErrorReport();
     }

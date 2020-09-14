@@ -23,8 +23,8 @@ namespace souffle {
 
 class SynthesiserRelation {
 public:
-    SynthesiserRelation(
-            const RamRelation& rel, const MinIndexSelection& indices, const bool isProvenance = false)
+    SynthesiserRelation(const ram::Relation& rel, const ram::analysis::MinIndexSelection& indices,
+            const bool isProvenance = false)
             : relation(rel), indices(indices), isProvenance(isProvenance) {}
 
     virtual ~SynthesiserRelation() = default;
@@ -43,9 +43,9 @@ public:
     }
 
     /** Get list of indices used for relation,
-     * guaranteed that original indices in MinIndexSelection
+     * guaranteed that original indices in analysis::MinIndexSelection
      * come before any generated indices */
-    MinIndexSelection::OrderCollection getIndices() const {
+    ram::analysis::MinIndexSelection::OrderCollection getIndices() const {
         return computedIndices;
     }
 
@@ -53,13 +53,13 @@ public:
         return provenanceIndexNumbers;
     }
 
-    /** Get stored MinIndexSelection */
-    const MinIndexSelection& getMinIndexSelection() const {
+    /** Get stored analysis::MinIndexSelection */
+    const ram::analysis::MinIndexSelection& getMinIndexSelection() const {
         return indices;
     }
 
-    /** Get stored RamRelation */
-    const RamRelation& getRamRelation() const {
+    /** Get stored ram::Relation */
+    const ram::Relation& getRelation() const {
         return relation;
     }
 
@@ -75,20 +75,20 @@ public:
 
     /** Factory method to generate a SynthesiserRelation */
     static Own<SynthesiserRelation> getSynthesiserRelation(
-            const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance);
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance);
 
 protected:
     /** Ram relation referred to by this */
-    const RamRelation& relation;
+    const ram::Relation& relation;
 
     /** Indices used for this relation */
-    const MinIndexSelection& indices;
+    const ram::analysis::MinIndexSelection& indices;
 
     /** The data structure used for the relation */
     std::string dataStructure;
 
     /** The final list of indices used */
-    MinIndexSelection::OrderCollection computedIndices;
+    ram::analysis::MinIndexSelection::OrderCollection computedIndices;
 
     /** The list of indices added for provenance computation */
     std::set<int> provenanceIndexNumbers;
@@ -103,7 +103,7 @@ protected:
 class SynthesiserNullaryRelation : public SynthesiserRelation {
 public:
     SynthesiserNullaryRelation(
-            const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -113,7 +113,8 @@ public:
 
 class SynthesiserInfoRelation : public SynthesiserRelation {
 public:
-    SynthesiserInfoRelation(const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+    SynthesiserInfoRelation(
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -123,7 +124,8 @@ public:
 
 class SynthesiserDirectRelation : public SynthesiserRelation {
 public:
-    SynthesiserDirectRelation(const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+    SynthesiserDirectRelation(
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -134,7 +136,7 @@ public:
 class SynthesiserIndirectRelation : public SynthesiserRelation {
 public:
     SynthesiserIndirectRelation(
-            const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -144,7 +146,8 @@ public:
 
 class SynthesiserBrieRelation : public SynthesiserRelation {
 public:
-    SynthesiserBrieRelation(const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+    SynthesiserBrieRelation(
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -154,7 +157,8 @@ public:
 
 class SynthesiserEqrelRelation : public SynthesiserRelation {
 public:
-    SynthesiserEqrelRelation(const RamRelation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+    SynthesiserEqrelRelation(
+            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;

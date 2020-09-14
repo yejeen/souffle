@@ -131,14 +131,14 @@
 namespace souffle {
 
 /** append statement to a list of statements */
-inline void appendStmt(VecOwn<RamStatement>& stmtList, Own<RamStatement> stmt) {
+inline void appendStmt(VecOwn<ram::Statement>& stmtList, Own<ram::Statement> stmt) {
     if (stmt) {
         stmtList.push_back(std::move(stmt));
     }
 }
 
-Own<RamTupleElement> AstToRamTranslator::makeRamTupleElement(const Location& loc) {
-    return mk<RamTupleElement>(loc.identifier, loc.element);
+Own<ram::TupleElement> AstToRamTranslator::makeRamTupleElement(const Location& loc) {
+    return mk<ram::TupleElement>(loc.identifier, loc.element);
 }
 
 size_t AstToRamTranslator::getEvaluationArity(const ast::Atom* atom) const {
@@ -206,37 +206,37 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
     return outputDirectives;
 }
 
-Own<RamRelationReference> AstToRamTranslator::createRelationReference(const std::string name) {
+Own<ram::RelationReference> AstToRamTranslator::createRelationReference(const std::string name) {
     auto it = ramRels.find(name);
     assert(it != ramRels.end() && "relation name not found");
 
-    const RamRelation* relation = it->second.get();
-    return mk<RamRelationReference>(relation);
+    const ram::Relation* relation = it->second.get();
+    return mk<ram::RelationReference>(relation);
 }
 
-Own<RamRelationReference> AstToRamTranslator::translateRelation(const ast::Atom* atom) {
+Own<ram::RelationReference> AstToRamTranslator::translateRelation(const ast::Atom* atom) {
     return createRelationReference(getRelationName(atom->getQualifiedName()));
 }
 
-Own<RamRelationReference> AstToRamTranslator::translateRelation(
+Own<ram::RelationReference> AstToRamTranslator::translateRelation(
         const ast::Relation* rel, const std::string relationNamePrefix) {
     return createRelationReference(relationNamePrefix + getRelationName(rel->getQualifiedName()));
 }
 
-Own<RamRelationReference> AstToRamTranslator::translateDeltaRelation(const ast::Relation* rel) {
+Own<ram::RelationReference> AstToRamTranslator::translateDeltaRelation(const ast::Relation* rel) {
     return translateRelation(rel, "@delta_");
 }
 
-Own<RamRelationReference> AstToRamTranslator::translateNewRelation(const ast::Relation* rel) {
+Own<ram::RelationReference> AstToRamTranslator::translateNewRelation(const ast::Relation* rel) {
     return translateRelation(rel, "@new_");
 }
 
-Own<RamExpression> AstToRamTranslator::translateValue(const ast::Argument* arg, const ValueIndex& index) {
+Own<ram::Expression> AstToRamTranslator::translateValue(const ast::Argument* arg, const ValueIndex& index) {
     if (arg == nullptr) {
         return nullptr;
     }
 
-    class ValueTranslator : public ast::Visitor<Own<RamExpression>> {
+    class ValueTranslator : public ast::Visitor<Own<ram::Expression>> {
         AstToRamTranslator& translator;
         const ValueIndex& index;
 
@@ -244,40 +244,40 @@ Own<RamExpression> AstToRamTranslator::translateValue(const ast::Argument* arg, 
         ValueTranslator(AstToRamTranslator& translator, const ValueIndex& index)
                 : translator(translator), index(index) {}
 
-        Own<RamExpression> visitVariable(const ast::Variable& var) override {
+        Own<ram::Expression> visitVariable(const ast::Variable& var) override {
             assert(index.isDefined(var) && "variable not grounded");
             return makeRamTupleElement(index.getDefinitionPoint(var));
         }
 
-        Own<RamExpression> visitUnnamedVariable(const ast::UnnamedVariable&) override {
-            return mk<RamUndefValue>();
+        Own<ram::Expression> visitUnnamedVariable(const ast::UnnamedVariable&) override {
+            return mk<ram::UndefValue>();
         }
 
-        Own<RamExpression> visitNumericConstant(const ast::NumericConstant& c) override {
+        Own<ram::Expression> visitNumericConstant(const ast::NumericConstant& c) override {
             assert(c.getType().has_value() && "At this points all constants should have type.");
 
             switch (*c.getType()) {
                 case ast::NumericConstant::Type::Int:
-                    return mk<RamSignedConstant>(RamSignedFromString(c.getConstant(), nullptr, 0));
+                    return mk<ram::SignedConstant>(RamSignedFromString(c.getConstant(), nullptr, 0));
                 case ast::NumericConstant::Type::Uint:
-                    return mk<RamUnsignedConstant>(RamUnsignedFromString(c.getConstant(), nullptr, 0));
+                    return mk<ram::UnsignedConstant>(RamUnsignedFromString(c.getConstant(), nullptr, 0));
                 case ast::NumericConstant::Type::Float:
-                    return mk<RamFloatConstant>(RamFloatFromString(c.getConstant()));
+                    return mk<ram::FloatConstant>(RamFloatFromString(c.getConstant()));
             }
 
             fatal("unexpected numeric constant type");
         }
 
-        Own<RamExpression> visitStringConstant(const ast::StringConstant& c) override {
-            return mk<RamSignedConstant>(translator.getSymbolTable().lookup(c.getConstant()));
+        Own<ram::Expression> visitStringConstant(const ast::StringConstant& c) override {
+            return mk<ram::SignedConstant>(translator.getSymbolTable().lookup(c.getConstant()));
         }
 
-        Own<RamExpression> visitNilConstant(const ast::NilConstant&) override {
-            return mk<RamSignedConstant>(0);
+        Own<ram::Expression> visitNilConstant(const ast::NilConstant&) override {
+            return mk<ram::SignedConstant>(0);
         }
 
-        Own<RamExpression> visitIntrinsicFunctor(const ast::IntrinsicFunctor& inf) override {
-            VecOwn<RamExpression> values;
+        Own<ram::Expression> visitIntrinsicFunctor(const ast::IntrinsicFunctor& inf) override {
+            VecOwn<ram::Expression> values;
             for (const auto& cur : inf.getArguments()) {
                 values.push_back(translator.translateValue(cur, index));
             }
@@ -287,50 +287,51 @@ Own<RamExpression> AstToRamTranslator::translateValue(const ast::Argument* arg, 
             if (info->multipleResults) {
                 return translator.makeRamTupleElement(index.getGeneratorLoc(inf));
             } else {
-                return mk<RamIntrinsicOperator>(info->op, std::move(values));
+                return mk<ram::IntrinsicOperator>(info->op, std::move(values));
             }
         }
 
-        Own<RamExpression> visitUserDefinedFunctor(const ast::UserDefinedFunctor& udf) override {
+        Own<ram::Expression> visitUserDefinedFunctor(const ast::UserDefinedFunctor& udf) override {
             // Sanity check.
             assert(udf.getArguments().size() == udf.getArgsTypes().size());
 
-            VecOwn<RamExpression> values;
+            VecOwn<ram::Expression> values;
             for (const auto& cur : udf.getArguments()) {
                 values.push_back(translator.translateValue(cur, index));
             }
 
-            return mk<RamUserDefinedOperator>(udf.getName(), udf.getArgsTypes(), udf.getReturnType(),
+            return mk<ram::UserDefinedOperator>(udf.getName(), udf.getArgsTypes(), udf.getReturnType(),
                     udf.isStateful(), std::move(values));
         }
 
-        Own<RamExpression> visitCounter(const ast::Counter&) override {
-            return mk<RamAutoIncrement>();
+        Own<ram::Expression> visitCounter(const ast::Counter&) override {
+            return mk<ram::AutoIncrement>();
         }
 
-        Own<RamExpression> visitRecordInit(const ast::RecordInit& init) override {
-            VecOwn<RamExpression> values;
+        Own<ram::Expression> visitRecordInit(const ast::RecordInit& init) override {
+            VecOwn<ram::Expression> values;
             for (const auto& cur : init.getArguments()) {
                 values.push_back(translator.translateValue(cur, index));
             }
-            return mk<RamPackRecord>(std::move(values));
+            return mk<ram::PackRecord>(std::move(values));
         }
 
-        Own<RamExpression> visitAggregator(const ast::Aggregator& agg) override {
+        Own<ram::Expression> visitAggregator(const ast::Aggregator& agg) override {
             // here we look up the location the aggregation result gets bound
             return translator.makeRamTupleElement(index.getGeneratorLoc(agg));
         }
 
-        Own<RamExpression> visitSubroutineArgument(const ast::SubroutineArgument& subArg) override {
-            return mk<RamSubroutineArgument>(subArg.getNumber());
+        Own<ram::Expression> visitSubroutineArgument(const ast::SubroutineArgument& subArg) override {
+            return mk<ram::SubroutineArgument>(subArg.getNumber());
         }
     };
 
     return ValueTranslator(*this, index)(*arg);
 }
 
-Own<RamCondition> AstToRamTranslator::translateConstraint(const ast::Literal* lit, const ValueIndex& index) {
-    class ConstraintTranslator : public ast::Visitor<Own<RamCondition>> {
+Own<ram::Condition> AstToRamTranslator::translateConstraint(
+        const ast::Literal* lit, const ValueIndex& index) {
+    class ConstraintTranslator : public ast::Visitor<Own<ram::Condition>> {
         AstToRamTranslator& translator;
         const ValueIndex& index;
 
@@ -339,24 +340,24 @@ Own<RamCondition> AstToRamTranslator::translateConstraint(const ast::Literal* li
                 : translator(translator), index(index) {}
 
         /** for atoms */
-        Own<RamCondition> visitAtom(const ast::Atom&) override {
+        Own<ram::Condition> visitAtom(const ast::Atom&) override {
             return nullptr;  // covered already within the scan/lookup generation step
         }
 
         /** for binary relations */
-        Own<RamCondition> visitBinaryConstraint(const ast::BinaryConstraint& binRel) override {
+        Own<ram::Condition> visitBinaryConstraint(const ast::BinaryConstraint& binRel) override {
             auto valLHS = translator.translateValue(binRel.getLHS(), index);
             auto valRHS = translator.translateValue(binRel.getRHS(), index);
-            return mk<RamConstraint>(binRel.getOperator(), std::move(valLHS), std::move(valRHS));
+            return mk<ram::Constraint>(binRel.getOperator(), std::move(valLHS), std::move(valRHS));
         }
 
         /** for provenance negation */
-        Own<RamCondition> visitProvenanceNegation(const ast::ProvenanceNegation& neg) override {
+        Own<ram::Condition> visitProvenanceNegation(const ast::ProvenanceNegation& neg) override {
             const auto* atom = neg.getAtom();
             size_t auxiliaryArity = translator.getEvaluationArity(atom);
             assert(auxiliaryArity <= atom->getArity() && "auxiliary arity out of bounds");
             size_t arity = atom->getArity() - auxiliaryArity;
-            VecOwn<RamExpression> values;
+            VecOwn<ram::Expression> values;
 
             auto args = atom->getArguments();
             for (size_t i = 0; i < arity; i++) {
@@ -365,18 +366,18 @@ Own<RamCondition> AstToRamTranslator::translateConstraint(const ast::Literal* li
             // we don't care about the provenance columns when doing the existence check
             if (Global::config().has("provenance")) {
                 // undefined value for rule number
-                values.push_back(mk<RamUndefValue>());
+                values.push_back(mk<ram::UndefValue>());
                 // add the height annotation for provenanceNotExists
                 for (size_t height = 1; height < auxiliaryArity; height++) {
                     values.push_back(translator.translateValue(args[arity + height], index));
                 }
             }
-            return mk<RamNegation>(
-                    mk<RamProvenanceExistenceCheck>(translator.translateRelation(atom), std::move(values)));
+            return mk<ram::Negation>(
+                    mk<ram::ProvenanceExistenceCheck>(translator.translateRelation(atom), std::move(values)));
         }
 
         /** for negations */
-        Own<RamCondition> visitNegation(const ast::Negation& neg) override {
+        Own<ram::Condition> visitNegation(const ast::Negation& neg) override {
             const auto* atom = neg.getAtom();
             size_t auxiliaryArity = translator.getEvaluationArity(atom);
             assert(auxiliaryArity <= atom->getArity() && "auxiliary arity out of bounds");
@@ -384,20 +385,20 @@ Own<RamCondition> AstToRamTranslator::translateConstraint(const ast::Literal* li
 
             if (arity == 0) {
                 // for a nullary, negation is a simple emptiness check
-                return mk<RamEmptinessCheck>(translator.translateRelation(atom));
+                return mk<ram::EmptinessCheck>(translator.translateRelation(atom));
             }
 
             // else, we construct the atom and create a negation
-            VecOwn<RamExpression> values;
+            VecOwn<ram::Expression> values;
             auto args = atom->getArguments();
             for (size_t i = 0; i < arity; i++) {
                 values.push_back(translator.translateValue(args[i], index));
             }
             for (size_t i = 0; i < auxiliaryArity; i++) {
-                values.push_back(mk<RamUndefValue>());
+                values.push_back(mk<ram::UndefValue>());
             }
-            return mk<RamNegation>(
-                    mk<RamExistenceCheck>(translator.translateRelation(atom), std::move(values)));
+            return mk<ram::Negation>(
+                    mk<ram::ExistenceCheck>(translator.translateRelation(atom), std::move(values)));
         }
     };
     return ConstraintTranslator(*this, index)(*lit);
@@ -458,7 +459,7 @@ AstToRamTranslator::ClauseTranslator::arg_list* AstToRamTranslator::ClauseTransl
 
 void AstToRamTranslator::ClauseTranslator::indexValues(const ast::Node* curNode,
         std::map<const ast::Node*, Own<arg_list>>& nodeArgs, std::map<const arg_list*, int>& arg_level,
-        RamRelationReference* relation) {
+        ram::RelationReference* relation) {
     arg_list* cur = getArgList(curNode, nodeArgs);
     for (size_t pos = 0; pos < cur->size(); ++pos) {
         // get argument
@@ -549,27 +550,28 @@ void AstToRamTranslator::ClauseTranslator::createValueIndex(const ast::Clause& c
     });
 }
 
-Own<RamOperation> AstToRamTranslator::ClauseTranslator::createOperation(const ast::Clause& clause) {
+Own<ram::Operation> AstToRamTranslator::ClauseTranslator::createOperation(const ast::Clause& clause) {
     const auto head = clause.getHead();
 
-    VecOwn<RamExpression> values;
+    VecOwn<ram::Expression> values;
     for (ast::Argument* arg : head->getArguments()) {
         values.push_back(translator.translateValue(arg, valueIndex));
     }
 
-    Own<RamOperation> project = mk<RamProject>(translator.translateRelation(head), std::move(values));
+    Own<ram::Operation> project = mk<ram::Project>(translator.translateRelation(head), std::move(values));
 
     if (head->getArity() == 0) {
-        project =
-                mk<RamFilter>(mk<RamEmptinessCheck>(translator.translateRelation(head)), std::move(project));
+        project = mk<ram::Filter>(
+                mk<ram::EmptinessCheck>(translator.translateRelation(head)), std::move(project));
     }
 
     // build up insertion call
     return project;  // start with innermost
 }
 
-Own<RamOperation> AstToRamTranslator::ProvenanceClauseTranslator::createOperation(const ast::Clause& clause) {
-    VecOwn<RamExpression> values;
+Own<ram::Operation> AstToRamTranslator::ProvenanceClauseTranslator::createOperation(
+        const ast::Clause& clause) {
+    VecOwn<ram::Expression> values;
 
     // get all values in the body
     for (ast::Literal* lit : clause.getBodyLiterals()) {
@@ -584,7 +586,7 @@ Own<RamOperation> AstToRamTranslator::ProvenanceClauseTranslator::createOperatio
                 values.push_back(translator.translateValue(arg, valueIndex));
             }
             for (size_t i = 0; i < auxiliaryArity; ++i) {
-                values.push_back(mk<RamSignedConstant>(-1));
+                values.push_back(mk<ram::SignedConstant>(-1));
             }
         } else if (auto neg = dynamic_cast<ast::Negation*>(lit)) {
             for (ast::Argument* arg : neg->getAtom()->getArguments()) {
@@ -596,32 +598,33 @@ Own<RamOperation> AstToRamTranslator::ProvenanceClauseTranslator::createOperatio
         }
     }
 
-    return mk<RamSubroutineReturn>(std::move(values));
+    return mk<ram::SubroutineReturn>(std::move(values));
 }
 
-Own<RamCondition> AstToRamTranslator::ClauseTranslator::createCondition(const ast::Clause& originalClause) {
+Own<ram::Condition> AstToRamTranslator::ClauseTranslator::createCondition(const ast::Clause& originalClause) {
     const auto head = originalClause.getHead();
 
     // add stopping criteria for nullary relations
     // (if it contains already the null tuple, don't re-compute)
     if (head->getArity() == 0) {
-        return mk<RamEmptinessCheck>(translator.translateRelation(head));
+        return mk<ram::EmptinessCheck>(translator.translateRelation(head));
     }
     return nullptr;
 }
 
-Own<RamCondition> AstToRamTranslator::ProvenanceClauseTranslator::createCondition(
+Own<ram::Condition> AstToRamTranslator::ProvenanceClauseTranslator::createCondition(
         const ast::Clause& /* originalClause */) {
     return nullptr;
 }
 
-Own<RamOperation> AstToRamTranslator::ClauseTranslator::filterByConstraints(size_t const level,
-        const std::vector<ast::Argument*>& args, Own<RamOperation> op, bool constrainByFunctors) {
+Own<ram::Operation> AstToRamTranslator::ClauseTranslator::filterByConstraints(size_t const level,
+        const std::vector<ast::Argument*>& args, Own<ram::Operation> op, bool constrainByFunctors) {
     size_t pos = 0;
 
-    auto mkFilter = [&](bool isFloatArg, Own<RamExpression> rhs) {
-        return mk<RamFilter>(mk<RamConstraint>(isFloatArg ? BinaryConstraintOp::FEQ : BinaryConstraintOp::EQ,
-                                     mk<RamTupleElement>(level, pos), std::move(rhs)),
+    auto mkFilter = [&](bool isFloatArg, Own<ram::Expression> rhs) {
+        return mk<ram::Filter>(
+                mk<ram::Constraint>(isFloatArg ? BinaryConstraintOp::FEQ : BinaryConstraintOp::EQ,
+                        mk<ram::TupleElement>(level, pos), std::move(rhs)),
                 std::move(op));
     };
 
@@ -645,7 +648,7 @@ Own<RamOperation> AstToRamTranslator::ClauseTranslator::filterByConstraints(size
 }
 
 /** generate RAM code for a clause */
-Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
+Own<ram::Statement> AstToRamTranslator::ClauseTranslator::translateClause(
         const ast::Clause& clause, const ast::Clause& originalClause, const int version) {
     if (auto reorderedClause = getReorderedClause(clause, version)) {
         // translate reordered clause
@@ -658,13 +661,13 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
     // handle facts
     if (isFact(clause)) {
         // translate arguments
-        VecOwn<RamExpression> values;
+        VecOwn<ram::Expression> values;
         for (auto& arg : head->getArguments()) {
             values.push_back(translator.translateValue(arg, ValueIndex()));
         }
 
         // create a fact statement
-        return mk<RamQuery>(mk<RamProject>(translator.translateRelation(head), std::move(values)));
+        return mk<ram::Query>(mk<ram::Project>(translator.translateRelation(head), std::move(values)));
     }
 
     // the rest should be rules
@@ -674,7 +677,7 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
 
     // -- create RAM statement --
 
-    Own<RamOperation> op = createOperation(clause);
+    Own<ram::Operation> op = createOperation(clause);
 
     /* add equivalence constraints imposed by variable binding */
     for (const auto& cur : valueIndex.getVariableReferences()) {
@@ -684,8 +687,8 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
         for (const Location& loc : cur.second) {
             if (first != loc && !valueIndex.isGenerator(loc.identifier)) {
                 // FIXME: equiv' for float types (`FEQ`)
-                op = mk<RamFilter>(mk<RamConstraint>(BinaryConstraintOp::EQ, makeRamTupleElement(first),
-                                           makeRamTupleElement(loc)),
+                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, makeRamTupleElement(first),
+                                             makeRamTupleElement(loc)),
                         std::move(op));
             }
         }
@@ -694,7 +697,7 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
     /* add conditions caused by atoms, negations, and binary relations */
     for (const auto& lit : clause.getBodyLiterals()) {
         if (auto condition = translator.translateConstraint(lit, valueIndex)) {
-            op = mk<RamFilter>(std::move(condition), std::move(op));
+            op = mk<ram::Filter>(std::move(condition), std::move(op));
         }
     }
 
@@ -710,8 +713,9 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
                 if (auto* agg = dynamic_cast<ast::Aggregator*>(arg)) {
                     auto loc = valueIndex.getGeneratorLoc(*agg);
                     // FIXME: equiv' for float types (`FEQ`)
-                    op = mk<RamFilter>(mk<RamConstraint>(BinaryConstraintOp::EQ,
-                                               mk<RamTupleElement>(curLevel, pos), makeRamTupleElement(loc)),
+                    op = mk<ram::Filter>(
+                            mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(curLevel, pos),
+                                    makeRamTupleElement(loc)),
                             std::move(op));
                 }
                 ++pos;
@@ -724,9 +728,9 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
     for (auto* cur : reverse(generators)) {
         if (auto agg = dynamic_cast<const ast::Aggregator*>(cur)) {
             // condition for aggregate and helper function to add terms
-            Own<RamCondition> aggCond;
-            auto addAggCondition = [&](Own<RamCondition> arg) {
-                aggCond = aggCond ? mk<RamConjunction>(std::move(aggCond), std::move(arg)) : std::move(arg);
+            Own<ram::Condition> aggCond;
+            auto addAggCondition = [&](Own<ram::Condition> arg) {
+                aggCond = aggCond ? mk<ram::Conjunction>(std::move(aggCond), std::move(arg)) : std::move(arg);
             };
 
             // translate constraints of sub-clause
@@ -750,12 +754,12 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
             // translate arguments's of atom (if exists) to conditions
             if (atom != nullptr) {
                 size_t pos = 0;
-                auto addAggEqCondition = [&](Own<RamExpression> value) {
-                    if (isRamUndefValue(value.get())) return;
+                auto addAggEqCondition = [&](Own<ram::Expression> value) {
+                    if (isUndefValue(value.get())) return;
 
                     // FIXME: equiv' for float types (`FEQ`)
-                    addAggCondition(mk<RamConstraint>(
-                            BinaryConstraintOp::EQ, mk<RamTupleElement>(level, pos), std::move(value)));
+                    addAggCondition(mk<ram::Constraint>(
+                            BinaryConstraintOp::EQ, mk<ram::TupleElement>(level, pos), std::move(value)));
                 };
                 for (auto* arg : atom->getArguments()) {
                     // variable bindings are issued differently since we don't want self
@@ -778,20 +782,20 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
             auto expr = translator.translateValue(agg->getTargetExpression(), valueIndex);
 
             // add Ram-Aggregation layer
-            op = mk<RamAggregate>(std::move(op), agg->getOperator(), translator.translateRelation(atom),
-                    expr ? std::move(expr) : mk<RamUndefValue>(),
-                    aggCond ? std::move(aggCond) : mk<RamTrue>(), level);
+            op = mk<ram::Aggregate>(std::move(op), agg->getOperator(), translator.translateRelation(atom),
+                    expr ? std::move(expr) : mk<ram::UndefValue>(),
+                    aggCond ? std::move(aggCond) : mk<ram::True>(), level);
         } else if (const auto* func = dynamic_cast<const ast::IntrinsicFunctor*>(cur)) {
-            VecOwn<RamExpression> args;
+            VecOwn<ram::Expression> args;
             for (auto&& x : func->getArguments()) {
                 args.push_back(translator.translateValue(x, valueIndex));
             }
 
-            auto func_op = [&]() -> RamNestedIntrinsicOp {
+            auto func_op = [&]() -> ram::NestedIntrinsicOp {
                 switch (func->getFunctionInfo()->op) {
-                    case FunctorOp::RANGE: return RamNestedIntrinsicOp::RANGE;
-                    case FunctorOp::URANGE: return RamNestedIntrinsicOp::URANGE;
-                    case FunctorOp::FRANGE: return RamNestedIntrinsicOp::FRANGE;
+                    case FunctorOp::RANGE: return ram::NestedIntrinsicOp::RANGE;
+                    case FunctorOp::URANGE: return ram::NestedIntrinsicOp::URANGE;
+                    case FunctorOp::FRANGE: return ram::NestedIntrinsicOp::FRANGE;
 
                     default:
                         assert(func->getFunctionInfo()->multipleResults);
@@ -799,7 +803,7 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
                 }
             };
 
-            op = mk<RamNestedIntrinsicOperator>(func_op(), std::move(args), std::move(op), level);
+            op = mk<ram::NestedIntrinsicOperator>(func_op(), std::move(args), std::move(op), level);
         }
 
         --level;
@@ -828,14 +832,15 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
             }
 
             // add check for emptiness for an atom
-            op = mk<RamFilter>(mk<RamNegation>(mk<RamEmptinessCheck>(translator.translateRelation(atom))),
+            op = mk<ram::Filter>(
+                    mk<ram::Negation>(mk<ram::EmptinessCheck>(translator.translateRelation(atom))),
                     std::move(op));
 
             // add a scan level
             if (atom->getArity() != 0 && !isAllArgsUnnamed) {
                 if (head->getArity() == 0) {
-                    op = mk<RamBreak>(
-                            mk<RamNegation>(mk<RamEmptinessCheck>(translator.translateRelation(head))),
+                    op = mk<ram::Break>(
+                            mk<ram::Negation>(mk<ram::EmptinessCheck>(translator.translateRelation(head))),
                             std::move(op));
                 }
                 if (Global::config().has("profile")) {
@@ -849,9 +854,9 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
                     ss << stringify(toString(*atom)) << ';';
                     ss << stringify(toString(originalClause)) << ';';
                     ss << level << ';';
-                    op = mk<RamScan>(translator.translateRelation(atom), level, std::move(op), ss.str());
+                    op = mk<ram::Scan>(translator.translateRelation(atom), level, std::move(op), ss.str());
                 } else {
-                    op = mk<RamScan>(translator.translateRelation(atom), level, std::move(op));
+                    op = mk<ram::Scan>(translator.translateRelation(atom), level, std::move(op));
                 }
             }
 
@@ -862,7 +867,7 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
 
             // add an unpack level
             const Location& loc = valueIndex.getDefinitionPoint(*rec);
-            op = mk<RamUnpackRecord>(
+            op = mk<ram::UnpackRecord>(
                     std::move(op), level, makeRamTupleElement(loc), rec->getArguments().size());
         } else {
             fatal("Unsupported AST node for creation of scan-level!");
@@ -870,36 +875,36 @@ Own<RamStatement> AstToRamTranslator::ClauseTranslator::translateClause(
     }
 
     /* generate the final RAM Insert statement */
-    Own<RamCondition> cond = createCondition(originalClause);
+    Own<ram::Condition> cond = createCondition(originalClause);
     if (cond != nullptr) {
-        return mk<RamQuery>(mk<RamFilter>(std::move(cond), std::move(op)));
+        return mk<ram::Query>(mk<ram::Filter>(std::move(cond), std::move(op)));
     } else {
-        return mk<RamQuery>(std::move(op));
+        return mk<ram::Query>(std::move(op));
     }
 }
 
-Own<RamExpression> AstToRamTranslator::translateConstant(ast::Constant const& c) {
+Own<ram::Expression> AstToRamTranslator::translateConstant(ast::Constant const& c) {
     auto const rawConstant = getConstantRamRepresentation(c);
 
     if (auto* const c_num = dynamic_cast<const ast::NumericConstant*>(&c)) {
         switch (*c_num->getType()) {
-            case ast::NumericConstant::Type::Int: return mk<RamSignedConstant>(rawConstant);
-            case ast::NumericConstant::Type::Uint: return mk<RamUnsignedConstant>(rawConstant);
-            case ast::NumericConstant::Type::Float: return mk<RamFloatConstant>(rawConstant);
+            case ast::NumericConstant::Type::Int: return mk<ram::SignedConstant>(rawConstant);
+            case ast::NumericConstant::Type::Uint: return mk<ram::UnsignedConstant>(rawConstant);
+            case ast::NumericConstant::Type::Float: return mk<ram::FloatConstant>(rawConstant);
         }
     }
 
-    return mk<RamSignedConstant>(rawConstant);
+    return mk<ram::SignedConstant>(rawConstant);
 }
 
 /** generate RAM code for a non-recursive relation */
-Own<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
+Own<ram::Statement> AstToRamTranslator::translateNonRecursiveRelation(
         const ast::Relation& rel, const ast::analysis::RecursiveClausesAnalysis* recursiveClauses) {
     /* start with an empty sequence */
-    VecOwn<RamStatement> res;
+    VecOwn<ram::Statement> res;
 
     // the ram table reference
-    Own<RamRelationReference> rrel = translateRelation(&rel);
+    Own<ram::RelationReference> rrel = translateRelation(&rel);
 
     /* iterate over all clauses that belong to the relation */
     for (ast::Clause* clause : getClauses(*program, rel)) {
@@ -909,7 +914,7 @@ Own<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
         }
 
         // translate clause
-        Own<RamStatement> rule = ClauseTranslator(*this).translateClause(*clause, *clause);
+        Own<ram::Statement> rule = ClauseTranslator(*this).translateClause(*clause, *clause);
 
         // add logging
         if (Global::config().has("profile")) {
@@ -920,14 +925,14 @@ Own<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
                     LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
             const std::string logSizeStatement =
                     LogStatement::nNonrecursiveRule(relationName, srcLocation, clauseText);
-            rule = mk<RamLogRelationTimer>(std::move(rule), logTimerStatement, souffle::clone(rrel));
+            rule = mk<ram::LogRelationTimer>(std::move(rule), logTimerStatement, souffle::clone(rrel));
         }
 
         // add debug info
         std::ostringstream ds;
         ds << toString(*clause) << "\nin file ";
         ds << clause->getSrcLoc();
-        rule = mk<RamDebugInfo>(std::move(rule), ds.str());
+        rule = mk<ram::DebugInfo>(std::move(rule), ds.str());
 
         // add rule to result
         appendStmt(res, std::move(rule));
@@ -943,18 +948,18 @@ Own<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
         if (!res.empty()) {
             const std::string logTimerStatement =
                     LogStatement::tNonrecursiveRelation(relationName, srcLocation);
-            auto newStmt = mk<RamLogRelationTimer>(
-                    mk<RamSequence>(std::move(res)), logTimerStatement, souffle::clone(rrel));
+            auto newStmt = mk<ram::LogRelationTimer>(
+                    mk<ram::Sequence>(std::move(res)), logTimerStatement, souffle::clone(rrel));
             res.clear();
             appendStmt(res, std::move(newStmt));
         } else {
             // add table size printer
-            appendStmt(res, mk<RamLogSize>(souffle::clone(rrel), logSizeStatement));
+            appendStmt(res, mk<ram::LogSize>(souffle::clone(rrel), logSizeStatement));
         }
     }
 
     // done
-    return mk<RamSequence>(std::move(res));
+    return mk<ram::Sequence>(std::move(res));
 }
 
 /**
@@ -991,27 +996,29 @@ void AstToRamTranslator::nameUnnamedVariables(ast::Clause* clause) {
 }
 
 /** generate RAM code for recursive relations in a strongly-connected component */
-Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<const ast::Relation*>& scc,
+Own<ram::Statement> AstToRamTranslator::translateRecursiveRelation(const std::set<const ast::Relation*>& scc,
         const ast::analysis::RecursiveClausesAnalysis* recursiveClauses) {
     // initialize sections
-    VecOwn<RamStatement> preamble;
-    VecOwn<RamStatement> updateTable;
-    VecOwn<RamStatement> postamble;
+    VecOwn<ram::Statement> preamble;
+    VecOwn<ram::Statement> updateTable;
+    VecOwn<ram::Statement> postamble;
 
-    auto genMerge = [](const RamRelationReference* dest,
-                            const RamRelationReference* src) -> Own<RamStatement> {
-        VecOwn<RamExpression> values;
+    auto genMerge = [](const ram::RelationReference* dest,
+                            const ram::RelationReference* src) -> Own<ram::Statement> {
+        VecOwn<ram::Expression> values;
         if (src->get()->getArity() == 0) {
-            return mk<RamQuery>(mk<RamFilter>(mk<RamNegation>(mk<RamEmptinessCheck>(souffle::clone(src))),
-                    mk<RamProject>(souffle::clone(dest), std::move(values))));
+            return mk<ram::Query>(
+                    mk<ram::Filter>(mk<ram::Negation>(mk<ram::EmptinessCheck>(souffle::clone(src))),
+                            mk<ram::Project>(souffle::clone(dest), std::move(values))));
         }
         for (std::size_t i = 0; i < dest->get()->getArity(); i++) {
-            values.push_back(mk<RamTupleElement>(0, i));
+            values.push_back(mk<ram::TupleElement>(0, i));
         }
-        auto stmt = mk<RamQuery>(
-                mk<RamScan>(souffle::clone(src), 0, mk<RamProject>(souffle::clone(dest), std::move(values))));
+        auto stmt = mk<ram::Query>(mk<ram::Scan>(
+                souffle::clone(src), 0, mk<ram::Project>(souffle::clone(dest), std::move(values))));
         if (dest->get()->getRepresentation() == RelationRepresentation::EQREL) {
-            return mk<RamSequence>(mk<RamExtend>(souffle::clone(dest), souffle::clone(src)), std::move(stmt));
+            return mk<ram::Sequence>(
+                    mk<ram::Extend>(souffle::clone(dest), souffle::clone(src)), std::move(stmt));
         }
         return stmt;
     };
@@ -1022,21 +1029,21 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
        the results in their delta tables. */
     for (const ast::Relation* rel : scc) {
         /* create update statements for fixpoint (even iteration) */
-        Own<RamStatement> updateRelTable =
-                mk<RamSequence>(genMerge(translateRelation(rel).get(), translateNewRelation(rel).get()),
-                        mk<RamSwap>(translateDeltaRelation(rel), translateNewRelation(rel)),
-                        mk<RamClear>(translateNewRelation(rel)));
+        Own<ram::Statement> updateRelTable =
+                mk<ram::Sequence>(genMerge(translateRelation(rel).get(), translateNewRelation(rel).get()),
+                        mk<ram::Swap>(translateDeltaRelation(rel), translateNewRelation(rel)),
+                        mk<ram::Clear>(translateNewRelation(rel)));
 
         /* measure update time for each relation */
         if (Global::config().has("profile")) {
-            updateRelTable = mk<RamLogRelationTimer>(std::move(updateRelTable),
+            updateRelTable = mk<ram::LogRelationTimer>(std::move(updateRelTable),
                     LogStatement::cRecursiveRelation(toString(rel->getQualifiedName()), rel->getSrcLoc()),
                     translateNewRelation(rel));
         }
 
         /* drop temporary tables after recursion */
-        appendStmt(postamble, mk<RamClear>(translateDeltaRelation(rel)));
-        appendStmt(postamble, mk<RamClear>(translateNewRelation(rel)));
+        appendStmt(postamble, mk<ram::Clear>(translateDeltaRelation(rel)));
+        appendStmt(postamble, mk<ram::Clear>(translateNewRelation(rel)));
 
         /* Generate code for non-recursive part of relation */
         /* Generate merge operation for temp tables */
@@ -1049,7 +1056,7 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
 
     // --- build main loop ---
 
-    VecOwn<RamStatement> loopSeq;
+    VecOwn<ram::Statement> loopSeq;
 
     // create a utility to check SCC membership
     auto isInSameSCC = [&](const ast::Relation* rel) {
@@ -1058,7 +1065,7 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
 
     /* Compute temp for the current tables */
     for (const ast::Relation* rel : scc) {
-        VecOwn<RamStatement> loopRelSeq;
+        VecOwn<ram::Statement> loopRelSeq;
 
         /* Find clauses for relation rel */
         for (const auto& cl : getClauses(*program, *rel)) {
@@ -1106,7 +1113,7 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
                     }
                 }
 
-                Own<RamStatement> rule = ClauseTranslator(*this).translateClause(*r1, *cl, version);
+                Own<ram::Statement> rule = ClauseTranslator(*this).translateClause(*r1, *cl, version);
 
                 /* add logging */
                 if (Global::config().has("profile")) {
@@ -1117,7 +1124,7 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
                             LogStatement::tRecursiveRule(relationName, version, srcLocation, clauseText);
                     const std::string logSizeStatement =
                             LogStatement::nRecursiveRule(relationName, version, srcLocation, clauseText);
-                    rule = mk<RamLogRelationTimer>(
+                    rule = mk<ram::LogRelationTimer>(
                             std::move(rule), logTimerStatement, translateNewRelation(rel));
                 }
 
@@ -1125,7 +1132,7 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
                 std::ostringstream ds;
                 ds << toString(*cl) << "\nin file ";
                 ds << cl->getSrcLoc();
-                rule = mk<RamDebugInfo>(std::move(rule), ds.str());
+                rule = mk<ram::DebugInfo>(std::move(rule), ds.str());
 
                 // add to loop body
                 appendStmt(loopRelSeq, std::move(rule));
@@ -1155,56 +1162,56 @@ Own<RamStatement> AstToRamTranslator::translateRecursiveRelation(const std::set<
             const SrcLocation& srcLocation = rel->getSrcLoc();
             const std::string logTimerStatement = LogStatement::tRecursiveRelation(relationName, srcLocation);
             const std::string logSizeStatement = LogStatement::nRecursiveRelation(relationName, srcLocation);
-            auto newStmt = mk<RamLogRelationTimer>(
-                    mk<RamSequence>(std::move(loopRelSeq)), logTimerStatement, translateNewRelation(rel));
+            auto newStmt = mk<ram::LogRelationTimer>(
+                    mk<ram::Sequence>(std::move(loopRelSeq)), logTimerStatement, translateNewRelation(rel));
             loopRelSeq.clear();
             appendStmt(loopRelSeq, std::move(newStmt));
         }
 
         /* add rule computations of a relation to parallel statement */
-        appendStmt(loopSeq, mk<RamSequence>(std::move(loopRelSeq)));
+        appendStmt(loopSeq, mk<ram::Sequence>(std::move(loopRelSeq)));
     }
-    auto loop = mk<RamParallel>(std::move(loopSeq));
+    auto loop = mk<ram::Parallel>(std::move(loopSeq));
 
     /* construct exit conditions for odd and even iteration */
-    auto addCondition = [](Own<RamCondition>& cond, Own<RamCondition> clause) {
-        cond = ((cond) ? mk<RamConjunction>(std::move(cond), std::move(clause)) : std::move(clause));
+    auto addCondition = [](Own<ram::Condition>& cond, Own<ram::Condition> clause) {
+        cond = ((cond) ? mk<ram::Conjunction>(std::move(cond), std::move(clause)) : std::move(clause));
     };
 
-    Own<RamCondition> exitCond;
-    VecOwn<RamStatement> exitStmts;
+    Own<ram::Condition> exitCond;
+    VecOwn<ram::Statement> exitStmts;
     for (const ast::Relation* rel : scc) {
-        addCondition(exitCond, mk<RamEmptinessCheck>(translateNewRelation(rel)));
+        addCondition(exitCond, mk<ram::EmptinessCheck>(translateNewRelation(rel)));
         if (ioType->isLimitSize(rel)) {
-            Own<RamCondition> limit =
-                    mk<RamConstraint>(BinaryConstraintOp::GE, mk<RamRelationSize>(translateRelation(rel)),
-                            mk<RamSignedConstant>(ioType->getLimitSize(rel)));
-            appendStmt(exitStmts, mk<RamExit>(std::move(limit)));
+            Own<ram::Condition> limit =
+                    mk<ram::Constraint>(BinaryConstraintOp::GE, mk<ram::RelationSize>(translateRelation(rel)),
+                            mk<ram::SignedConstant>(ioType->getLimitSize(rel)));
+            appendStmt(exitStmts, mk<ram::Exit>(std::move(limit)));
         }
     }
 
     /* construct fixpoint loop  */
-    VecOwn<RamStatement> res;
+    VecOwn<ram::Statement> res;
     if (preamble.size() > 0) {
-        appendStmt(res, mk<RamSequence>(std::move(preamble)));
+        appendStmt(res, mk<ram::Sequence>(std::move(preamble)));
     }
     if (!loop->getStatements().empty() && exitCond && updateTable.size() > 0) {
         appendStmt(res,
-                mk<RamLoop>(mk<RamSequence>(std::move(loop), mk<RamExit>(std::move(exitCond)),
-                        mk<RamSequence>(std::move(exitStmts)), mk<RamSequence>(std::move(updateTable)))));
+                mk<ram::Loop>(mk<ram::Sequence>(std::move(loop), mk<ram::Exit>(std::move(exitCond)),
+                        mk<ram::Sequence>(std::move(exitStmts)), mk<ram::Sequence>(std::move(updateTable)))));
     }
     if (postamble.size() > 0) {
-        appendStmt(res, mk<RamSequence>(std::move(postamble)));
+        appendStmt(res, mk<ram::Sequence>(std::move(postamble)));
     }
     if (res.size() > 0) {
-        return mk<RamSequence>(std::move(res));
+        return mk<ram::Sequence>(std::move(res));
     }
 
     fatal("Not Implemented");
 }
 
 /** make a subroutine to search for subproofs */
-Own<RamStatement> AstToRamTranslator::makeSubproofSubroutine(const ast::Clause& clause) {
+Own<ram::Statement> AstToRamTranslator::makeSubproofSubroutine(const ast::Clause& clause) {
     auto intermediateClause = mk<ast::Clause>(souffle::clone(clause.getHead()));
 
     // create a clone where all the constraints are moved to the end
@@ -1263,7 +1270,7 @@ Own<RamStatement> AstToRamTranslator::makeSubproofSubroutine(const ast::Clause& 
 }
 
 /** make a subroutine to search for subproofs for the non-existence of a tuple */
-Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::Clause& clause) {
+Own<ram::Statement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::Clause& clause) {
     // TODO (taipan-snake): Currently we only deal with atoms (no constraints or negations or aggregates
     // or anything else...)
     //
@@ -1354,7 +1361,7 @@ Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::
 
     // the structure of this subroutine is a sequence where each nested statement is a search in each
     // relation
-    VecOwn<RamStatement> searchSequence;
+    VecOwn<ram::Statement> searchSequence;
 
     // make a copy so that when we mutate clause, pointers to objects in newClause are not affected
     auto newClause = souffle::clone(clauseReplacedAggregates);
@@ -1364,10 +1371,10 @@ Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::
     for (const auto& lit : newClause->getBodyLiterals()) {
         if (auto atom = dynamic_cast<ast::Atom*>(lit)) {
             size_t auxiliaryArity = auxArityAnalysis->getArity(atom);
-            // get a RamRelationReference
+            // get a ram::RelationReference
             auto relRef = translateRelation(atom);
             // construct a query
-            VecOwn<RamExpression> query;
+            VecOwn<ram::Expression> query;
 
             // translate variables to subroutine arguments
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1382,37 +1389,37 @@ Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::
 
             // fill up query with nullptrs for the provenance columns
             for (size_t i = 0; i < auxiliaryArity; i++) {
-                query.push_back(mk<RamUndefValue>());
+                query.push_back(mk<ram::UndefValue>());
             }
 
             // ensure the length of query tuple is correct
             assert(query.size() == atom->getArity() && "wrong query tuple size");
 
             // create existence checks to check if the tuple exists or not
-            auto existenceCheck = mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
-            auto negativeExistenceCheck = mk<RamNegation>(souffle::clone(existenceCheck));
+            auto existenceCheck = mk<ram::ExistenceCheck>(souffle::clone(relRef), std::move(query));
+            auto negativeExistenceCheck = mk<ram::Negation>(souffle::clone(existenceCheck));
 
             // return true if the tuple exists
-            VecOwn<RamExpression> returnTrue;
-            returnTrue.push_back(mk<RamSignedConstant>(1));
+            VecOwn<ram::Expression> returnTrue;
+            returnTrue.push_back(mk<ram::SignedConstant>(1));
 
             // return false if the tuple exists
-            VecOwn<RamExpression> returnFalse;
-            returnFalse.push_back(mk<RamSignedConstant>(0));
+            VecOwn<ram::Expression> returnFalse;
+            returnFalse.push_back(mk<ram::SignedConstant>(0));
 
-            // create a RamQuery to return true/false
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
-                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
-                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
+            // create a ram::Query to return true/false
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(existenceCheck),
+                                               mk<ram::SubroutineReturn>(std::move(returnTrue)))));
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(negativeExistenceCheck),
+                                               mk<ram::SubroutineReturn>(std::move(returnFalse)))));
         } else if (auto neg = dynamic_cast<ast::Negation*>(lit)) {
             auto atom = neg->getAtom();
 
             size_t auxiliaryArity = auxArityAnalysis->getArity(atom);
-            // get a RamRelationReference
+            // get a ram::RelationReference
             auto relRef = translateRelation(atom);
             // construct a query
-            VecOwn<RamExpression> query;
+            VecOwn<ram::Expression> query;
 
             // translate variables to subroutine arguments
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1427,56 +1434,56 @@ Own<RamStatement> AstToRamTranslator::makeNegationSubproofSubroutine(const ast::
 
             // fill up query with nullptrs for the provenance columns
             for (size_t i = 0; i < auxiliaryArity; i++) {
-                query.push_back(mk<RamUndefValue>());
+                query.push_back(mk<ram::UndefValue>());
             }
 
             // ensure the length of query tuple is correct
             assert(query.size() == atom->getArity() && "wrong query tuple size");
 
             // create existence checks to check if the tuple exists or not
-            auto existenceCheck = mk<RamExistenceCheck>(souffle::clone(relRef), std::move(query));
-            auto negativeExistenceCheck = mk<RamNegation>(souffle::clone(existenceCheck));
+            auto existenceCheck = mk<ram::ExistenceCheck>(souffle::clone(relRef), std::move(query));
+            auto negativeExistenceCheck = mk<ram::Negation>(souffle::clone(existenceCheck));
 
             // return true if the tuple exists
-            VecOwn<RamExpression> returnTrue;
-            returnTrue.push_back(mk<RamSignedConstant>(1));
+            VecOwn<ram::Expression> returnTrue;
+            returnTrue.push_back(mk<ram::SignedConstant>(1));
 
             // return false if the tuple exists
-            VecOwn<RamExpression> returnFalse;
-            returnFalse.push_back(mk<RamSignedConstant>(0));
+            VecOwn<ram::Expression> returnFalse;
+            returnFalse.push_back(mk<ram::SignedConstant>(0));
 
-            // create a RamQuery to return true/false
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(existenceCheck),
-                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeExistenceCheck),
-                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
+            // create a ram::Query to return true/false
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(existenceCheck),
+                                               mk<ram::SubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(negativeExistenceCheck),
+                                               mk<ram::SubroutineReturn>(std::move(returnTrue)))));
 
         } else if (auto con = dynamic_cast<ast::Constraint*>(lit)) {
             VariablesToArguments varsToArgs(uniqueVariables);
             con->apply(varsToArgs);
 
-            // translate to a RamCondition
+            // translate to a ram::Condition
             auto condition = translateConstraint(con, ValueIndex());
-            auto negativeCondition = mk<RamNegation>(souffle::clone(condition));
+            auto negativeCondition = mk<ram::Negation>(souffle::clone(condition));
 
             // create a return true value
-            VecOwn<RamExpression> returnTrue;
-            returnTrue.push_back(mk<RamSignedConstant>(1));
+            VecOwn<ram::Expression> returnTrue;
+            returnTrue.push_back(mk<ram::SignedConstant>(1));
 
             // create a return false value
-            VecOwn<RamExpression> returnFalse;
-            returnFalse.push_back(mk<RamSignedConstant>(0));
+            VecOwn<ram::Expression> returnFalse;
+            returnFalse.push_back(mk<ram::SignedConstant>(0));
 
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(condition),
-                                               mk<RamSubroutineReturn>(std::move(returnTrue)))));
-            appendStmt(searchSequence, mk<RamQuery>(mk<RamFilter>(std::move(negativeCondition),
-                                               mk<RamSubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(condition),
+                                               mk<ram::SubroutineReturn>(std::move(returnTrue)))));
+            appendStmt(searchSequence, mk<ram::Query>(mk<ram::Filter>(std::move(negativeCondition),
+                                               mk<ram::SubroutineReturn>(std::move(returnFalse)))));
         }
 
         litNumber++;
     }
 
-    return mk<RamSequence>(std::move(searchSequence));
+    return mk<ram::Sequence>(std::move(searchSequence));
 }
 
 /** translates the given datalog program into an equivalent RAM program  */
@@ -1507,38 +1514,38 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
     if (sccGraph.getNumberOfSCCs() == 0) return;
 
     // a function to load relations
-    const auto& makeRamLoad = [&](VecOwn<RamStatement>& current, const ast::Relation* relation) {
+    const auto& makeRamLoad = [&](VecOwn<ram::Statement>& current, const ast::Relation* relation) {
         for (auto directives : getInputDirectives(relation)) {
-            Own<RamStatement> statement =
-                    mk<RamIO>(Own<RamRelationReference>(translateRelation(relation)), directives);
+            Own<ram::Statement> statement =
+                    mk<ram::IO>(Own<ram::RelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
                 const std::string logTimerStatement = LogStatement::tRelationLoadTime(
                         toString(relation->getQualifiedName()), relation->getSrcLoc());
-                statement = mk<RamLogRelationTimer>(std::move(statement), logTimerStatement,
-                        Own<RamRelationReference>(translateRelation(relation)));
+                statement = mk<ram::LogRelationTimer>(std::move(statement), logTimerStatement,
+                        Own<ram::RelationReference>(translateRelation(relation)));
             }
             appendStmt(current, std::move(statement));
         }
     };
 
     // a function to store relations
-    const auto& makeRamStore = [&](VecOwn<RamStatement>& current, const ast::Relation* relation) {
+    const auto& makeRamStore = [&](VecOwn<ram::Statement>& current, const ast::Relation* relation) {
         for (auto directives : getOutputDirectives(relation)) {
-            Own<RamStatement> statement =
-                    mk<RamIO>(Own<RamRelationReference>(translateRelation(relation)), directives);
+            Own<ram::Statement> statement =
+                    mk<ram::IO>(Own<ram::RelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
                 const std::string logTimerStatement = LogStatement::tRelationSaveTime(
                         toString(relation->getQualifiedName()), relation->getSrcLoc());
-                statement = mk<RamLogRelationTimer>(std::move(statement), logTimerStatement,
-                        Own<RamRelationReference>(translateRelation(relation)));
+                statement = mk<ram::LogRelationTimer>(std::move(statement), logTimerStatement,
+                        Own<ram::RelationReference>(translateRelation(relation)));
             }
             appendStmt(current, std::move(statement));
         }
     };
 
     // a function to drop relations
-    const auto& makeRamClear = [&](VecOwn<RamStatement>& current, const ast::Relation* relation) {
-        appendStmt(current, mk<RamClear>(translateRelation(relation)));
+    const auto& makeRamClear = [&](VecOwn<ram::Statement>& current, const ast::Relation* relation) {
+        appendStmt(current, mk<ram::Clear>(translateRelation(relation)));
     };
 
     // maintain the index of the SCC within the topological order
@@ -1563,14 +1570,14 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
                             getTypeQualifier(typeEnv->getType(attributes[i]->getTypeName())));
                 }
             }
-            ramRels[name] = mk<RamRelation>(
+            ramRels[name] = mk<ram::Relation>(
                     name, arity, auxiliaryArity, attributeNames, attributeTypeQualifiers, representation);
             if (isRecursive) {
                 std::string deltaName = "@delta_" + name;
                 std::string newName = "@new_" + name;
-                ramRels[deltaName] = mk<RamRelation>(deltaName, arity, auxiliaryArity, attributeNames,
+                ramRels[deltaName] = mk<ram::Relation>(deltaName, arity, auxiliaryArity, attributeNames,
                         attributeTypeQualifiers, representation);
-                ramRels[newName] = mk<RamRelation>(newName, arity, auxiliaryArity, attributeNames,
+                ramRels[newName] = mk<ram::Relation>(newName, arity, auxiliaryArity, attributeNames,
                         attributeTypeQualifiers, representation);
             }
         }
@@ -1578,7 +1585,7 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
     // iterate over each SCC according to the topological order
     for (const auto& scc : sccOrder.order()) {
         // make a new ram statement for the current SCC
-        VecOwn<RamStatement> current;
+        VecOwn<ram::Statement> current;
 
         // find out if the current SCC is recursive
         const auto& isRecursive = sccGraph.isRecursive(scc);
@@ -1598,7 +1605,7 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
         }
 
         // compute the relations themselves
-        Own<RamStatement> bodyStatement =
+        Own<ram::Statement> bodyStatement =
                 (!isRecursive) ? translateNonRecursiveRelation(
                                          *((const ast::Relation*)*allInterns.begin()), recursiveClauses)
                                : translateRecursiveRelation(allInterns, recursiveClauses);
@@ -1618,25 +1625,25 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
         }
 
         // create subroutine for this stratum
-        ramSubs["stratum_" + std::to_string(indexOfScc)] = mk<RamSequence>(std::move(current));
+        ramSubs["stratum_" + std::to_string(indexOfScc)] = mk<ram::Sequence>(std::move(current));
         indexOfScc++;
     }
 
     // invoke all strata
-    VecOwn<RamStatement> res;
+    VecOwn<ram::Statement> res;
     for (size_t i = 0; i < indexOfScc; i++) {
-        appendStmt(res, mk<RamCall>("stratum_" + std::to_string(i)));
+        appendStmt(res, mk<ram::Call>("stratum_" + std::to_string(i)));
     }
 
     // add main timer if profiling
     if (res.size() > 0 && Global::config().has("profile")) {
-        auto newStmt = mk<RamLogTimer>(mk<RamSequence>(std::move(res)), LogStatement::runtime());
+        auto newStmt = mk<ram::LogTimer>(mk<ram::Sequence>(std::move(res)), LogStatement::runtime());
         res.clear();
         appendStmt(res, std::move(newStmt));
     }
 
     // done for main prog
-    ramMain = mk<RamSequence>(std::move(res));
+    ramMain = mk<ram::Sequence>(std::move(res));
 
     // add subroutines for each clause
     if (Global::config().has("provenance")) {
@@ -1661,7 +1668,7 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
     }
 }
 
-Own<RamTranslationUnit> AstToRamTranslator::translateUnit(ast::TranslationUnit& tu) {
+Own<ram::TranslationUnit> AstToRamTranslator::translateUnit(ast::TranslationUnit& tu) {
     auto ram_start = std::chrono::high_resolution_clock::now();
     program = tu.getProgram();
 
@@ -1669,14 +1676,14 @@ Own<RamTranslationUnit> AstToRamTranslator::translateUnit(ast::TranslationUnit& 
     SymbolTable& symTab = getSymbolTable();
     ErrorReport& errReport = tu.getErrorReport();
     DebugReport& debugReport = tu.getDebugReport();
-    VecOwn<RamRelation> rels;
+    VecOwn<ram::Relation> rels;
     for (auto& cur : ramRels) {
         rels.push_back(std::move(cur.second));
     }
     if (ramMain == nullptr) {
-        ramMain = mk<RamSequence>();
+        ramMain = mk<ram::Sequence>();
     }
-    auto ramProg = mk<RamProgram>(std::move(rels), std::move(ramMain), std::move(ramSubs));
+    auto ramProg = mk<ram::Program>(std::move(rels), std::move(ramMain), std::move(ramSubs));
     if (!Global::config().get("debug-report").empty()) {
         if (ramProg) {
             auto ram_end = std::chrono::high_resolution_clock::now();
@@ -1687,7 +1694,7 @@ Own<RamTranslationUnit> AstToRamTranslator::translateUnit(ast::TranslationUnit& 
             debugReport.addSection("ram-program", "RAM Program " + runtimeStr, ramProgStr.str());
         }
     }
-    return mk<RamTranslationUnit>(std::move(ramProg), std::move(symTab), errReport, debugReport);
+    return mk<ram::TranslationUnit>(std::move(ramProg), std::move(symTab), errReport, debugReport);
 }
 
 }  // end of namespace souffle

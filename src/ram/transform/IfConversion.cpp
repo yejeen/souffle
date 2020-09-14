@@ -28,12 +28,12 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram::transform {
 
-Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* indexScan) {
+Own<Operation> IfConversionTransformer::rewriteIndexScan(const IndexScan* indexScan) {
     // check whether tuple is used in subsequent operations
     bool tupleNotUsed = true;
-    visitDepthFirst(*indexScan, [&](const RamTupleElement& element) {
+    visitDepthFirst(*indexScan, [&](const TupleElement& element) {
         if (element.getTupleId() == indexScan->getTupleId()) {
             tupleNotUsed = false;
         }
@@ -42,7 +42,7 @@ Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* 
     // if not used, transform the IndexScan operation to an existence check
     if (tupleNotUsed) {
         // replace IndexScan with an Filter/Existence check
-        VecOwn<RamExpression> newValues;
+        VecOwn<Expression> newValues;
 
         size_t arity = indexScan->getRangePattern().first.size();
         for (size_t i = 0; i < arity; ++i) {
@@ -52,7 +52,7 @@ Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* 
         }
 
         for (auto& cur : indexScan->getRangePattern().second) {
-            RamExpression* val = nullptr;
+            Expression* val = nullptr;
             if (cur != nullptr) {
                 val = cur->clone();
             }
@@ -60,26 +60,26 @@ Own<RamOperation> IfConversionTransformer::rewriteIndexScan(const RamIndexScan* 
         }
 
         // check if there is a break statement nested in the Scan - if so, remove it
-        RamOperation* newOp;
-        if (const auto* breakOp = dynamic_cast<const RamBreak*>(&indexScan->getOperation())) {
+        Operation* newOp;
+        if (const auto* breakOp = dynamic_cast<const Break*>(&indexScan->getOperation())) {
             newOp = breakOp->getOperation().clone();
         } else {
             newOp = indexScan->getOperation().clone();
         }
 
-        return mk<RamFilter>(mk<RamExistenceCheck>(mk<RamRelationReference>(&indexScan->getRelation()),
-                                     std::move(newValues)),
-                Own<RamOperation>(newOp), indexScan->getProfileText());
+        return mk<Filter>(
+                mk<ExistenceCheck>(mk<RelationReference>(&indexScan->getRelation()), std::move(newValues)),
+                Own<Operation>(newOp), indexScan->getProfileText());
     }
     return nullptr;
 }
 
-bool IfConversionTransformer::convertIndexScans(RamProgram& program) {
+bool IfConversionTransformer::convertIndexScans(Program& program) {
     bool changed = false;
-    visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<Own<RamNode>(Own<RamNode>)> scanRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
-            if (const RamIndexScan* scan = dynamic_cast<RamIndexScan*>(node.get())) {
-                if (Own<RamOperation> op = rewriteIndexScan(scan)) {
+    visitDepthFirst(program, [&](const Query& query) {
+        std::function<Own<Node>(Own<Node>)> scanRewriter = [&](Own<Node> node) -> Own<Node> {
+            if (const IndexScan* scan = dynamic_cast<IndexScan*>(node.get())) {
+                if (Own<Operation> op = rewriteIndexScan(scan)) {
                     changed = true;
                     node = std::move(op);
                 }
@@ -87,9 +87,9 @@ bool IfConversionTransformer::convertIndexScans(RamProgram& program) {
             node->apply(makeLambdaRamMapper(scanRewriter));
             return node;
         };
-        const_cast<RamQuery*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
+        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
     });
     return changed;
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::ram::transform

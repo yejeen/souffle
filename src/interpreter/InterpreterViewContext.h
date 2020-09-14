@@ -26,7 +26,8 @@ namespace souffle {
 
 /**
  * @class InterpreterViewContext
- * @brief This class contains information for views (Hints) creation for RamQuery and RamParallel operation.
+ * @brief This class contains information for views (Hints) creation for ram::Query and ram::Parallel
+ * operation.
  */
 class InterpreterViewContext {
 public:
