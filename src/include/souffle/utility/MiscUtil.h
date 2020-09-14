@@ -17,12 +17,12 @@
 #pragma once
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4127 )
-#endif // _MSC_VER
+#pragma warning(disable : 4127)
+#endif  // _MSC_VER
 #include "tinyformat.h"
 #ifdef _MSC_VER
-#pragma warning( default : 4127 )
-#endif // _MSC_VER
+#pragma warning(default : 4127)
+#endif  // _MSC_VER
 
 #include <cassert>
 #include <chrono>
@@ -73,7 +73,7 @@ inline unsigned long __builtin_ctzll(unsigned long long value) {
         return 64;
     }
 }
-#endif // _MSC_VER < 1924
+#endif  // _MSC_VER < 1924
 #endif
 
 // -------------------------------------------------------------------------------

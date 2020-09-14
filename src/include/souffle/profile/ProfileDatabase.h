@@ -4,12 +4,12 @@
 #include "souffle/utility/MiscUtil.h"
 
 #ifdef _MSC_VER
-#pragma warning(disable:4244)
-#endif // _MSC_VER
+#pragma warning(disable : 4244)
+#endif  // _MSC_VER
 #include "souffle/utility/json11.h"
 #ifdef _MSC_VER
-#pragma warning(default:4244)
-#endif // _MSC_VER
+#pragma warning(default : 4244)
+#endif  // _MSC_VER
 
 #include <cassert>
 #include <chrono>

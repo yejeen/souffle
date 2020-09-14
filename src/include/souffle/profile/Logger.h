@@ -49,7 +49,7 @@ public:
         struct rusage ru {};
         getrusage(RUSAGE_SELF, &ru);
         startMaxRSS = ru.ru_maxrss;
-#endif // WIN32
+#endif  // WIN32
         // Assume that if we are logging the progress of an event then we care about usage during that time.
         ProfileEventSingleton::instance().resetTimerInterval();
     }
@@ -64,7 +64,7 @@ public:
         struct rusage ru {};
         getrusage(RUSAGE_SELF, &ru);
         size_t endMaxRSS = ru.ru_maxrss;
-#endif // WIN32
+#endif  // WIN32
         ProfileEventSingleton::instance().makeTimingEvent(
                 label, start, now(), startMaxRSS, endMaxRSS, size() - preSize, iteration);
     }
