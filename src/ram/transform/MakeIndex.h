@@ -32,7 +32,7 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram::transform {
 
 /**
  * @class MakeIndexTransformer
@@ -60,7 +60,7 @@ namespace souffle {
  *      ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class MakeIndexTransformer : public RamTransformer {
+class MakeIndexTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "MakeIndexTransformer";
@@ -76,10 +76,10 @@ public:
      * The method retrieves expression the expression of an equivalence constraint of the
      * format t1.x = <expr> or <expr> = t1.x
      */
-    using ExpressionPair = std::pair<Own<RamExpression>, Own<RamExpression>>;
+    using ExpressionPair = std::pair<Own<Expression>, Own<Expression>>;
 
-    ExpressionPair getExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
-    ExpressionPair getLowerUpperExpression(RamCondition* c, size_t& element, int level);
+    ExpressionPair getExpressionPair(const Constraint* binRelOp, size_t& element, int identifier);
+    ExpressionPair getLowerUpperExpression(Condition* c, size_t& element, int level);
 
     /**
      * @param AttributeTypes to indicate type of each attribute in the relation
@@ -89,8 +89,8 @@ public:
      * @param Tuple identifier of the indexable operation
      * @result Remaining conditions that could not be transformed to an index
      */
-    Own<RamCondition> constructPattern(const std::vector<std::string>& attributeTypes,
-            RamPattern& queryPattern, bool& indexable, VecOwn<RamCondition> conditionList, int identifier);
+    Own<Condition> constructPattern(const std::vector<std::string>& attributeTypes, RamPattern& queryPattern,
+            bool& indexable, VecOwn<Condition> conditionList, int identifier);
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation
@@ -98,7 +98,7 @@ public:
      * @result The result is null if the scan could not be rewritten to an IndexScan;
      *         otherwise the new IndexScan operation is returned.
      */
-    Own<RamOperation> rewriteScan(const RamScan* scan);
+    Own<Operation> rewriteScan(const Scan* scan);
 
     /**
      * @brief Rewrite an index scan operation to an amended index scan operation
@@ -106,7 +106,7 @@ public:
      * @result The result is null if the index scan cannot be amended;
      *         otherwise the new IndexScan operation is returned.
      */
-    Own<RamOperation> rewriteIndexScan(const RamIndexScan* iscan);
+    Own<Operation> rewriteIndexScan(const IndexScan* iscan);
 
     /**
      * @brief Rewrite an aggregate operation to an indexed aggregate operation
@@ -114,21 +114,21 @@ public:
      * @result The result is null if the aggregate could not be rewritten to an indexed version;
      *         otherwise the new indexed version of the aggregate is returned.
      */
-    Own<RamOperation> rewriteAggregate(const RamAggregate* agg);
+    Own<Operation> rewriteAggregate(const Aggregate* agg);
 
     /**
      * @brief Make indexable RAM operation indexed
      * @param RAM program that is transformed
      * @result Flag that indicates whether the input program has changed
      */
-    bool makeIndex(RamProgram& program);
+    bool makeIndex(Program& program);
 
 protected:
-    RamLevelAnalysis* rla{nullptr};
-    bool transform(RamTranslationUnit& translationUnit) override {
-        rla = translationUnit.getAnalysis<RamLevelAnalysis>();
+    analysis::LevelAnalysis* rla{nullptr};
+    bool transform(TranslationUnit& translationUnit) override {
+        rla = translationUnit.getAnalysis<analysis::LevelAnalysis>();
         return makeIndex(translationUnit.getProgram());
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ram::transform

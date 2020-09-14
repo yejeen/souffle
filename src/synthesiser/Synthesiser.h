@@ -41,7 +41,7 @@ private:
     RecordTable recordTable;
 
     /** RAM translation unit */
-    RamTranslationUnit& translationUnit;
+    ram::TranslationUnit& translationUnit;
 
     /** RAM identifier to C++ identifier map */
     std::map<const std::string, const std::string> identifiers;
@@ -63,19 +63,19 @@ protected:
     const std::string convertRamIdent(const std::string& name);
 
     /** Get relation name */
-    const std::string getRelationName(const RamRelation& rel);
+    const std::string getRelationName(const ram::Relation& rel);
 
     /** Get context name */
-    const std::string getOpContextName(const RamRelation& rel);
+    const std::string getOpContextName(const ram::Relation& rel);
 
     /** Get relation struct definition */
     void generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType);
 
     /** Get referenced relations */
-    std::set<const RamRelation*> getReferencedRelations(const RamOperation& op);
+    std::set<const ram::Relation*> getReferencedRelations(const ram::Operation& op);
 
     /** Generate code */
-    void emitCode(std::ostream& out, const RamStatement& stmt);
+    void emitCode(std::ostream& out, const ram::Statement& stmt);
 
     /** Lookup frequency counter */
     unsigned lookupFreqIdx(const std::string& txt);
@@ -84,11 +84,11 @@ protected:
     size_t lookupReadIdx(const std::string& txt);
 
 public:
-    explicit Synthesiser(RamTranslationUnit& tUnit) : translationUnit(tUnit) {}
+    explicit Synthesiser(ram::TranslationUnit& tUnit) : translationUnit(tUnit) {}
     virtual ~Synthesiser() = default;
 
     /** Get translation unit */
-    RamTranslationUnit& getTranslationUnit() {
+    ram::TranslationUnit& getTranslationUnit() {
         return translationUnit;
     }
 

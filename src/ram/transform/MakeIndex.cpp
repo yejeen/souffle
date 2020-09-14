@@ -37,67 +37,66 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram::transform {
 
-using ExpressionPair = std::pair<Own<RamExpression>, Own<RamExpression>>;
+using ExpressionPair = std::pair<Own<Expression>, Own<Expression>>;
 
 ExpressionPair MakeIndexTransformer::getExpressionPair(
-        const RamConstraint* binRelOp, size_t& element, int identifier) {
+        const Constraint* binRelOp, size_t& element, int identifier) {
     if (isLessEqual(binRelOp->getOperator())) {
         // Tuple[level, element] <= <expr>
-        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-            const RamExpression* rhs = &binRelOp->getRHS();
+        if (const auto* lhs = dynamic_cast<const TupleElement*>(&binRelOp->getLHS())) {
+            const Expression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {mk<RamUndefValue>(), clone(rhs)};
+                return {mk<UndefValue>(), clone(rhs)};
             }
         }
         // <expr> <= Tuple[level, element]
-        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-            const RamExpression* lhs = &binRelOp->getLHS();
+        if (const auto* rhs = dynamic_cast<const TupleElement*>(&binRelOp->getRHS())) {
+            const Expression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {clone(lhs), mk<RamUndefValue>()};
+                return {clone(lhs), mk<UndefValue>()};
             }
         }
     }
 
     if (isGreaterEqual(binRelOp->getOperator())) {
         // Tuple[level, element] >= <expr>
-        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-            const RamExpression* rhs = &binRelOp->getRHS();
+        if (const auto* lhs = dynamic_cast<const TupleElement*>(&binRelOp->getLHS())) {
+            const Expression* rhs = &binRelOp->getRHS();
             if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                 element = lhs->getElement();
-                return {clone(rhs), mk<RamUndefValue>()};
+                return {clone(rhs), mk<UndefValue>()};
             }
         }
         // <expr> >= Tuple[level, element]
-        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-            const RamExpression* lhs = &binRelOp->getLHS();
+        if (const auto* rhs = dynamic_cast<const TupleElement*>(&binRelOp->getRHS())) {
+            const Expression* lhs = &binRelOp->getLHS();
             if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                 element = rhs->getElement();
-                return {mk<RamUndefValue>(), clone(lhs)};
+                return {mk<UndefValue>(), clone(lhs)};
             }
         }
     }
-    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
+    return {mk<UndefValue>(), mk<UndefValue>()};
 }
 
 // Retrieves the <expr1> <= Tuple[level, element] <= <expr2> part of the constraint as a pair { <expr1>,
 // <expr2> }
-ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
-        RamCondition* c, size_t& element, int identifier) {
-    if (auto* binRelOp = dynamic_cast<RamConstraint*>(c)) {
+ExpressionPair MakeIndexTransformer::getLowerUpperExpression(Condition* c, size_t& element, int identifier) {
+    if (auto* binRelOp = dynamic_cast<Constraint*>(c)) {
         if (isEqConstraint(binRelOp->getOperator())) {
-            if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-                const RamExpression* rhs = &binRelOp->getRHS();
+            if (const auto* lhs = dynamic_cast<const TupleElement*>(&binRelOp->getLHS())) {
+                const Expression* rhs = &binRelOp->getRHS();
                 if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                     element = lhs->getElement();
                     return {clone(rhs), clone(rhs)};
                 }
             }
-            if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-                const RamExpression* lhs = &binRelOp->getLHS();
+            if (const auto* rhs = dynamic_cast<const TupleElement*>(&binRelOp->getRHS())) {
+                const Expression* lhs = &binRelOp->getLHS();
                 if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                     element = rhs->getElement();
                     return {clone(lhs), clone(lhs)};
@@ -107,16 +106,16 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
             return getExpressionPair(binRelOp, element, identifier);
         }
     }
-    return {mk<RamUndefValue>(), mk<RamUndefValue>()};
+    return {mk<UndefValue>(), mk<UndefValue>()};
 }
 
-Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::string>& attributeTypes,
-        RamPattern& queryPattern, bool& indexable, VecOwn<RamCondition> conditionList, int identifier) {
+Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::string>& attributeTypes,
+        RamPattern& queryPattern, bool& indexable, VecOwn<Condition> conditionList, int identifier) {
     // Remaining conditions which cannot be handled by an index
-    Own<RamCondition> condition;
-    auto addCondition = [&](Own<RamCondition> c) {
+    Own<Condition> condition;
+    auto addCondition = [&](Own<Condition> c) {
         if (condition != nullptr) {
-            condition = mk<RamConjunction>(std::move(condition), std::move(c));
+            condition = mk<Conjunction>(std::move(condition), std::move(c));
         } else {
             condition = std::move(c);
         }
@@ -125,10 +124,10 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
     // transform condition list so that every strict inequality becomes a weak inequality + filter
     // e.g. Tuple[level, element] < <expr> --> Tuple[level, element] <= <expr> and Tuple[level, element] !=
     // <expr>
-    std::vector<std::unique_ptr<RamCondition>> toAppend;
+    std::vector<std::unique_ptr<Condition>> toAppend;
     auto it = conditionList.begin();
     while (it != conditionList.end()) {
-        auto* binRelOp = dynamic_cast<RamConstraint*>(it->get());
+        auto* binRelOp = dynamic_cast<Constraint*>(it->get());
         if (binRelOp == nullptr) {
             ++it;
             continue;
@@ -137,14 +136,14 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
         bool transformable = false;
 
         if (isStrictIneqConstraint(binRelOp->getOperator())) {
-            if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-                const RamExpression* rhs = &binRelOp->getRHS();
+            if (const auto* lhs = dynamic_cast<const TupleElement*>(&binRelOp->getLHS())) {
+                const Expression* rhs = &binRelOp->getRHS();
                 if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
                     transformable = true;
                 }
             }
-            if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-                const RamExpression* lhs = &binRelOp->getLHS();
+            if (const auto* rhs = dynamic_cast<const TupleElement*>(&binRelOp->getRHS())) {
+                const Expression* lhs = &binRelOp->getLHS();
                 if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
                     transformable = true;
                 }
@@ -153,13 +152,13 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
 
         if (transformable) {
             // append the weak version of inequality
-            toAppend.emplace_back(std::make_unique<RamConstraint>(
-                    convertStrictToWeakIneqConstraint(binRelOp->getOperator()), clone(&binRelOp->getLHS()),
-                    clone(&binRelOp->getRHS())));
+            toAppend.emplace_back(
+                    std::make_unique<Constraint>(convertStrictToWeakIneqConstraint(binRelOp->getOperator()),
+                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
             // append the != constraint
-            toAppend.emplace_back(std::make_unique<RamConstraint>(
-                    convertStrictToNotEqualConstraint(binRelOp->getOperator()), clone(&binRelOp->getLHS()),
-                    clone(&binRelOp->getRHS())));
+            toAppend.emplace_back(
+                    std::make_unique<Constraint>(convertStrictToNotEqualConstraint(binRelOp->getOperator()),
+                            clone(&binRelOp->getLHS()), clone(&binRelOp->getRHS())));
 
             // remove the strict version of inequality
             it = conditionList.erase(it);
@@ -169,98 +168,98 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
     }
 
     std::transform(toAppend.begin(), toAppend.end(), std::back_inserter(conditionList),
-            [](const std::unique_ptr<RamCondition>& cond) { return std::move(clone(cond)); });
+            [](const std::unique_ptr<Condition>& cond) { return std::move(clone(cond)); });
 
     // Build query pattern and remaining condition
     for (auto& cond : conditionList) {
         size_t element = 0;
-        Own<RamExpression> lowerExpression;
-        Own<RamExpression> upperExpression;
+        Own<Expression> lowerExpression;
+        Own<Expression> upperExpression;
         std::tie(lowerExpression, upperExpression) = getLowerUpperExpression(cond.get(), element, identifier);
 
         // we have new bounds if at least one is defined
-        if (!isRamUndefValue(lowerExpression.get()) || !isRamUndefValue(upperExpression.get())) {
+        if (!isUndefValue(lowerExpression.get()) || !isUndefValue(upperExpression.get())) {
             // if no previous bounds are set then just assign them, consider both bounds to be set (but not
             // necessarily defined) in all remaining cases
             auto type = attributeTypes[element];
             indexable = true;
-            if (isRamUndefValue(queryPattern.first[element].get()) &&
-                    isRamUndefValue(queryPattern.second[element].get())) {
+            if (isUndefValue(queryPattern.first[element].get()) &&
+                    isUndefValue(queryPattern.second[element].get())) {
                 queryPattern.first[element] = std::move(lowerExpression);
                 queryPattern.second[element] = std::move(upperExpression);
                 // if lower bound is undefined and we have a new lower bound then assign it
-            } else if (isRamUndefValue(queryPattern.first[element].get()) &&
-                       !isRamUndefValue(lowerExpression.get()) && isRamUndefValue(upperExpression.get())) {
+            } else if (isUndefValue(queryPattern.first[element].get()) &&
+                       !isUndefValue(lowerExpression.get()) && isUndefValue(upperExpression.get())) {
                 queryPattern.first[element] = std::move(lowerExpression);
                 // if upper bound is undefined and we have a new upper bound then assign it
-            } else if (isRamUndefValue(queryPattern.second[element].get()) &&
-                       isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
+            } else if (isUndefValue(queryPattern.second[element].get()) &&
+                       isUndefValue(lowerExpression.get()) && !isUndefValue(upperExpression.get())) {
                 queryPattern.second[element] = std::move(upperExpression);
                 // if both bounds are defined ...
                 // and equal then we have a previous equality constraint i.e. Tuple[level, element] = <expr1>
-            } else if (!isRamUndefValue(queryPattern.first[element].get()) &&
-                       !isRamUndefValue(queryPattern.second[element].get()) &&
+            } else if (!isUndefValue(queryPattern.first[element].get()) &&
+                       !isUndefValue(queryPattern.second[element].get()) &&
                        (*(queryPattern.first[element]) == *(queryPattern.second[element]))) {
                 // new equality constraint i.e. Tuple[level, element] = <expr2>
                 // simply hoist <expr1> = <expr2> to the outer loop
-                if (!isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
+                if (!isUndefValue(lowerExpression.get()) && !isUndefValue(upperExpression.get())) {
                     // FIXME: `FEQ` handling; need to know if the expr is a float exp or not
-                    addCondition(mk<RamConstraint>(getEqConstraint(type),
+                    addCondition(mk<Constraint>(getEqConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new lower bound i.e. Tuple[level, element] >= <expr2>
                 // we need to hoist <expr1> >= <expr2> to the outer loop
-                else if (!isRamUndefValue(lowerExpression.get()) && isRamUndefValue(upperExpression.get())) {
-                    addCondition(mk<RamConstraint>(getGreaterEqualConstraint(type),
+                else if (!isUndefValue(lowerExpression.get()) && isUndefValue(upperExpression.get())) {
+                    addCondition(mk<Constraint>(getGreaterEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new upper bound i.e. Tuple[level, element] <= <expr2>
                 // we need to hoist <expr1> <= <expr2> to the outer loop
-                else if (isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
-                    addCondition(mk<RamConstraint>(getLessEqualConstraint(type),
+                else if (isUndefValue(lowerExpression.get()) && !isUndefValue(upperExpression.get())) {
+                    addCondition(mk<Constraint>(getLessEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(upperExpression)));
                 }
                 // if either bound is defined but they aren't equal we must consider the cases for updating
                 // them note that at this point we know that if we have a lower/upper bound it can't be the
                 // first one
-            } else if (!isRamUndefValue(queryPattern.first[element].get()) ||
-                       !isRamUndefValue(queryPattern.second[element].get())) {
+            } else if (!isUndefValue(queryPattern.first[element].get()) ||
+                       !isUndefValue(queryPattern.second[element].get())) {
                 // if we have a new equality constraint and previous inequality constraints
-                if (!isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get()) &&
+                if (!isUndefValue(lowerExpression.get()) && !isUndefValue(upperExpression.get()) &&
                         *lowerExpression == *upperExpression) {
                     // if Tuple[level, element] >= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> >= <expr1> to the outer loop
-                    if (!isRamUndefValue(queryPattern.first[element].get())) {
-                        addCondition(mk<RamConstraint>(getGreaterEqualConstraint(type),
+                    if (!isUndefValue(queryPattern.first[element].get())) {
+                        addCondition(mk<Constraint>(getGreaterEqualConstraint(type),
                                 souffle::clone(lowerExpression), std::move(queryPattern.first[element])));
                     }
                     // if Tuple[level, element] <= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> <= <expr1> to the outer loop
-                    if (!isRamUndefValue(queryPattern.second[element].get())) {
-                        addCondition(mk<RamConstraint>(getLessEqualConstraint(type),
+                    if (!isUndefValue(queryPattern.second[element].get())) {
+                        addCondition(mk<Constraint>(getLessEqualConstraint(type),
                                 souffle::clone(upperExpression), std::move(queryPattern.second[element])));
                     }
                     // finally replace bounds with equality constraint
                     queryPattern.first[element] = std::move(lowerExpression);
                     queryPattern.second[element] = std::move(upperExpression);
                     // if we have a new lower bound
-                } else if (!isRamUndefValue(lowerExpression.get())) {
+                } else if (!isUndefValue(lowerExpression.get())) {
                     // we want the tightest lower bound so we take the max
-                    VecOwn<RamExpression> maxArguments;
+                    VecOwn<Expression> maxArguments;
                     maxArguments.push_back(std::move(queryPattern.first[element]));
                     maxArguments.push_back(std::move(lowerExpression));
 
                     queryPattern.first[element] =
-                            mk<RamIntrinsicOperator>(getMaxOp(type), std::move(maxArguments));
+                            mk<IntrinsicOperator>(getMaxOp(type), std::move(maxArguments));
                     // if we have a new upper bound
-                } else if (!isRamUndefValue(upperExpression.get())) {
+                } else if (!isUndefValue(upperExpression.get())) {
                     // we want the tightest upper bound so we take the min
-                    VecOwn<RamExpression> minArguments;
+                    VecOwn<Expression> minArguments;
                     minArguments.push_back(std::move(queryPattern.second[element]));
                     minArguments.push_back(std::move(upperExpression));
 
                     queryPattern.second[element] =
-                            mk<RamIntrinsicOperator>(getMinOp(type), std::move(minArguments));
+                            mk<IntrinsicOperator>(getMinOp(type), std::move(minArguments));
                 }
             }
         } else {
@@ -270,61 +269,61 @@ Own<RamCondition> MakeIndexTransformer::constructPattern(const std::vector<std::
 
     // Avoid null-pointers for condition and query pattern
     if (condition == nullptr) {
-        condition = mk<RamTrue>();
+        condition = mk<True>();
     }
     return condition;
 }
 
-Own<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAggregate* agg) {
-    if (dynamic_cast<const RamTrue*>(&agg->getCondition()) == nullptr) {
-        const RamRelation& rel = agg->getRelation();
+Own<Operation> MakeIndexTransformer::rewriteAggregate(const Aggregate* agg) {
+    if (dynamic_cast<const True*>(&agg->getCondition()) == nullptr) {
+        const Relation& rel = agg->getRelation();
         int identifier = agg->getTupleId();
         RamPattern queryPattern;
         for (unsigned int i = 0; i < rel.getArity(); ++i) {
-            queryPattern.first.push_back(mk<RamUndefValue>());
-            queryPattern.second.push_back(mk<RamUndefValue>());
+            queryPattern.first.push_back(mk<UndefValue>());
+            queryPattern.second.push_back(mk<UndefValue>());
         }
 
         bool indexable = false;
-        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
+        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
                 toConjunctionList(&agg->getCondition()), identifier);
         if (indexable) {
-            return mk<RamIndexAggregate>(souffle::clone(&agg->getOperation()), agg->getFunction(),
-                    mk<RamRelationReference>(&rel), souffle::clone(&agg->getExpression()),
-                    std::move(condition), std::move(queryPattern), agg->getTupleId());
+            return mk<IndexAggregate>(souffle::clone(&agg->getOperation()), agg->getFunction(),
+                    mk<RelationReference>(&rel), souffle::clone(&agg->getExpression()), std::move(condition),
+                    std::move(queryPattern), agg->getTupleId());
         }
     }
     return nullptr;
 }
 
-Own<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* scan) {
-    if (const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
-        const RamRelation& rel = scan->getRelation();
+Own<Operation> MakeIndexTransformer::rewriteScan(const Scan* scan) {
+    if (const auto* filter = dynamic_cast<const Filter*>(&scan->getOperation())) {
+        const Relation& rel = scan->getRelation();
         const int identifier = scan->getTupleId();
         RamPattern queryPattern;
         for (unsigned int i = 0; i < rel.getArity(); ++i) {
-            queryPattern.first.push_back(mk<RamUndefValue>());
-            queryPattern.second.push_back(mk<RamUndefValue>());
+            queryPattern.first.push_back(mk<UndefValue>());
+            queryPattern.second.push_back(mk<UndefValue>());
         }
 
         bool indexable = false;
-        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
+        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
                 toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
-            Own<RamOperation> op = souffle::clone(&filter->getOperation());
-            if (!isRamTrue(condition.get())) {
-                op = mk<RamFilter>(std::move(condition), std::move(op));
+            Own<Operation> op = souffle::clone(&filter->getOperation());
+            if (!isTrue(condition.get())) {
+                op = mk<Filter>(std::move(condition), std::move(op));
             }
-            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier, std::move(queryPattern),
+            return mk<IndexScan>(mk<RelationReference>(&rel), identifier, std::move(queryPattern),
                     std::move(op), scan->getProfileText());
         }
     }
     return nullptr;
 }
 
-Own<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIndexScan* iscan) {
-    if (const auto* filter = dynamic_cast<const RamFilter*>(&iscan->getOperation())) {
-        const RamRelation& rel = iscan->getRelation();
+Own<Operation> MakeIndexTransformer::rewriteIndexScan(const IndexScan* iscan) {
+    if (const auto* filter = dynamic_cast<const Filter*>(&iscan->getOperation())) {
+        const Relation& rel = iscan->getRelation();
         const int identifier = iscan->getTupleId();
 
         RamPattern strengthenedPattern;
@@ -333,41 +332,41 @@ Own<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIndexScan* isc
 
         bool indexable = false;
         // strengthen the pattern with construct pattern
-        Own<RamCondition> condition = constructPattern(rel.getAttributeTypes(), strengthenedPattern,
-                indexable, toConjunctionList(&filter->getCondition()), identifier);
+        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), strengthenedPattern, indexable,
+                toConjunctionList(&filter->getCondition()), identifier);
 
         if (indexable) {
             // Merge Index Pattern here
 
-            Own<RamOperation> op = souffle::clone(&filter->getOperation());
-            if (!isRamTrue(condition.get())) {
-                op = mk<RamFilter>(std::move(condition), std::move(op));
+            Own<Operation> op = souffle::clone(&filter->getOperation());
+            if (!isTrue(condition.get())) {
+                op = mk<Filter>(std::move(condition), std::move(op));
             }
-            return mk<RamIndexScan>(mk<RamRelationReference>(&rel), identifier,
-                    std::move(strengthenedPattern), std::move(op), iscan->getProfileText());
+            return mk<IndexScan>(mk<RelationReference>(&rel), identifier, std::move(strengthenedPattern),
+                    std::move(op), iscan->getProfileText());
         }
     }
     return nullptr;
 }
 
-bool MakeIndexTransformer::makeIndex(RamProgram& program) {
+bool MakeIndexTransformer::makeIndex(Program& program) {
     bool changed = false;
-    visitDepthFirst(program, [&](const RamQuery& query) {
-        std::function<Own<RamNode>(Own<RamNode>)> scanRewriter = [&](Own<RamNode> node) -> Own<RamNode> {
-            if (const RamScan* scan = dynamic_cast<RamScan*>(node.get())) {
+    visitDepthFirst(program, [&](const Query& query) {
+        std::function<Own<Node>(Own<Node>)> scanRewriter = [&](Own<Node> node) -> Own<Node> {
+            if (const Scan* scan = dynamic_cast<Scan*>(node.get())) {
                 if (scan->getRelation().getRepresentation() != RelationRepresentation::INFO) {
-                    if (Own<RamOperation> op = rewriteScan(scan)) {
+                    if (Own<Operation> op = rewriteScan(scan)) {
                         changed = true;
                         node = std::move(op);
                     }
                 }
-            } else if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
-                if (Own<RamOperation> op = rewriteIndexScan(iscan)) {
+            } else if (const IndexScan* iscan = dynamic_cast<IndexScan*>(node.get())) {
+                if (Own<Operation> op = rewriteIndexScan(iscan)) {
                     changed = true;
                     node = std::move(op);
                 }
-            } else if (const RamAggregate* agg = dynamic_cast<RamAggregate*>(node.get())) {
-                if (Own<RamOperation> op = rewriteAggregate(agg)) {
+            } else if (const Aggregate* agg = dynamic_cast<Aggregate*>(node.get())) {
+                if (Own<Operation> op = rewriteAggregate(agg)) {
                     changed = true;
                     node = std::move(op);
                 }
@@ -375,9 +374,9 @@ bool MakeIndexTransformer::makeIndex(RamProgram& program) {
             node->apply(makeLambdaRamMapper(scanRewriter));
             return node;
         };
-        const_cast<RamQuery*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
+        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
     });
     return changed;
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::ram::transform

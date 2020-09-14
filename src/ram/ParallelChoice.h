@@ -30,10 +30,10 @@
 #include <string>
 #include <utility>
 
-namespace souffle {
+namespace souffle::ram {
 
 /**
- * @class ParallelRamChoice
+ * @class ParallelChoice
  * @brief Find a tuple in a relation such that a given condition holds in parallel.
  *
  * For example:
@@ -44,14 +44,14 @@ namespace souffle {
  *      ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamParallelChoice : public RamChoice, public RamAbstractParallel {
+class ParallelChoice : public Choice, public AbstractParallel {
 public:
-    RamParallelChoice(Own<RamRelationReference> rel, size_t ident, Own<RamCondition> cond,
-            Own<RamOperation> nested, std::string profileText = "")
-            : RamChoice(std::move(rel), ident, std::move(cond), std::move(nested), profileText) {}
+    ParallelChoice(Own<RelationReference> rel, size_t ident, Own<Condition> cond, Own<Operation> nested,
+            std::string profileText = "")
+            : Choice(std::move(rel), ident, std::move(cond), std::move(nested), profileText) {}
 
-    RamParallelChoice* clone() const override {
-        return new RamParallelChoice(souffle::clone(relationRef), getTupleId(), souffle::clone(condition),
+    ParallelChoice* clone() const override {
+        return new ParallelChoice(souffle::clone(relationRef), getTupleId(), souffle::clone(condition),
                 souffle::clone(&getOperation()), getProfileText());
     }
 
@@ -62,8 +62,8 @@ protected:
         os << " IN " << getRelation().getName();
         os << " WHERE " << getCondition();
         os << std::endl;
-        RamRelationOperation::print(os, tabpos + 1);
+        RelationOperation::print(os, tabpos + 1);
     }
 };
 
-}  // namespace souffle
+}  // namespace souffle::ram

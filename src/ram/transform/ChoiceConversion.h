@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 
-namespace souffle {
+namespace souffle::ram::transform {
 
 /**
  * @class ChoiceConversionTransformer
@@ -58,7 +58,7 @@ namespace souffle {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
  */
-class ChoiceConversionTransformer : public RamTransformer {
+class ChoiceConversionTransformer : public Transformer {
 public:
     std::string getName() const override {
         return "ChoiceConversionTransformer";
@@ -72,7 +72,7 @@ public:
      * Rewrites Scan/If pair to a Choice operation if value
      * is not used in a consecutive RAM operation
      */
-    Own<RamOperation> rewriteScan(const RamScan* scan);
+    Own<Operation> rewriteScan(const Scan* scan);
 
     /**
      * @brief Rewrite IndexScan operations
@@ -82,7 +82,7 @@ public:
      * Rewrites IndexScan/If pair to an IndexChoice operation if value
      * is not used in a consecutive RAM operation
      */
-    Own<RamOperation> rewriteIndexScan(const RamIndexScan* indexScan);
+    Own<Operation> rewriteIndexScan(const IndexScan* indexScan);
 
     /**
      * @brief Apply choice-conversion to the whole program
@@ -91,14 +91,14 @@ public:
      *
      * Search for queries and rewrite their Scan/IndexScan and If operations if possible.
      */
-    bool convertScans(RamProgram& program);
+    bool convertScans(Program& program);
 
 protected:
-    RamLevelAnalysis* rla{nullptr};
-    bool transform(RamTranslationUnit& translationUnit) override {
-        rla = translationUnit.getAnalysis<RamLevelAnalysis>();
+    analysis::LevelAnalysis* rla{nullptr};
+    bool transform(TranslationUnit& translationUnit) override {
+        rla = translationUnit.getAnalysis<analysis::LevelAnalysis>();
         return convertScans(translationUnit.getProgram());
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ram::transform

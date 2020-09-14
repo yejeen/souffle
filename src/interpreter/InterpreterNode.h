@@ -24,6 +24,7 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -34,7 +35,10 @@
 namespace souffle {
 class InterpreterViewContext;
 class InterpreterRelation;
-class RamNode;
+
+namespace ram {
+class Node;
+}
 
 enum InterpreterNodeType {
     I_Constant,
@@ -90,7 +94,7 @@ enum InterpreterNodeType {
 
 /**
  * @class InterpreterNode
- * @brief This is a shadow node for a RamNode that is enriched for
+ * @brief This is a shadow node for a ram::Node that is enriched for
  *        with local information so that the interpreter is executing
  *        quickly.
  */
@@ -99,7 +103,7 @@ class InterpreterNode {
 public:
     using RelationHandle = Own<InterpreterRelation>;
 
-    InterpreterNode(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle = nullptr)
+    InterpreterNode(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle = nullptr)
             : type(ty), shadow(sdw), relHandle(relHandle) {}
     virtual ~InterpreterNode() = default;
 
@@ -109,7 +113,7 @@ public:
     }
 
     /** @brief get shadow node, i.e., RAM node */
-    inline const RamNode* getShadow() const {
+    inline const ram::Node* getShadow() const {
         return shadow;
     }
 
@@ -121,7 +125,7 @@ public:
 
 protected:
     enum InterpreterNodeType type;
-    const RamNode* shadow;
+    const ram::Node* shadow;
     RelationHandle* const relHandle;
 };
 
@@ -133,7 +137,7 @@ class InterpreterCompoundNode : public InterpreterNode {
     using NodePtrVec = VecOwn<InterpreterNode>;
 
 public:
-    InterpreterCompoundNode(enum InterpreterNodeType ty, const RamNode* sdw, NodePtrVec children = {},
+    InterpreterCompoundNode(enum InterpreterNodeType ty, const ram::Node* sdw, NodePtrVec children = {},
             RelationHandle* relHandle = nullptr)
             : InterpreterNode(ty, sdw, relHandle), children(std::move(children)) {}
 
@@ -157,7 +161,7 @@ protected:
  */
 class InterpreterUnaryNode : public InterpreterNode {
 public:
-    InterpreterUnaryNode(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> child,
+    InterpreterUnaryNode(enum InterpreterNodeType ty, const ram::Node* sdw, Own<InterpreterNode> child,
             RelationHandle* relHandle = nullptr)
             : InterpreterNode(ty, sdw, relHandle), child(std::move(child)) {}
 
@@ -175,7 +179,7 @@ protected:
  */
 class InterpreterBinaryNode : public InterpreterNode {
 public:
-    InterpreterBinaryNode(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> lhs,
+    InterpreterBinaryNode(enum InterpreterNodeType ty, const ram::Node* sdw, Own<InterpreterNode> lhs,
             Own<InterpreterNode> rhs, RelationHandle* relHandle = nullptr)
             : InterpreterNode(ty, sdw, relHandle), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
 
@@ -438,7 +442,7 @@ class InterpreterExistenceCheck : public InterpreterNode,
                                   public InterpreterSuperOperation,
                                   public InterpreterViewOperation {
 public:
-    InterpreterExistenceCheck(enum InterpreterNodeType ty, const RamNode* sdw, bool totalSearch,
+    InterpreterExistenceCheck(enum InterpreterNodeType ty, const ram::Node* sdw, bool totalSearch,
             size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterNode(ty, sdw), InterpreterSuperOperation(std::move(superInst)),
               InterpreterViewOperation(viewId), totalSearch(totalSearch) {}
@@ -458,7 +462,7 @@ class InterpreterProvenanceExistenceCheck : public InterpreterUnaryNode,
                                             public InterpreterSuperOperation,
                                             public InterpreterViewOperation {
 public:
-    InterpreterProvenanceExistenceCheck(enum InterpreterNodeType ty, const RamNode* sdw,
+    InterpreterProvenanceExistenceCheck(enum InterpreterNodeType ty, const ram::Node* sdw,
             Own<InterpreterNode> child, size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterUnaryNode(ty, sdw, std::move(child)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
@@ -483,7 +487,7 @@ class InterpreterTupleOperation : public InterpreterUnaryNode {
  */
 class InterpreterScan : public InterpreterNode, public InterpreterNestedOperation {
 public:
-    InterpreterScan(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterScan(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterNestedOperation(std::move(nested)) {}
 };
@@ -502,7 +506,7 @@ class InterpreterIndexScan : public InterpreterScan,
                              public InterpreterSuperOperation,
                              public InterpreterViewOperation {
 public:
-    InterpreterIndexScan(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterIndexScan(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> nested, size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterScan(ty, sdw, relHandle, std::move(nested)),
               InterpreterSuperOperation(std::move(superInst)), InterpreterViewOperation(viewId) {}
@@ -523,7 +527,7 @@ class InterpreterChoice : public InterpreterNode,
                           public InterpreterConditionalOperation,
                           public InterpreterNestedOperation {
 public:
-    InterpreterChoice(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterChoice(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> cond, Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
@@ -543,7 +547,7 @@ class InterpreterIndexChoice : public InterpreterChoice,
                                public InterpreterSuperOperation,
                                public InterpreterViewOperation {
 public:
-    InterpreterIndexChoice(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterIndexChoice(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> cond, Own<InterpreterNode> nested, size_t viewId,
             InterpreterSuperInstruction superInst)
             : InterpreterChoice(ty, sdw, relHandle, std::move(cond), std::move(nested)),
@@ -562,7 +566,7 @@ class InterpreterParallelIndexChoice : public InterpreterIndexChoice, public Int
  */
 class InterpreterUnpackRecord : public InterpreterNode, public InterpreterNestedOperation {
 public:
-    InterpreterUnpackRecord(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> expr,
+    InterpreterUnpackRecord(enum InterpreterNodeType ty, const ram::Node* sdw, Own<InterpreterNode> expr,
             Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw), InterpreterNestedOperation(std::move(nested)), expr(std::move(expr)) {
     }
@@ -582,7 +586,7 @@ class InterpreterAggregate : public InterpreterNode,
                              public InterpreterConditionalOperation,
                              public InterpreterNestedOperation {
 public:
-    InterpreterAggregate(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterAggregate(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> expr, Own<InterpreterNode> filter, Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, relHandle), InterpreterConditionalOperation(std::move(filter)),
               InterpreterNestedOperation(std::move(nested)), expr(std::move(expr)) {}
@@ -609,7 +613,7 @@ class InterpreterIndexAggregate : public InterpreterAggregate,
                                   public InterpreterSuperOperation,
                                   public InterpreterViewOperation {
 public:
-    InterpreterIndexAggregate(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterIndexAggregate(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             Own<InterpreterNode> expr, Own<InterpreterNode> filter, Own<InterpreterNode> nested,
             size_t viewId, InterpreterSuperInstruction superInst)
             : InterpreterAggregate(ty, sdw, relHandle, std::move(expr), std::move(filter), std::move(nested)),
@@ -631,7 +635,7 @@ class InterpreterBreak : public InterpreterNode,
                          public InterpreterConditionalOperation,
                          public InterpreterNestedOperation {
 public:
-    InterpreterBreak(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> cond,
+    InterpreterBreak(enum InterpreterNodeType ty, const ram::Node* sdw, Own<InterpreterNode> cond,
             Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, nullptr), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
@@ -644,7 +648,7 @@ class InterpreterFilter : public InterpreterNode,
                           public InterpreterConditionalOperation,
                           public InterpreterNestedOperation {
 public:
-    InterpreterFilter(enum InterpreterNodeType ty, const RamNode* sdw, Own<InterpreterNode> cond,
+    InterpreterFilter(enum InterpreterNodeType ty, const ram::Node* sdw, Own<InterpreterNode> cond,
             Own<InterpreterNode> nested)
             : InterpreterNode(ty, sdw, nullptr), InterpreterConditionalOperation(std::move(cond)),
               InterpreterNestedOperation(std::move(nested)) {}
@@ -655,7 +659,7 @@ public:
  */
 class InterpreterProject : public InterpreterNode, public InterpreterSuperOperation {
 public:
-    InterpreterProject(enum InterpreterNodeType ty, const RamNode* sdw, RelationHandle* relHandle,
+    InterpreterProject(enum InterpreterNodeType ty, const ram::Node* sdw, RelationHandle* relHandle,
             InterpreterSuperInstruction superInst)
             : InterpreterNode(ty, sdw, relHandle), InterpreterSuperOperation(std::move(superInst)) {}
 };
@@ -728,7 +732,7 @@ class InterpreterClear : public InterpreterNode {
  */
 class InterpreterCall : public InterpreterNode {
 public:
-    InterpreterCall(enum InterpreterNodeType ty, const RamNode* sdw, size_t subroutineId)
+    InterpreterCall(enum InterpreterNodeType ty, const ram::Node* sdw, size_t subroutineId)
             : InterpreterNode(ty, sdw), subroutineId(subroutineId) {}
 
     size_t getSubroutineId() const {
@@ -765,7 +769,7 @@ class InterpreterQuery : public InterpreterUnaryNode, public InterpreterAbstract
  */
 class InterpreterExtend : public InterpreterNode, public InterpreterBinRelOperation {
 public:
-    InterpreterExtend(enum InterpreterNodeType ty, const RamNode* sdw, size_t src, size_t target)
+    InterpreterExtend(enum InterpreterNodeType ty, const ram::Node* sdw, size_t src, size_t target)
             : InterpreterNode(ty, sdw), InterpreterBinRelOperation(src, target) {}
 };
 
@@ -774,7 +778,7 @@ public:
  */
 class InterpreterSwap : public InterpreterNode, public InterpreterBinRelOperation {
 public:
-    InterpreterSwap(enum InterpreterNodeType ty, const RamNode* sdw, size_t src, size_t target)
+    InterpreterSwap(enum InterpreterNodeType ty, const ram::Node* sdw, size_t src, size_t target)
             : InterpreterNode(ty, sdw), InterpreterBinRelOperation(src, target) {}
 };
 

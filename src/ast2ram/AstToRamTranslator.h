@@ -68,7 +68,7 @@ public:
     AstToRamTranslator() = default;
 
     /** translates AST to translation unit  */
-    Own<RamTranslationUnit> translateUnit(ast::TranslationUnit& tu);
+    Own<ram::TranslationUnit> translateUnit(ast::TranslationUnit& tu);
 
 private:
     /** AST program */
@@ -81,13 +81,13 @@ private:
     const ast::analysis::IOTypeAnalysis* ioType = nullptr;
 
     /** RAM program */
-    Own<RamStatement> ramMain;
+    Own<ram::Statement> ramMain;
 
     /** Subroutines */
-    std::map<std::string, Own<RamStatement>> ramSubs;
+    std::map<std::string, Own<ram::Statement>> ramSubs;
 
     /** RAM relations */
-    std::map<std::string, Own<RamRelation>> ramRels;
+    std::map<std::string, Own<ram::Relation>> ramRels;
 
     /** Symbol Table **/
     SymbolTable symbolTable;
@@ -101,11 +101,11 @@ private:
     struct Location {
         int identifier{};
         int element{};
-        Own<RamRelationReference> relation{nullptr};
+        Own<ram::RelationReference> relation{nullptr};
 
         Location() = default;
 
-        Location(int ident, int elem, Own<RamRelationReference> rel = nullptr)
+        Location(int ident, int elem, Own<ram::RelationReference> rel = nullptr)
                 : identifier(ident), element(elem), relation(std::move(rel)) {}
 
         Location(const Location& l) : identifier(l.identifier), element(l.element) {
@@ -187,7 +187,7 @@ private:
         }
 
         void addVarReference(
-                const ast::Variable& var, int ident, int pos, Own<RamRelationReference> rel = nullptr) {
+                const ast::Variable& var, int ident, int pos, Own<ram::RelationReference> rel = nullptr) {
             addVarReference(var, Location({ident, pos, std::move(rel)}));
         }
 
@@ -214,7 +214,7 @@ private:
         }
 
         void setRecordDefinition(
-                const ast::RecordInit& init, int ident, int pos, Own<RamRelationReference> rel = nullptr) {
+                const ast::RecordInit& init, int ident, int pos, Own<ram::RelationReference> rel = nullptr) {
             setRecordDefinition(init, Location({ident, pos, std::move(rel)}));
         }
 
@@ -281,7 +281,7 @@ private:
     };
 
     /** create a RAM element access node */
-    static Own<RamTupleElement> makeRamTupleElement(const Location& loc);
+    static Own<ram::TupleElement> makeRamTupleElement(const Location& loc);
 
     /** determine the auxiliary for relations */
     size_t getEvaluationArity(const ast::Atom* atom) const;
@@ -308,26 +308,26 @@ private:
     std::vector<std::map<std::string, std::string>> getOutputDirectives(const ast::Relation* rel);
 
     /** create a reference to a RAM relation */
-    Own<RamRelationReference> createRelationReference(const std::string name);
+    Own<ram::RelationReference> createRelationReference(const std::string name);
 
     /** a utility to translate atoms to relations */
-    Own<RamRelationReference> translateRelation(const ast::Atom* atom);
+    Own<ram::RelationReference> translateRelation(const ast::Atom* atom);
 
     /** translate an AST relation to a RAM relation */
-    Own<RamRelationReference> translateRelation(
+    Own<ram::RelationReference> translateRelation(
             const ast::Relation* rel, const std::string relationNamePrefix = "");
 
     /** translate a temporary `delta` relation to a RAM relation for semi-naive evaluation */
-    Own<RamRelationReference> translateDeltaRelation(const ast::Relation* rel);
+    Own<ram::RelationReference> translateDeltaRelation(const ast::Relation* rel);
 
     /** translate a temporary `new` relation to a RAM relation for semi-naive evaluation */
-    Own<RamRelationReference> translateNewRelation(const ast::Relation* rel);
+    Own<ram::RelationReference> translateNewRelation(const ast::Relation* rel);
 
     /** translate an AST argument to a RAM value */
-    Own<RamExpression> translateValue(const ast::Argument* arg, const ValueIndex& index);
+    Own<ram::Expression> translateValue(const ast::Argument* arg, const ValueIndex& index);
 
     /** translate an AST constraint to a RAM condition */
-    Own<RamCondition> translateConstraint(const ast::Literal* arg, const ValueIndex& index);
+    Own<ram::Condition> translateConstraint(const ast::Literal* arg, const ValueIndex& index);
 
     /** translate AST clause to RAM code */
     class ClauseTranslator {
@@ -345,7 +345,7 @@ private:
                 const ast::Node* curNode, std::map<const ast::Node*, Own<arg_list>>& nodeArgs) const;
 
         void indexValues(const ast::Node* curNode, std::map<const ast::Node*, Own<arg_list>>& nodeArgs,
-                std::map<const arg_list*, int>& arg_level, RamRelationReference* relation);
+                std::map<const arg_list*, int>& arg_level, ram::RelationReference* relation);
 
         void createValueIndex(const ast::Clause& clause);
 
@@ -358,12 +358,12 @@ private:
         // current nesting level
         int level = 0;
 
-        virtual Own<RamOperation> createOperation(const ast::Clause& clause);
-        virtual Own<RamCondition> createCondition(const ast::Clause& originalClause);
+        virtual Own<ram::Operation> createOperation(const ast::Clause& clause);
+        virtual Own<ram::Condition> createCondition(const ast::Clause& originalClause);
 
         /** translate RAM code for a constant value */
-        Own<RamOperation> filterByConstraints(size_t level, const std::vector<ast::Argument*>& args,
-                Own<RamOperation> op, bool constrainByFunctors = true);
+        Own<ram::Operation> filterByConstraints(size_t level, const std::vector<ast::Argument*>& args,
+                Own<ram::Operation> op, bool constrainByFunctors = true);
 
         const ast::analysis::AuxiliaryArityAnalysis* auxArityAnalysis;
 
@@ -371,14 +371,14 @@ private:
         ClauseTranslator(AstToRamTranslator& translator)
                 : translator(translator), auxArityAnalysis(translator.auxArityAnalysis) {}
 
-        Own<RamStatement> translateClause(
+        Own<ram::Statement> translateClause(
                 const ast::Clause& clause, const ast::Clause& originalClause, const int version = 0);
     };
 
     class ProvenanceClauseTranslator : public ClauseTranslator {
     protected:
-        Own<RamOperation> createOperation(const ast::Clause& clause) override;
-        Own<RamCondition> createCondition(const ast::Clause& originalClause) override;
+        Own<ram::Operation> createOperation(const ast::Clause& clause) override;
+        Own<ram::Condition> createCondition(const ast::Clause& originalClause) override;
 
     public:
         ProvenanceClauseTranslator(AstToRamTranslator& translator) : ClauseTranslator(translator) {}
@@ -412,28 +412,28 @@ private:
     }
 
     /** translate RAM code for a constant value */
-    Own<RamExpression> translateConstant(ast::Constant const& c);
+    Own<ram::Expression> translateConstant(ast::Constant const& c);
 
     /**
      * translate RAM code for the non-recursive clauses of the given relation.
      *
      * @return a corresponding statement or null if there are no non-recursive clauses.
      */
-    Own<RamStatement> translateNonRecursiveRelation(
+    Own<ram::Statement> translateNonRecursiveRelation(
             const ast::Relation& rel, const ast::analysis::RecursiveClausesAnalysis* recursiveClauses);
 
     /** translate RAM code for recursive relations in a strongly-connected component */
-    Own<RamStatement> translateRecursiveRelation(const std::set<const ast::Relation*>& scc,
+    Own<ram::Statement> translateRecursiveRelation(const std::set<const ast::Relation*>& scc,
             const ast::analysis::RecursiveClausesAnalysis* recursiveClauses);
 
     /** translate RAM code for subroutine to get subproofs */
-    Own<RamStatement> makeSubproofSubroutine(const ast::Clause& clause);
+    Own<ram::Statement> makeSubproofSubroutine(const ast::Clause& clause);
 
     /** translate RAM code for subroutine to get subproofs */
-    Own<RamStatement> makeSubproofSubroutineOpt(const ast::Clause& clause);
+    Own<ram::Statement> makeSubproofSubroutineOpt(const ast::Clause& clause);
 
     /** translate RAM code for subroutine to get subproofs for non-existence of a tuple */
-    Own<RamStatement> makeNegationSubproofSubroutine(const ast::Clause& clause);
+    Own<ram::Statement> makeNegationSubproofSubroutine(const ast::Clause& clause);
 
     /** translate AST to RAM Program */
     void translateProgram(const ast::TranslationUnit& translationUnit);

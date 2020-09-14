@@ -30,10 +30,10 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::ram {
 
 /**
- * @class RamEmptinessCheck
+ * @class EmptinessCheck
  * @brief Emptiness check for a relation
  *
  * Evaluates to true if the given relation is the empty set
@@ -43,26 +43,26 @@ namespace souffle {
  * (B = ∅)
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamEmptinessCheck : public RamCondition {
+class EmptinessCheck : public Condition {
 public:
-    RamEmptinessCheck(Own<RamRelationReference> relRef) : relationRef(std::move(relRef)) {
+    EmptinessCheck(Own<RelationReference> relRef) : relationRef(std::move(relRef)) {
         assert(relationRef != nullptr && "Relation reference is a nullptr");
     }
 
     /** @brief Get relation */
-    const RamRelation& getRelation() const {
+    const Relation& getRelation() const {
         return *relationRef->get();
     }
 
-    std::vector<const RamNode*> getChildNodes() const override {
+    std::vector<const Node*> getChildNodes() const override {
         return {relationRef.get()};
     }
 
-    RamEmptinessCheck* clone() const override {
-        return new RamEmptinessCheck(souffle::clone(relationRef));
+    EmptinessCheck* clone() const override {
+        return new EmptinessCheck(souffle::clone(relationRef));
     }
 
-    void apply(const RamNodeMapper& map) override {
+    void apply(const NodeMapper& map) override {
         relationRef = map(std::move(relationRef));
     }
 
@@ -71,13 +71,13 @@ protected:
         os << "(" << getRelation().getName() << " = ∅)";
     }
 
-    bool equal(const RamNode& node) const override {
-        const auto& other = static_cast<const RamEmptinessCheck&>(node);
+    bool equal(const Node& node) const override {
+        const auto& other = static_cast<const EmptinessCheck&>(node);
         return equal_ptr(relationRef, other.relationRef);
     }
 
     /** Relation */
-    Own<RamRelationReference> relationRef;
+    Own<RelationReference> relationRef;
 };
 
-}  // end of namespace souffle
+}  // namespace souffle::ram
