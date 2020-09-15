@@ -19,15 +19,16 @@
 #include <unordered_set>
 #include <vector>
 
-namespace souffle {
+namespace souffle::synthesiser {
 
-class SynthesiserRelation {
+using ram::analysis::MinIndexSelection;
+
+class Relation {
 public:
-    SynthesiserRelation(const ram::Relation& rel, const ram::analysis::MinIndexSelection& indices,
-            const bool isProvenance = false)
+    Relation(const ram::Relation& rel, const MinIndexSelection& indices, const bool isProvenance = false)
             : relation(rel), indices(indices), isProvenance(isProvenance) {}
 
-    virtual ~SynthesiserRelation() = default;
+    virtual ~Relation() = default;
 
     /** Compute the final list of indices to be used */
     virtual void computeIndices() = 0;
@@ -45,7 +46,7 @@ public:
     /** Get list of indices used for relation,
      * guaranteed that original indices in analysis::MinIndexSelection
      * come before any generated indices */
-    ram::analysis::MinIndexSelection::OrderCollection getIndices() const {
+    MinIndexSelection::OrderCollection getIndices() const {
         return computedIndices;
     }
 
@@ -54,7 +55,7 @@ public:
     }
 
     /** Get stored analysis::MinIndexSelection */
-    const ram::analysis::MinIndexSelection& getMinIndexSelection() const {
+    const MinIndexSelection& getMinIndexSelection() const {
         return indices;
     }
 
@@ -74,21 +75,21 @@ public:
     virtual void generateTypeStruct(std::ostream& out) = 0;
 
     /** Factory method to generate a SynthesiserRelation */
-    static Own<SynthesiserRelation> getSynthesiserRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance);
+    static Own<Relation> getSynthesiserRelation(
+            const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance);
 
 protected:
     /** Ram relation referred to by this */
     const ram::Relation& relation;
 
     /** Indices used for this relation */
-    const ram::analysis::MinIndexSelection& indices;
+    const MinIndexSelection& indices;
 
     /** The data structure used for the relation */
     std::string dataStructure;
 
     /** The final list of indices used */
-    ram::analysis::MinIndexSelection::OrderCollection computedIndices;
+    MinIndexSelection::OrderCollection computedIndices;
 
     /** The list of indices added for provenance computation */
     std::set<int> provenanceIndexNumbers;
@@ -100,69 +101,63 @@ protected:
     const bool isProvenance;
 };
 
-class SynthesiserNullaryRelation : public SynthesiserRelation {
+class NullaryRelation : public Relation {
 public:
-    SynthesiserNullaryRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    NullaryRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserInfoRelation : public SynthesiserRelation {
+class InfoRelation : public Relation {
 public:
-    SynthesiserInfoRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    InfoRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserDirectRelation : public SynthesiserRelation {
+class DirectRelation : public Relation {
 public:
-    SynthesiserDirectRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    DirectRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserIndirectRelation : public SynthesiserRelation {
+class IndirectRelation : public Relation {
 public:
-    SynthesiserIndirectRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    IndirectRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserBrieRelation : public SynthesiserRelation {
+class BrieRelation : public Relation {
 public:
-    SynthesiserBrieRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    BrieRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserEqrelRelation : public SynthesiserRelation {
+class EqrelRelation : public Relation {
 public:
-    SynthesiserEqrelRelation(
-            const ram::Relation& ramRel, const ram::analysis::MinIndexSelection& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
+    EqrelRelation(const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance)
+            : Relation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 };
-}  // end of namespace souffle
+}  // namespace souffle::synthesiser
