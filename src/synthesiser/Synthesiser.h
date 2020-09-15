@@ -22,7 +22,7 @@
 #include "ram/TranslationUnit.h"
 #include "souffle/RecordTable.h"
 #include "souffle/utility/ContainerUtil.h"
-#include "synthesiser/SynthesiserRelation.h"
+#include "synthesiser/Relation.h"
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -30,7 +30,7 @@
 #include <set>
 #include <string>
 
-namespace souffle {
+namespace souffle::synthesiser {
 
 /**
  * A RAM synthesiser: synthesises a C++ program from a RAM program.
@@ -69,7 +69,7 @@ protected:
     const std::string getOpContextName(const ram::Relation& rel);
 
     /** Get relation struct definition */
-    void generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType);
+    void generateRelationTypeStruct(std::ostream& out, Own<Relation> relationType);
 
     /** Get referenced relations */
     std::set<const ram::Relation*> getReferencedRelations(const ram::Operation& op);
@@ -95,4 +95,4 @@ public:
     /** Generate code */
     void generateCode(std::ostream& os, const std::string& id, bool& withSharedLibrary);
 };
-}  // end of namespace souffle
+}  // namespace souffle::synthesiser

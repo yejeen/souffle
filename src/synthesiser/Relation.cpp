@@ -6,7 +6,7 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-#include "synthesiser/SynthesiserRelation.h"
+#include "synthesiser/Relation.h"
 #include "RelationTag.h"
 #include "ram/analysis/Index.h"
 #include "souffle/utility/StreamUtil.h"
@@ -18,11 +18,13 @@
 #include <sstream>
 #include <vector>
 
-namespace souffle {
+namespace souffle::synthesiser {
 
 using namespace ram;
+using ram::analysis::MinIndexSelection;
+using ram::analysis::SearchSignature;
 
-std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::string>& attributeTypes,
+std::string Relation::getTypeAttributeString(const std::vector<std::string>& attributeTypes,
         const std::unordered_set<uint32_t>& attributesUsed) const {
     std::stringstream type;
     for (size_t i = 0; i < attributeTypes.size(); ++i) {
@@ -38,29 +40,29 @@ std::string SynthesiserRelation::getTypeAttributeString(const std::vector<std::s
     return type.str();
 }
 
-Own<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
-        const Relation& ramRel, const analysis::MinIndexSelection& indexSet, bool isProvenance) {
-    SynthesiserRelation* rel;
+Own<Relation> Relation::getSynthesiserRelation(
+        const ram::Relation& ramRel, const MinIndexSelection& indexSet, bool isProvenance) {
+    Relation* rel;
 
     // Handle the qualifier in souffle code
     if (isProvenance) {
-        rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
+        rel = new DirectRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.isNullary()) {
-        rel = new SynthesiserNullaryRelation(ramRel, indexSet, isProvenance);
+        rel = new NullaryRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
+        rel = new DirectRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
-        rel = new SynthesiserBrieRelation(ramRel, indexSet, isProvenance);
+        rel = new BrieRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
-        rel = new SynthesiserEqrelRelation(ramRel, indexSet, isProvenance);
+        rel = new EqrelRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::INFO) {
-        rel = new SynthesiserInfoRelation(ramRel, indexSet, isProvenance);
+        rel = new InfoRelation(ramRel, indexSet, isProvenance);
     } else {
         // Handle the data structure command line flag
         if (ramRel.getArity() > 6) {
-            rel = new SynthesiserIndirectRelation(ramRel, indexSet, isProvenance);
+            rel = new IndirectRelation(ramRel, indexSet, isProvenance);
         } else {
-            rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
+            rel = new DirectRelation(ramRel, indexSet, isProvenance);
         }
     }
 
@@ -68,51 +70,51 @@ Own<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation(
     // generate index set
     rel->computeIndices();
 
-    return Own<SynthesiserRelation>(rel);
+    return Own<Relation>(rel);
 }
 
 // -------- Info Relation --------
 
 /** Generate index set for a info relation, which should be empty */
-void SynthesiserInfoRelation::computeIndices() {
+void InfoRelation::computeIndices() {
     computedIndices = {};
 }
 
 /** Generate type name of a info relation */
-std::string SynthesiserInfoRelation::getTypeName() {
+std::string InfoRelation::getTypeName() {
     return "t_info<" + std::to_string(getArity()) + ">";
 }
 
 /** Generate type struct of a info relation, which is empty,
  * the actual implementation is in CompiledSouffle.h */
-void SynthesiserInfoRelation::generateTypeStruct(std::ostream&) {
+void InfoRelation::generateTypeStruct(std::ostream&) {
     return;
 }
 
 // -------- Nullary Relation --------
 
 /** Generate index set for a nullary relation, which should be empty */
-void SynthesiserNullaryRelation::computeIndices() {
+void NullaryRelation::computeIndices() {
     computedIndices = {};
 }
 
 /** Generate type name of a nullary relation */
-std::string SynthesiserNullaryRelation::getTypeName() {
+std::string NullaryRelation::getTypeName() {
     return "t_nullaries";
 }
 
 /** Generate type struct of a nullary relation, which is empty,
  * the actual implementation is in CompiledSouffle.h */
-void SynthesiserNullaryRelation::generateTypeStruct(std::ostream&) {
+void NullaryRelation::generateTypeStruct(std::ostream&) {
     return;
 }
 
 // -------- Direct Indexed B-Tree Relation --------
 
 /** Generate index set for a direct indexed relation */
-void SynthesiserDirectRelation::computeIndices() {
+void DirectRelation::computeIndices() {
     // Generate and set indices
-    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "no full index in relation");
@@ -157,7 +159,7 @@ void SynthesiserDirectRelation::computeIndices() {
 }
 
 /** Generate type name of a direct indexed relation */
-std::string SynthesiserDirectRelation::getTypeName() {
+std::string DirectRelation::getTypeName() {
     // collect all attributes used in the lex-order
     std::unordered_set<uint32_t> attributesUsed;
     for (auto& ind : getIndices()) {
@@ -181,13 +183,13 @@ std::string SynthesiserDirectRelation::getTypeName() {
 }
 
 /** Generate type struct of a direct indexed relation */
-void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
+void DirectRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     size_t auxiliaryArity = relation.getAuxiliaryArity();
     auto types = relation.getAttributeTypes();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -391,14 +393,14 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     out << "}\n";
 
     // empty lowerUpperRange method
-    out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
+    out << "range<iterator> lowerUpperRange_" << SearchSignature(arity)
         << "(const t_tuple& lower, const t_tuple& upper, context& h) const "
            "{\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
     out << "}\n";
 
-    out << "range<iterator> lowerUpperRange_" << analysis::SearchSignature(arity)
+    out << "range<iterator> lowerUpperRange_" << SearchSignature(arity)
         << "(const t_tuple& lower, const t_tuple& upper) const {\n";
 
     out << "return range<iterator>(ind_" << masterIndex << ".begin(),ind_" << masterIndex << ".end());\n";
@@ -505,11 +507,11 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 // -------- Indirect Indexed B-Tree Relation --------
 
 /** Generate index set for a indirect indexed relation */
-void SynthesiserIndirectRelation::computeIndices() {
+void IndirectRelation::computeIndices() {
     assert(!isProvenance && "indirect indexes cannot used for provenance");
 
     // Generate and set indices
-    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "no full index in relation");
@@ -527,7 +529,7 @@ void SynthesiserIndirectRelation::computeIndices() {
 }
 
 /** Generate type name of a indirect indexed relation */
-std::string SynthesiserIndirectRelation::getTypeName() {
+std::string IndirectRelation::getTypeName() {
     // collect all attributes used in the lex-order
     std::unordered_set<uint32_t> attributesUsed;
     for (auto& ind : getIndices()) {
@@ -551,11 +553,11 @@ std::string SynthesiserIndirectRelation::getTypeName() {
 }
 
 /** Generate type struct of a indirect indexed relation */
-void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
+void IndirectRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -823,11 +825,11 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
 // -------- Brie Relation --------
 
 /** Generate index set for a brie relation */
-void SynthesiserBrieRelation::computeIndices() {
+void BrieRelation::computeIndices() {
     assert(!isProvenance && "bries cannot be used with provenance");
 
     // Generate and set indices
-    analysis::MinIndexSelection::OrderCollection inds = indices.getAllOrders();
+    MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
     assert(!inds.empty() && "No full index in relation");
@@ -854,7 +856,7 @@ void SynthesiserBrieRelation::computeIndices() {
 }
 
 /** Generate type name of a brie relation */
-std::string SynthesiserBrieRelation::getTypeName() {
+std::string BrieRelation::getTypeName() {
     // collect all attributes used in the lex-order
     std::unordered_set<uint32_t> attributesUsed;
     for (auto& ind : getIndices()) {
@@ -878,11 +880,11 @@ std::string SynthesiserBrieRelation::getTypeName() {
 }
 
 /** Generate type struct of a brie relation */
-void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
+void BrieRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -1116,7 +1118,7 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
 // -------- Eqrel Relation --------
 
 /** Generate index set for a eqrel relation */
-void SynthesiserEqrelRelation::computeIndices() {
+void EqrelRelation::computeIndices() {
     assert(!isProvenance && "eqrel cannot be used with provenance");
 
     masterIndex = 0;
@@ -1125,15 +1127,15 @@ void SynthesiserEqrelRelation::computeIndices() {
 }
 
 /** Generate type name of a eqrel relation */
-std::string SynthesiserEqrelRelation::getTypeName() {
+std::string EqrelRelation::getTypeName() {
     return "t_eqrel";
 }
 
 /** Generate type struct of a eqrel relation */
-void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
+void EqrelRelation::generateTypeStruct(std::ostream& out) {
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
-    std::map<analysis::MinIndexSelection::LexOrder, int> indexToNumMap;
+    std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
 
     // struct definition
     out << "struct " << getTypeName() << " {\n";
@@ -1242,7 +1244,7 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
     // lowerUpperRange methods, one for each of the 4 possible search patterns
     size_t arity = 2;
     for (int i = 1; i < 4; i++) {
-        analysis::SearchSignature s(arity);
+        SearchSignature s(arity);
         // if the bit is set then set it in the search signature
         for (size_t j = 0; j < arity; j++) {
             if (i & (1 << j)) {
@@ -1330,6 +1332,4 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
     out << "};\n";
 }
 
-// -------- Rbtset Relation --------
-
-}  // end of namespace souffle
+}  // namespace souffle::synthesiser
