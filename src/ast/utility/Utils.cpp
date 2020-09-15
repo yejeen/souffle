@@ -305,7 +305,7 @@ IntrinsicFunctors validOverloads(const analysis::TypeAnalysis& typing, const ast
     auto argTys = map(func.getArguments(), typeAttrs);
 
     auto candidates =
-            filterNot(functorBuiltIn(func.getFunction()), [&](const souffle::IntrinsicFunctor& x) -> bool {
+            filterNot(functorBuiltIn(func.getFunction()), [&](const IntrinsicFunctorInfo& x) -> bool {
                 if (!x.variadic && argTys.size() != x.params.size()) return true;  // arity mismatch?
 
                 for (size_t i = 0; i < argTys.size(); ++i)
@@ -315,7 +315,7 @@ IntrinsicFunctors validOverloads(const analysis::TypeAnalysis& typing, const ast
             });
 
     std::sort(candidates.begin(), candidates.end(),
-            [&](const souffle::IntrinsicFunctor& a, const souffle::IntrinsicFunctor& b) {
+            [&](const IntrinsicFunctorInfo& a, const IntrinsicFunctorInfo& b) {
                 if (a.result != b.result) return a.result < b.result;
                 if (a.variadic != b.variadic) return a.variadic < b.variadic;
                 return std::lexicographical_compare(
