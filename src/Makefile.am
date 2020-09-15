@@ -19,7 +19,6 @@ souffle_sources = \
         GraphUtils.h                                       \
         LogStatement.h                                     \
         RelationTag.h                                      \
-        TypeAttribute.cpp                                  \
         ast/Aggregator.h                                   \
         ast/AlgebraicDataType.h                            \
         ast/Argument.h                                     \
@@ -339,8 +338,8 @@ souffle_sources = \
         reports/ErrorReport.h                              \
         synthesiser/Synthesiser.cpp                        \
         synthesiser/Synthesiser.h                          \
-        synthesiser/SynthesiserRelation.cpp                \
-        synthesiser/SynthesiserRelation.h                  \
+        synthesiser/Relation.cpp                           \
+        synthesiser/Relation.h                             \
         $(souffle_utility_sources)                         \
         $(souffle_profile_sources)
 
