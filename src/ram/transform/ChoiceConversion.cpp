@@ -56,7 +56,7 @@ Own<Operation> ChoiceConversionTransformer::rewriteScan(const Scan* scan) {
         const int identifier = scan->getTupleId();
 
         return mk<Choice>(mk<RelationReference>(&scan->getRelation()), identifier,
-                souffle::clone(&filter->getCondition()), souffle::clone(&scan->getOperation()),
+                souffle::clone(&filter->getCondition()), souffle::clone(&filter->getOperation()),
                 scan->getProfileText());
     }
     return nullptr;
