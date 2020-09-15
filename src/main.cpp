@@ -649,7 +649,7 @@ int main(int argc, char** argv) {
             }
         } else {
             // ------- compiler -------------
-            Own<Synthesiser> synthesiser = mk<Synthesiser>(*ramTranslationUnit);
+            auto synthesiser = mk<synthesiser::Synthesiser>(*ramTranslationUnit);
 
             // Find the base filename for code generation and execution
             std::string baseFilename;

@@ -96,7 +96,7 @@
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/json11.h"
 #include "souffle/utility/tinyformat.h"
-#include "synthesiser/SynthesiserRelation.h"
+#include "synthesiser/Relation.h"
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -112,7 +112,7 @@
 #include <utility>
 #include <vector>
 
-namespace souffle {
+namespace souffle::synthesiser {
 
 using json11::Json;
 using ram::analysis::IndexAnalysis;
@@ -176,17 +176,17 @@ const std::string Synthesiser::convertRamIdent(const std::string& name) {
 }
 
 /** Get relation name */
-const std::string Synthesiser::getRelationName(const Relation& rel) {
+const std::string Synthesiser::getRelationName(const ram::Relation& rel) {
     return "rel_" + convertRamIdent(rel.getName());
 }
 
 /** Get context name */
-const std::string Synthesiser::getOpContextName(const Relation& rel) {
+const std::string Synthesiser::getOpContextName(const ram::Relation& rel) {
     return getRelationName(rel) + "_op_ctxt";
 }
 
 /** Get relation type struct */
-void Synthesiser::generateRelationTypeStruct(std::ostream& out, Own<SynthesiserRelation> relationType) {
+void Synthesiser::generateRelationTypeStruct(std::ostream& out, Own<Relation> relationType) {
     // If this type has been generated already, use the cached version
     if (typeCache.find(relationType->getTypeName()) != typeCache.end()) {
         return;
@@ -198,8 +198,8 @@ void Synthesiser::generateRelationTypeStruct(std::ostream& out, Own<SynthesiserR
 }
 
 /** Get referenced relations */
-std::set<const Relation*> Synthesiser::getReferencedRelations(const Operation& op) {
-    std::set<const Relation*> res;
+std::set<const ram::Relation*> Synthesiser::getReferencedRelations(const Operation& op) {
+    std::set<const ram::Relation*> res;
     visitDepthFirst(op, [&](const Node& node) {
         if (auto scan = dynamic_cast<const RelationOperation*>(&node)) {
             res.insert(&scan->getRelation());
@@ -258,7 +258,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             };
         }
 
-        std::pair<std::stringstream, std::stringstream> getPaddedRangeBounds(const Relation& rel,
+        std::pair<std::stringstream, std::stringstream> getPaddedRangeBounds(const ram::Relation& rel,
                 const std::vector<Expression*>& rangePatternLower,
                 const std::vector<Expression*>& rangePatternUpper) {
             std::stringstream low;
@@ -422,7 +422,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             preambleIssued = false;
 
             // create operation contexts for this operation
-            for (const Relation* rel : synthesiser.getReferencedRelations(query.getOperation())) {
+            for (const ram::Relation* rel : synthesiser.getReferencedRelations(query.getOperation())) {
                 preamble << "CREATE_OP_CONTEXT(" << synthesiser.getOpContextName(*rel);
                 preamble << "," << synthesiser.getRelationName(*rel);
                 preamble << "->createContext());\n";
@@ -2306,7 +2306,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     // synthesise data-structures for relations
     for (auto rel : prog.getRelations()) {
         bool isProvInfo = rel->getRepresentation() == RelationRepresentation::INFO;
-        auto relationType = SynthesiserRelation::getSynthesiserRelation(
+        auto relationType = Relation::getSynthesiserRelation(
                 *rel, idxAnalysis->getIndexes(*rel), Global::config().has("provenance") && !isProvInfo);
 
         generateRelationTypeStruct(os, std::move(relationType));
@@ -2406,7 +2406,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         const std::string& cppName = getRelationName(*rel);
 
         bool isProvInfo = rel->getRepresentation() == RelationRepresentation::INFO;
-        auto relationType = SynthesiserRelation::getSynthesiserRelation(
+        auto relationType = Relation::getSynthesiserRelation(
                 *rel, idxAnalysis->getIndexes(*rel), Global::config().has("provenance") && !isProvInfo);
         const std::string& type = relationType->getTypeName();
 
@@ -2623,7 +2623,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
 
     os << "}\n";  // end of loadAll() method
     // issue dump methods
-    auto dumpRelation = [&](const Relation& ramRelation) {
+    auto dumpRelation = [&](const ram::Relation& ramRelation) {
         const auto& relName = getRelationName(ramRelation);
         const auto& name = ramRelation.getName();
         const auto& attributesTypes = ramRelation.getAttributeTypes();
@@ -2812,4 +2812,4 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     os << "\n#endif\n";
 }
 
-}  // end of namespace souffle
+}  // namespace souffle::synthesiser
