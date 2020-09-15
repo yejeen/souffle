@@ -352,7 +352,7 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
                 return curr.isAll() || any_of(curr, [&](auto&& t) { return getTypeAttribute(t) == ty; });
             };
 
-            overloads = filterNot(std::move(overloads), [&](const souffle::IntrinsicFunctor& x) -> bool {
+            overloads = filterNot(std::move(overloads), [&](const IntrinsicFunctorInfo& x) -> bool {
                 if (!x.variadic && args.size() != x.params.size()) return true;  // arity mismatch?
 
                 for (size_t i = 0; i < args.size(); ++i)
