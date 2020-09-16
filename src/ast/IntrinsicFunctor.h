@@ -61,12 +61,12 @@ public:
     }
 
     /** Get function information */
-    const souffle::IntrinsicFunctor* getFunctionInfo() const {
+    const IntrinsicFunctorInfo* getFunctionInfo() const {
         return info;
     }
 
     /** Set function information */
-    void setFunctionInfo(const souffle::IntrinsicFunctor& info) {
+    void setFunctionInfo(const IntrinsicFunctorInfo& info) {
         this->info = &info;
     }
 
@@ -87,8 +87,8 @@ public:
     }
 
 protected:
-    IntrinsicFunctor(std::string op, const souffle::IntrinsicFunctor* info, VecOwn<Argument> args,
-            SrcLocation loc = {})
+    IntrinsicFunctor(
+            std::string op, const IntrinsicFunctorInfo* info, VecOwn<Argument> args, SrcLocation loc = {})
             : Functor(std::move(args), std::move(loc)), function(std::move(op)), info(info) {
         assert((!info || info->symbol == function) && "functor info must match symbol");
     }
@@ -111,7 +111,7 @@ protected:
     std::string function;
 
     /** Functor information */
-    const souffle::IntrinsicFunctor* info = nullptr;
+    const IntrinsicFunctorInfo* info = nullptr;
 };
 
 }  // namespace souffle::ast

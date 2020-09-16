@@ -1432,7 +1432,7 @@ void TypeChecker::visitTypeCast(const ast::TypeCast& cast) {
     }
 
     // This should be reported elsewhere
-    if (argTypes.isAll() || castTypes.size() != 1) {
+    if (argTypes.isAll() || castTypes.size() != 1 || argTypes.isAll() || argTypes.size() != 1) {
         return;
     }
 
