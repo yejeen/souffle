@@ -39,48 +39,72 @@ protected:
 };
 
 class StrictSips : public SipsMetric {
+public:
+    StrictSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class AllBoundSips : public SipsMetric {
+public:
+    AllBoundSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class NaiveSips : public SipsMetric {
+public:
+    NaiveSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class MaxBoundSips : public SipsMetric {
+public:
+    MaxBoundSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class MaxRatioSips : public SipsMetric {
+public:
+    MaxRatioSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class LeastFreeSips : public SipsMetric {
+public:
+    LeastFreeSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class LeastFreeVarsSips : public SipsMetric {
+public:
+    LeastFreeVarsSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
 class ProfileUseSips : public SipsMetric {
+public:
+    ProfileUseSips() = default;
+
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
