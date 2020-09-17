@@ -50,7 +50,31 @@ protected:
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
-class InputSips : public SipsMetric {
+class NaiveSips : public SipsMetric {
+protected:
+    std::vector<float> evaluateCosts(
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+};
+
+class MaxBoundSips : public SipsMetric {
+protected:
+    std::vector<float> evaluateCosts(
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+};
+
+class MaxRatioSips : public SipsMetric {
+protected:
+    std::vector<float> evaluateCosts(
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+};
+
+class LeastFreeSips : public SipsMetric {
+protected:
+    std::vector<float> evaluateCosts(
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+};
+
+class LeastFreeVarsSips : public SipsMetric {
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;

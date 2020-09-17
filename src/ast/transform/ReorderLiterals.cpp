@@ -40,8 +40,25 @@
 namespace souffle::ast::transform {
 
 std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen) {
-    if (sipsChosen == "strict") return std::make_unique<StrictSips>();
-    return std::make_unique<AllBoundSips>();
+    if (sipsChosen == "strict")
+        return std::make_unique<StrictSips>();
+    else if (sipsChosen == "all-bound")
+        return std::make_unique<AllBoundSips>();
+    else if (sipsChosen == "naive")
+        return std::make_unique<NaiveSips>();
+    else if (sipsChosen == "max-bound")
+        return std::make_unique<MaxBoundSips>();
+    else if (sipsChosen == "max-ratio")
+        return std::make_unique<MaxRatioSips>();
+    else if (sipsChosen == "least-free")
+        return std::make_unique<LeastFreeSips>();
+    else if (sipsChosen == "least-free-vars")
+        return std::make_unique<LeastFreeVarsSips>();
+    else if (sipsChosen == "profile-use")
+        return std::make_unique<ProfileUseSips>();
+
+    // default is all-bound
+    return getSipsFunction("all-bound");
 }
 
 sips_t getOldSipsFunction(const std::string& sipsChosen) {
@@ -191,6 +208,16 @@ sips_t getOldSipsFunction(const std::string& sipsChosen) {
             }
             return cost;
         };
+    } else if (sipsChosen == "ast2ram") {
+        // TEMP: all-bound
+        return getOldSipsFunction("all-bound");
+    } else {
+        // Default is strict - unchanged
+        return getOldSipsFunction("strict");
+    }
+
+    // TODO: add this:
+    /**
     } else if (sipsChosen == "delta") {
         // Goal: prioritise (1) all bound, then (2) deltas, then (3) left-most
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
@@ -216,14 +243,7 @@ sips_t getOldSipsFunction(const std::string& sipsChosen) {
             }
             return cost;
         };
-    } else if (sipsChosen == "ast2ram") {
-        // TEMP: all-bound
-        return getOldSipsFunction("all-bound");
-    } else {
-        // Default is strict - unchanged
-        return getOldSipsFunction("strict");
-    }
-
+    */
     // TODO: add this
     /**
         auto profilerSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
