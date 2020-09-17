@@ -185,6 +185,31 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
             }
             return cost;
         };
+    } else if (sipsChosen == "delta") {
+        // Goal: prioritise (1) all bound, then (2) deltas, then (3) left-most
+        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
+                int arity = atom->getArity();
+                int numBound = bindingStore.numBoundArguments(atom);
+                if (arity == numBound) {
+                    // prioritise all-bound
+                    cost.push_back(0);
+                } else if (isDeltaRelation(atom->getQualifiedName())) {
+                    // then deltas
+                    cost.push_back(1);
+                } else {
+                    // then everything else
+                    cost.push_back(2);
+                }
+            }
+            return cost;
+        };
     } else if (sipsChosen == "ast2ram") {
         // TEMP: all-bound
         return getSipsFunction("all-bound");
