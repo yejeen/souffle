@@ -37,16 +37,17 @@ public:
     std::vector<unsigned int> getReordering(const Clause* clause) const;
 
 protected:
-    virtual std::vector<float> evaluateCosts(
+    virtual std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const = 0;
 };
 
+/** Goal: Always choose the left-most atom. */
 class StrictSips : public SipsMetric {
 public:
     StrictSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -55,7 +56,7 @@ public:
     AllBoundSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -64,7 +65,7 @@ public:
     NaiveSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -73,7 +74,7 @@ public:
     MaxBoundSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -82,7 +83,7 @@ public:
     MaxRatioSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -91,7 +92,7 @@ public:
     LeastFreeSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -100,7 +101,7 @@ public:
     LeastFreeVarsSips() = default;
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
@@ -109,7 +110,7 @@ public:
     ProfileUseSips(const analysis::ProfileUseAnalysis& profileUse) : profileUse(profileUse) {}
 
 protected:
-    std::vector<float> evaluateCosts(
+    std::vector<double> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 
 private:

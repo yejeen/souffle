@@ -27,10 +27,7 @@
 #include "ast/utility/BindingStore.h"
 #include "ast/utility/SipsMetric.h"
 #include "ast/utility/Utils.h"
-#include "ast/utility/Visitor.h"
 #include <algorithm>
-#include <cmath>
-#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -71,154 +68,6 @@ sips_t getOldSipsFunction(const std::string& sipsChosen) {
     //      - a vector of atoms to choose from (nullpointers in the vector will be ignored)
     //      - the set of variables bound so far
     // Returns: the index of the atom maximising the priority metric
-    sips_t getNextAtomSips;
-
-    if (sipsChosen == "strict") {
-        // Goal: choose the leftmost atom always
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& /* bindingStore */) {
-            std::vector<double> cost(atoms.size());
-            for (const auto* atom : atoms) {
-                cost.push_back(atom == nullptr ? std::numeric_limits<double>::max() : 0);
-            }
-            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
-            return cost;
-        };
-    } else if (sipsChosen == "all-bound") {
-        // Goal: prioritise atoms with all arguments bound
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                int arity = atom->getArity();
-                int numBound = bindingStore.numBoundArguments(atom);
-                cost.push_back(arity == numBound ? 0 : 1);
-            }
-            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
-            return cost;
-        };
-    } else if (sipsChosen == "naive") {
-        // Goal: prioritise (1) all bound, then (2) atom with at least one bound argument, then (3) left-most
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                int arity = atom->getArity();
-                int numBound = bindingStore.numBoundArguments(atom);
-                if (arity == numBound) {
-                    cost.push_back(0);
-                } else if (numBound >= 1) {
-                    cost.push_back(1);
-                } else {
-                    cost.push_back(2);
-                }
-            }
-            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
-            return cost;
-        };
-    } else if (sipsChosen == "max-bound") {
-        // Goal: prioritise (1) all-bound, then (2) max number of bound vars, then (3) left-most
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                int arity = atom->getArity();
-                int numBound = bindingStore.numBoundArguments(atom);
-                if (arity == numBound) {
-                    // Always better than anything else
-                    cost.push_back(0);
-                } else if (numBound == 0) {
-                    // Always worse than any number of bound vars
-                    cost.push_back(2);
-                } else {
-                    // Between 0 and 1, decreasing with more num bound
-                    cost.push_back(1 / numBound);
-                }
-            }
-            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
-            return cost;
-        };
-    } else if (sipsChosen == "max-ratio") {
-        // Goal: prioritise max ratio of bound args
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                int arity = atom->getArity();
-                int numBound = bindingStore.numBoundArguments(atom);
-                if (arity == 0) {
-                    // Always better than anything else
-                    cost.push_back(0);
-                } else if (numBound == 0) {
-                    // Always worse than anything else
-                    cost.push_back(2);
-                } else {
-                    // Between 0 and 1, decreasing as the ratio increases
-                    cost.push_back(1 - numBound / arity);
-                }
-            }
-            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
-            return cost;
-        };
-    } else if (sipsChosen == "least-free") {
-        // Goal: choose the atom with the least number of unbound arguments
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                cost.push_back(atom->getArity() - bindingStore.numBoundArguments(atom));
-            }
-            return cost;
-        };
-    } else if (sipsChosen == "least-free-vars") {
-        // Goal: choose the atom with the least amount of unbound variables
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                // use a set to hold all free variables to avoid double-counting
-                std::set<std::string> freeVars;
-                visitDepthFirst(*atom, [&](const Variable& var) {
-                    if (bindingStore.isBound(var.getName())) {
-                        freeVars.insert(var.getName());
-                    }
-                });
-                cost.push_back(freeVars.size());
-            }
-            return cost;
-        };
-    } else if (sipsChosen == "ast2ram") {
-        // TEMP: all-bound
-        return getOldSipsFunction("all-bound");
-    } else {
-        // Default is strict - unchanged
-        return getOldSipsFunction("strict");
-    }
-
-    // TODO: add this:
     /**
     } else if (sipsChosen == "delta") {
         // Goal: prioritise (1) all bound, then (2) deltas, then (3) left-most
@@ -246,38 +95,6 @@ sips_t getOldSipsFunction(const std::string& sipsChosen) {
             return cost;
         };
     */
-    // TODO: add this
-    /**
-        auto profilerSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            // Goal: reorder based on the given profiling information
-            // Metric: cost(atom_R) = log(|atom_R|) * #free/#args
-            //         - exception: propositions are prioritised
-
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                // prioritise propositions
-                int arity = atom->getArity();
-                if (arity == 0) {
-                    cost.push_back(0);
-                    continue;
-                }
-
-                // calculate log(|R|) * #free/#args
-                int numBound = bindingStore.numBoundArguments(atom);
-                int numFree = arity - numBound;
-                double value = log(profileUse->getRelationSize(atom->getQualifiedName()));
-                value *= (numFree * 1.0) / arity;
-            }
-            return cost;
-        };
-    */
-
-    return getNextAtomSips;
 }
 
 Clause* ReorderLiteralsTransformer::reorderClauseWithSips(const SipsMetric& sips, const Clause* clause) {
