@@ -62,12 +62,6 @@ public:
 private:
     bool transform(TranslationUnit& translationUnit) override;
 
-    /**
-     * Determines the new ordering of a clause after the given SIPS is applied.
-     * @param sipsFunction SIPS metric to use
-     * @param clause clause to reorder
-     * @return the vector of new positions; v[i] = j iff atom j moves to pos i
-     */
     static std::vector<unsigned int> getOrderingAfterSIPS(sips_t sipsFunction, const Clause* clause);
 };
 

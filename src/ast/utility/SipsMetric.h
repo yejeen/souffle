@@ -26,6 +26,11 @@ class Clause;
 
 class SipsMetric {
 public:
+    /**
+     * Determines the new ordering of a clause after the SIPS is applied.
+     * @param clause clause to reorder
+     * @return the vector of new positions; v[i] = j iff atom j moves to pos i
+     */
     std::vector<size_t> getReordering(const Clause* clause) const;
 
 protected:
