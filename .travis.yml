@@ -2,6 +2,10 @@ language: generic
 dist: bionic
 arch: amd64
 
+# Do not change line endings when checking out code for windows jobs
+git:
+  autocrlf: input
+
 # Travis-ci bugs prevent completion. A workaround is to disable secret filtering
 # In early 2018 said they are working on fixing their filter script, and in 10/2019
 # they were still working on it.
