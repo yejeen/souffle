@@ -29,6 +29,7 @@
 #include "ast/utility/Visitor.h"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -50,7 +51,10 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
     if (sipsChosen == "strict") {
         // Goal: choose the leftmost atom always
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& /* bindingStore */) {
-            std::vector<double> cost(atoms.size(), 0);
+            std::vector<double> cost(atoms.size());
+            for (const auto* atom : atoms) {
+                cost.push_back(atom == nullptr ? std::numeric_limits<double>::max() : 0);
+            }
             assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
             return cost;
         };
@@ -59,6 +63,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 int arity = atom->getArity();
                 int numBound = bindingStore.numBoundArguments(atom);
                 cost.push_back(arity == numBound ? 0 : 1);
@@ -71,6 +80,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 int arity = atom->getArity();
                 int numBound = bindingStore.numBoundArguments(atom);
                 if (arity == numBound) {
@@ -89,6 +103,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 int arity = atom->getArity();
                 int numBound = bindingStore.numBoundArguments(atom);
                 if (arity == numBound) {
@@ -110,6 +129,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 int arity = atom->getArity();
                 int numBound = bindingStore.numBoundArguments(atom);
                 if (arity == 0) {
@@ -131,6 +155,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 cost.push_back(atom->getArity() - bindingStore.numBoundArguments(atom));
             }
             return cost;
@@ -140,6 +169,11 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
             std::vector<double> cost;
             for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
                 // use a set to hold all free variables to avoid double-counting
                 std::set<std::string> freeVars;
                 visitDepthFirst(*atom, [&](const Variable& var) {
@@ -170,21 +204,22 @@ std::vector<unsigned int> ReorderLiteralsTransformer::getOrderingAfterSIPS(
 
     unsigned int numAdded = 0;
     while (numAdded < atoms.size()) {
-        // grab the next atom, based on the SIPS function
-        unsigned int nextIdx = sipsFunction(atoms, bindingStore);
-        Atom* nextAtom = atoms[nextIdx];
+        // grab the index of the next atom, based on the SIPS function
+        const auto& costs = sipsFunction(atoms, bindingStore);
+        auto minIdx = std::distance(costs.begin(), std::min_element(costs.begin(), costs.end()));
+        const auto* nextAtom = atoms[minIdx];
+        assert(nextAtom != nullptr && "nullptr atoms should have maximal cost");
 
         // set all arguments that are variables as bound
-        // note: arguments that are functors, etc., do not newly bind anything
-        for (Argument* arg : nextAtom->getArguments()) {
-            if (auto* var = dynamic_cast<ast::Variable*>(arg)) {
+        for (const auto* arg : nextAtom->getArguments()) {
+            if (const auto* var = dynamic_cast<const Variable*>(arg)) {
                 bindingStore.bindVariableStrongly(var->getName());
             }
         }
 
-        newOrder[numAdded] = nextIdx;  // add to the ordering
-        atoms[nextIdx] = nullptr;      // mark as done
-        numAdded++;                    // move on
+        newOrder[numAdded] = minIdx;  // add to the ordering
+        atoms[minIdx] = nullptr;      // mark as done
+        numAdded++;                   // move on
     }
 
     return newOrder;
