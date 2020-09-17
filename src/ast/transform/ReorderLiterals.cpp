@@ -36,7 +36,7 @@
 
 namespace souffle::ast::transform {
 
-std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen, const TranslationUnit& tu) {
+std::unique_ptr<SipsMetric> ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen, const TranslationUnit& tu) {
     if (sipsChosen == "strict")
         return std::make_unique<StrictSips>();
     else if (sipsChosen == "all-bound")
@@ -58,43 +58,6 @@ std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen, const
 
     // default is all-bound
     return getSipsFunction("all-bound", tu);
-}
-
-sips_t getOldSipsFunction(const std::string& sipsChosen) {
-    // --- Create the appropriate SIPS function ---
-
-    // Each SIPS function has a priority metric (e.g. max-bound atoms).
-    // Arguments:
-    //      - a vector of atoms to choose from (nullpointers in the vector will be ignored)
-    //      - the set of variables bound so far
-    // Returns: the index of the atom maximising the priority metric
-    /**
-    } else if (sipsChosen == "delta") {
-        // Goal: prioritise (1) all bound, then (2) deltas, then (3) left-most
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                int arity = atom->getArity();
-                int numBound = bindingStore.numBoundArguments(atom);
-                if (arity == numBound) {
-                    // prioritise all-bound
-                    cost.push_back(0);
-                } else if (isDeltaRelation(atom->getQualifiedName())) {
-                    // then deltas
-                    cost.push_back(1);
-                } else {
-                    // then everything else
-                    cost.push_back(2);
-                }
-            }
-            return cost;
-        };
-    */
 }
 
 Clause* ReorderLiteralsTransformer::reorderClauseWithSips(const SipsMetric& sips, const Clause* clause) {
