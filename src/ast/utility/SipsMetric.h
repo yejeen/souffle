@@ -31,7 +31,7 @@ public:
      * @param clause clause to reorder
      * @return the vector of new positions; v[i] = j iff atom j moves to pos i
      */
-    std::vector<size_t> getReordering(const Clause* clause) const;
+    std::vector<unsigned int> getReordering(const Clause* clause) const;
 
 protected:
     virtual std::vector<float> evaluateCosts(
@@ -39,6 +39,12 @@ protected:
 };
 
 class StrictSips : public SipsMetric {
+protected:
+    std::vector<float> evaluateCosts(
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+};
+
+class AllBoundSips : public SipsMetric {
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;

@@ -15,14 +15,19 @@
  ***********************************************************************/
 
 #include "ast/utility/SipsMetric.h"
+#include "ast/Clause.h"
+#include "ast/Variable.h"
 #include "ast/utility/BindingStore.h"
+#include "ast/utility/Utils.h"
+#include <vector>
 
 namespace souffle::ast {
 
-std::vector<size_t> SipsMetric::getReordering(const Clause* clause) const {
+// TODO: change clause -> atom vector
+std::vector<unsigned int> SipsMetric::getReordering(const Clause* clause) const {
     BindingStore bindingStore(clause);
     auto atoms = getBodyLiterals<Atom>(*clause);
-    std::vector<size_t> newOrder(atoms.size());
+    std::vector<unsigned int> newOrder(atoms.size());
 
     size_t numAdded = 0;
     while (numAdded < atoms.size()) {

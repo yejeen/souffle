@@ -25,6 +25,7 @@
 #include "ast/Variable.h"
 #include "ast/analysis/ProfileUse.h"
 #include "ast/utility/BindingStore.h"
+#include "ast/utility/SipsMetric.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include <algorithm>
@@ -38,7 +39,12 @@
 
 namespace souffle::ast::transform {
 
-sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen) {
+std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen) {
+    if (sipsChosen == "strict") return std::make_unique<StrictSips>();
+    return std::make_unique<AllBoundSips>();
+}
+
+sips_t getOldSipsFunction(const std::string& sipsChosen) {
     // --- Create the appropriate SIPS function ---
 
     // Each SIPS function has a priority metric (e.g. max-bound atoms).
@@ -212,23 +218,54 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
         };
     } else if (sipsChosen == "ast2ram") {
         // TEMP: all-bound
-        return getSipsFunction("all-bound");
+        return getOldSipsFunction("all-bound");
     } else {
         // Default is strict - unchanged
-        return getSipsFunction("strict");
+        return getOldSipsFunction("strict");
     }
+
+    // TODO: add this
+    /**
+        auto profilerSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
+            // Goal: reorder based on the given profiling information
+            // Metric: cost(atom_R) = log(|atom_R|) * #free/#args
+            //         - exception: propositions are prioritised
+
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
+                    continue;
+                }
+
+                // prioritise propositions
+                int arity = atom->getArity();
+                if (arity == 0) {
+                    cost.push_back(0);
+                    continue;
+                }
+
+                // calculate log(|R|) * #free/#args
+                int numBound = bindingStore.numBoundArguments(atom);
+                int numFree = arity - numBound;
+                double value = log(profileUse->getRelationSize(atom->getQualifiedName()));
+                value *= (numFree * 1.0) / arity;
+            }
+            return cost;
+        };
+    */
 
     return getNextAtomSips;
 }
 
-Clause* ReorderLiteralsTransformer::reorderClauseWithSips(sips_t sipsFunction, const Clause* clause) {
+Clause* ReorderLiteralsTransformer::reorderClauseWithSips(const SipsMetric& sips, const Clause* clause) {
     // ignore clauses with fixed execution plans
     if (clause->getExecutionPlan() != nullptr) {
         return nullptr;
     }
 
     // get the ordering corresponding to the SIPS
-    std::vector<unsigned int> newOrdering = getOrderingAfterSIPS(sipsFunction, clause);
+    std::vector<unsigned int> newOrdering = sips.getReordering(clause);
 
     // check if we need a change
     bool changeNeeded = false;
@@ -260,7 +297,7 @@ bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
     std::vector<Clause*> clausesToRemove;
 
     for (Clause* clause : program.getClauses()) {
-        Clause* newClause = reorderClauseWithSips(sipsFunction, clause);
+        Clause* newClause = reorderClauseWithSips(*sipsFunction, clause);
         if (newClause != nullptr) {
             // reordering needed - swap around
             clausesToRemove.push_back(clause);
@@ -278,39 +315,13 @@ bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
         // parse supplied profile information
         auto* profileUse = translationUnit.getAnalysis<analysis::ProfileUseAnalysis>();
 
-        auto profilerSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            // Goal: reorder based on the given profiling information
-            // Metric: cost(atom_R) = log(|atom_R|) * #free/#args
-            //         - exception: propositions are prioritised
-
-            std::vector<double> cost;
-            for (const auto* atom : atoms) {
-                if (atom == nullptr) {
-                    cost.push_back(std::numeric_limits<double>::max());
-                    continue;
-                }
-
-                // prioritise propositions
-                int arity = atom->getArity();
-                if (arity == 0) {
-                    cost.push_back(0);
-                    continue;
-                }
-
-                // calculate log(|R|) * #free/#args
-                int numBound = bindingStore.numBoundArguments(atom);
-                int numFree = arity - numBound;
-                double value = log(profileUse->getRelationSize(atom->getQualifiedName()));
-                value *= (numFree * 1.0) / arity;
-            }
-            return cost;
-        };
+        auto profilerSips = getSipsFunction("profiler");
 
         // change the ordering of literals within clauses
         std::vector<Clause*> clausesToRemove;
 
         for (Clause* clause : program.getClauses()) {
-            Clause* newClause = reorderClauseWithSips(profilerSips, clause);
+            Clause* newClause = reorderClauseWithSips(*profilerSips, clause);
             if (newClause != nullptr) {
                 // reordering needed - swap around
                 clausesToRemove.push_back(clause);

@@ -24,6 +24,7 @@
 
 namespace souffle::ast {
 class BindingStore;
+class SipsMetric;
 }
 namespace souffle::ast::transform {
 
@@ -48,8 +49,9 @@ public:
         return new ReorderLiteralsTransformer();
     }
 
-    /** Returns a SIPS function based on the SIPS option provided. */
-    static sips_t getSipsFunction(const std::string& sipsChosen);
+    // TODO: eventually move to SipsMetric
+    /** Returns a SIPS cost evaluator based on the SIPS option provided. */
+    static std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen);
 
     /**
      * Reorder the clause based on a given SIPS function.
@@ -57,12 +59,10 @@ public:
      * @param clause clause to reorder
      * @return nullptr if no change, otherwise a new reordered clause
      */
-    static Clause* reorderClauseWithSips(sips_t sipsFunction, const Clause* clause);
+    static Clause* reorderClauseWithSips(const SipsMetric& sips, const Clause* clause);
 
 private:
     bool transform(TranslationUnit& translationUnit) override;
-
-    static std::vector<unsigned int> getOrderingAfterSIPS(sips_t sipsFunction, const Clause* clause);
 };
 
 }  // namespace souffle::ast::transform

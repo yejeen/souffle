@@ -413,7 +413,7 @@ Own<ast::Clause> AstToRamTranslator::ClauseTranslator::getReorderedClause(
         // no plan, so reorder it according to the internal heuristic
         auto sips = ast::transform::ReorderLiteralsTransformer::getSipsFunction("ast2ram");
         if (auto* reorderedClause =
-                        ast::transform::ReorderLiteralsTransformer::reorderClauseWithSips(sips, &clause)) {
+                        ast::transform::ReorderLiteralsTransformer::reorderClauseWithSips(*sips, &clause)) {
             return Own<ast::Clause>(reorderedClause);
         }
         return nullptr;
