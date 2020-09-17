@@ -33,7 +33,7 @@ namespace souffle::ast::transform {
  * @param bindingStore a store of currently bound variables
  * @return the index of the best atom to choose based on some SIPS-specific cost metric
  */
-using sips_t = std::function<unsigned int(std::vector<Atom*>, const BindingStore&)>;
+using sips_t = std::function<std::vector<double>(std::vector<Atom*>, const BindingStore&)>;
 
 /**
  * Transformation pass to reorder body literals.

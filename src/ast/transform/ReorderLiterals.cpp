@@ -47,218 +47,116 @@ sips_t ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen
     // Returns: the index of the atom maximising the priority metric
     sips_t getNextAtomSips;
 
-    if (sipsChosen == "naive") {
-        // Goal: choose the first atom with at least one bound argument, or with no arguments
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // no arguments
-                    return i;
-                }
-
-                if (bindingStore.numBoundArguments(currAtom) >= 1) {
-                    // at least one bound argument
-                    return i;
-                }
-            }
-
-            // none found; choose the first non-null
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                if (atoms[i] != nullptr) {
-                    return i;
-                }
-            }
-
-            // fall back to the first
-            return 0U;
+    if (sipsChosen == "strict") {
+        // Goal: choose the leftmost atom always
+        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& /* bindingStore */) {
+            std::vector<double> cost(atoms.size(), 0);
+            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
+            return cost;
         };
     } else if (sipsChosen == "all-bound") {
         // Goal: prioritise atoms with all arguments bound
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // no arguments, so all are trivially bound
-                    return i;
-                }
-
-                int arity = currAtom->getArity();
-                int numBound = bindingStore.numBoundArguments(currAtom);
-                if (numBound == arity) {
-                    // all arguments are bound!
-                    return i;
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                int arity = atom->getArity();
+                int numBound = bindingStore.numBoundArguments(atom);
+                cost.push_back(arity == numBound ? 0 : 1);
+            }
+            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
+            return cost;
+        };
+    } else if (sipsChosen == "naive") {
+        // Goal: prioritise (1) all bound, then (2) atom with at least one bound argument, then (3) left-most
+        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                int arity = atom->getArity();
+                int numBound = bindingStore.numBoundArguments(atom);
+                if (arity == numBound) {
+                    cost.push_back(0);
+                } else if (numBound >= 1) {
+                    cost.push_back(1);
+                } else {
+                    cost.push_back(2);
                 }
             }
-
-            // none found; choose the first non-null
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                if (atoms[i] != nullptr) {
-                    return i;
-                }
-            }
-
-            // fall back to the first
-            return 0U;
+            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
+            return cost;
         };
     } else if (sipsChosen == "max-bound") {
-        // Goal: choose the atom with the maximum number of bound variables
-        //       - exception: propositions should be prioritised
+        // Goal: prioritise (1) all-bound, then (2) max number of bound vars, then (3) left-most
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            int currMaxBound = -1;
-            unsigned int currMaxIdx = 0U;
-
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // propositions should be prioritised
-                    return i;
-                }
-
-                int numBound = bindingStore.numBoundArguments(currAtom);
-                if (numBound > currMaxBound) {
-                    currMaxBound = numBound;
-                    currMaxIdx = i;
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                int arity = atom->getArity();
+                int numBound = bindingStore.numBoundArguments(atom);
+                if (arity == numBound) {
+                    // Always better than anything else
+                    cost.push_back(0);
+                } else if (numBound == 0) {
+                    // Always worse than any number of bound vars
+                    cost.push_back(2);
+                } else {
+                    // Between 0 and 1, decreasing with more num bound
+                    cost.push_back(1 / numBound);
                 }
             }
-
-            return currMaxIdx;
+            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
+            return cost;
         };
     } else if (sipsChosen == "max-ratio") {
-        // Goal: choose the atom with the maximum ratio of bound to unbound
+        // Goal: prioritise max ratio of bound args
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            auto isLargerRatio = [&](std::pair<int, int> lhs, std::pair<int, int> rhs) {
-                return (lhs.first * rhs.second > lhs.second * rhs.first);
-            };
-
-            auto currMaxRatio = std::pair<int, int>(-1, 1);  // set to -1
-            unsigned int currMaxIdx = 0U;
-
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // propositions are as bound as possible
-                    return i;
-                }
-
-                int numBound = bindingStore.numBoundArguments(currAtom);
-                int numArgs = currAtom->getArity();
-                auto currRatio = std::pair<int, int>(numBound, numArgs);
-                if (isLargerRatio(currRatio, currMaxRatio)) {
-                    currMaxRatio = currRatio;
-                    currMaxIdx = i;
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                int arity = atom->getArity();
+                int numBound = bindingStore.numBoundArguments(atom);
+                if (arity == 0) {
+                    // Always better than anything else
+                    cost.push_back(0);
+                } else if (numBound == 0) {
+                    // Always worse than anything else
+                    cost.push_back(2);
+                } else {
+                    // Between 0 and 1, decreasing as the ratio increases
+                    cost.push_back(1 - numBound / arity);
                 }
             }
-
-            return currMaxIdx;
+            assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
+            return cost;
         };
     } else if (sipsChosen == "least-free") {
         // Goal: choose the atom with the least number of unbound arguments
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            int currLeastFree = -1;
-            unsigned int currLeastIdx = 0U;
-
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // propositions have 0 unbound arguments, which is minimal
-                    return i;
-                }
-
-                int numBound = bindingStore.numBoundArguments(currAtom);
-                int numFree = currAtom->getArity() - numBound;
-                if (currLeastFree == -1 || numFree < currLeastFree) {
-                    currLeastFree = numFree;
-                    currLeastIdx = i;
-                }
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                cost.push_back(atom->getArity() - bindingStore.numBoundArguments(atom));
             }
-
-            return currLeastIdx;
+            return cost;
         };
     } else if (sipsChosen == "least-free-vars") {
         // Goal: choose the atom with the least amount of unbound variables
         getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& bindingStore) {
-            int currLeastFree = -1;
-            unsigned int currLeastIdx = 0U;
-
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                if (isProposition(currAtom)) {
-                    // propositions have 0 unbound variables, which is minimal
-                    return i;
-                }
-
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
                 // use a set to hold all free variables to avoid double-counting
                 std::set<std::string> freeVars;
-                visitDepthFirst(*currAtom, [&](const ast::Variable& var) {
+                visitDepthFirst(*atom, [&](const Variable& var) {
                     if (bindingStore.isBound(var.getName())) {
                         freeVars.insert(var.getName());
                     }
                 });
-
-                int numFreeVars = freeVars.size();
-                if (currLeastFree == -1 || numFreeVars < currLeastFree) {
-                    currLeastFree = numFreeVars;
-                    currLeastIdx = i;
-                }
+                cost.push_back(freeVars.size());
             }
-
-            return currLeastIdx;
+            return cost;
         };
     } else if (sipsChosen == "ast2ram") {
+        // TEMP: all-bound
         return getSipsFunction("all-bound");
     } else {
-        // chosen SIPS is not implemented, so keep the same order
-        // Goal: leftmost atom first
-        getNextAtomSips = [&](std::vector<Atom*> atoms, const BindingStore& /* bindingStore */) {
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                if (atoms[i] == nullptr) {
-                    // already processed - move on
-                    continue;
-                }
-
-                return i;
-            }
-
-            // fall back to the first
-            return 0U;
-        };
+        // Default is strict - unchanged
+        return getSipsFunction("strict");
     }
 
     return getNextAtomSips;
