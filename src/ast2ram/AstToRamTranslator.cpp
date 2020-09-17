@@ -411,7 +411,7 @@ Own<ast::Clause> AstToRamTranslator::ClauseTranslator::getReorderedClause(
     // check whether there is an imposed order constraint
     if (plan == nullptr) {
         // no plan, so reorder it according to the internal heuristic
-        auto sips = ast::transform::ReorderLiteralsTransformer::getSipsFunction("ast2ram");
+        auto sips = std::make_unique<ast::AllBoundSips>();
         if (auto* reorderedClause =
                         ast::transform::ReorderLiteralsTransformer::reorderClauseWithSips(*sips, &clause)) {
             return Own<ast::Clause>(reorderedClause);

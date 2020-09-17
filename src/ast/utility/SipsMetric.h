@@ -18,6 +18,9 @@
 
 #include <vector>
 
+namespace souffle::ast::analysis {
+class ProfileUseAnalysis;
+}
 namespace souffle::ast {
 
 class Atom;
@@ -103,11 +106,14 @@ protected:
 
 class ProfileUseSips : public SipsMetric {
 public:
-    ProfileUseSips() = default;
+    ProfileUseSips(const analysis::ProfileUseAnalysis& profileUse) : profileUse(profileUse) {}
 
 protected:
     std::vector<float> evaluateCosts(
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+
+private:
+    const analysis::ProfileUseAnalysis& profileUse;
 };
 
 };  // namespace souffle::ast

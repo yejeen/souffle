@@ -25,7 +25,7 @@
 namespace souffle::ast {
 class BindingStore;
 class SipsMetric;
-}
+}  // namespace souffle::ast
 namespace souffle::ast::transform {
 
 /**
@@ -51,7 +51,8 @@ public:
 
     // TODO: eventually move to SipsMetric
     /** Returns a SIPS cost evaluator based on the SIPS option provided. */
-    static std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen);
+    static std::unique_ptr<SipsMetric> getSipsFunction(
+            const std::string& sipsChosen, const TranslationUnit& tu);
 
     /**
      * Reorder the clause based on a given SIPS function.

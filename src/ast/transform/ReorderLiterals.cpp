@@ -39,7 +39,7 @@
 
 namespace souffle::ast::transform {
 
-std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen) {
+std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen, const TranslationUnit& tu) {
     if (sipsChosen == "strict")
         return std::make_unique<StrictSips>();
     else if (sipsChosen == "all-bound")
@@ -54,11 +54,13 @@ std::unique_ptr<SipsMetric> getSipsFunction(const std::string& sipsChosen) {
         return std::make_unique<LeastFreeSips>();
     else if (sipsChosen == "least-free-vars")
         return std::make_unique<LeastFreeVarsSips>();
-    else if (sipsChosen == "profile-use")
-        return std::make_unique<ProfileUseSips>();
+    else if (sipsChosen == "profile-use") {
+        auto* profileUse = tu.getAnalysis<analysis::ProfileUseAnalysis>();
+        return std::make_unique<ProfileUseSips>(*profileUse);
+    }
 
     // default is all-bound
-    return getSipsFunction("all-bound");
+    return getSipsFunction("all-bound", tu);
 }
 
 sips_t getOldSipsFunction(const std::string& sipsChosen) {
@@ -311,7 +313,7 @@ bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
     if (Global::config().has("SIPS")) {
         sipsChosen = Global::config().get("SIPS");
     }
-    auto sipsFunction = getSipsFunction(sipsChosen);
+    auto sipsFunction = getSipsFunction(sipsChosen, translationUnit);
 
     // literal reordering is a rule-local transformation
     std::vector<Clause*> clausesToRemove;
@@ -333,13 +335,10 @@ bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
     // --- profile-guided reordering ---
     if (Global::config().has("profile-use")) {
         // parse supplied profile information
-        auto* profileUse = translationUnit.getAnalysis<analysis::ProfileUseAnalysis>();
-
-        auto profilerSips = getSipsFunction("profiler");
+        auto profilerSips = getSipsFunction("profiler", translationUnit);
 
         // change the ordering of literals within clauses
         std::vector<Clause*> clausesToRemove;
-
         for (Clause* clause : program.getClauses()) {
             Clause* newClause = reorderClauseWithSips(*profilerSips, clause);
             if (newClause != nullptr) {

@@ -23,7 +23,6 @@
 
 namespace souffle::ast {
 
-// TODO: change clause -> atom vector
 std::vector<unsigned int> SipsMetric::getReordering(const Clause* clause) const {
     BindingStore bindingStore(clause);
     auto atoms = getBodyLiterals<Atom>(*clause);
