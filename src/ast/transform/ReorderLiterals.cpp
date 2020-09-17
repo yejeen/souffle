@@ -287,38 +287,27 @@ bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
             // Metric: cost(atom_R) = log(|atom_R|) * #free/#args
             //         - exception: propositions are prioritised
 
-            double currOptimalVal = -1;
-            unsigned int currOptimalIdx = 0U;
-            bool set = false;
-
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                const Atom* currAtom = atoms[i];
-
-                if (currAtom == nullptr) {
-                    // already processed - move on
+            std::vector<double> cost;
+            for (const auto* atom : atoms) {
+                if (atom == nullptr) {
+                    cost.push_back(std::numeric_limits<double>::max());
                     continue;
                 }
 
-                if (isProposition(currAtom)) {
-                    // prioritise propositions
-                    return i;
+                // prioritise propositions
+                int arity = atom->getArity();
+                if (arity == 0) {
+                    cost.push_back(0);
+                    continue;
                 }
 
                 // calculate log(|R|) * #free/#args
-                int numBound = bindingStore.numBoundArguments(currAtom);
-                int numArgs = currAtom->getArity();
-                int numFree = numArgs - numBound;
-                double value = log(profileUse->getRelationSize(currAtom->getQualifiedName()));
-                value *= (numFree * 1.0) / numArgs;
-
-                if (!set || value < currOptimalVal) {
-                    set = true;
-                    currOptimalVal = value;
-                    currOptimalIdx = i;
-                }
+                int numBound = bindingStore.numBoundArguments(atom);
+                int numFree = arity - numBound;
+                double value = log(profileUse->getRelationSize(atom->getQualifiedName()));
+                value *= (numFree * 1.0) / arity;
             }
-
-            return currOptimalIdx;
+            return cost;
         };
 
         // change the ordering of literals within clauses
