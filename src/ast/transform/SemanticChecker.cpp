@@ -1435,16 +1435,6 @@ void TypeChecker::visitTypeCast(const ast::TypeCast& cast) {
     if (argTypes.isAll() || castTypes.size() != 1 || argTypes.isAll() || argTypes.size() != 1) {
         return;
     }
-
-    // We know that both sets have size 1.
-    auto& castTy = *castTypes.begin();
-    auto& argTy = *argTypes.begin();
-
-    if (!haveCommonSupertype(castTy, argTy)) {
-        report.addError(
-                tfm::format(R"(Type "%s" can't be converted to "%s")", argTy, castTy), cast.getSrcLoc());
-        return;
-    }
 }
 
 void TypeChecker::visitIntrinsicFunctor(const IntrinsicFunctor& fun) {
