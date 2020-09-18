@@ -35,6 +35,7 @@
 #include "ast/analysis/IOType.h"
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/TypeSystem.h"
+#include "ast/utility/SipsMetric.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Operation.h"
