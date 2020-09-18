@@ -16,7 +16,14 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4127)
+#endif  // _MSC_VER
 #include "tinyformat.h"
+#ifdef _MSC_VER
+#pragma warning(default : 4127)
+#endif  // _MSC_VER
+
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
@@ -48,6 +55,7 @@
  */
 #define __builtin_popcountll __popcnt64
 
+#if _MSC_VER < 1924
 constexpr unsigned long __builtin_ctz(unsigned long value) {
     unsigned long trailing_zeroes = 0;
     while ((value = value >> 1) ^ 1) {
@@ -65,6 +73,7 @@ inline unsigned long __builtin_ctzll(unsigned long long value) {
         return 64;
     }
 }
+#endif  // _MSC_VER < 1924
 #endif
 
 // -------------------------------------------------------------------------------
