@@ -36,7 +36,8 @@
 
 namespace souffle::ast::transform {
 
-std::unique_ptr<SipsMetric> ReorderLiteralsTransformer::getSipsFunction(const std::string& sipsChosen, const TranslationUnit& tu) {
+std::unique_ptr<SipsMetric> ReorderLiteralsTransformer::getSipsFunction(
+        const std::string& sipsChosen, const TranslationUnit& tu) {
     if (sipsChosen == "strict")
         return std::make_unique<StrictSips>();
     else if (sipsChosen == "all-bound")
@@ -51,10 +52,8 @@ std::unique_ptr<SipsMetric> ReorderLiteralsTransformer::getSipsFunction(const st
         return std::make_unique<LeastFreeSips>();
     else if (sipsChosen == "least-free-vars")
         return std::make_unique<LeastFreeVarsSips>();
-    else if (sipsChosen == "profile-use") {
-        auto* profileUse = tu.getAnalysis<analysis::ProfileUseAnalysis>();
-        return std::make_unique<ProfileUseSips>(*profileUse);
-    }
+    else if (sipsChosen == "profile-use")
+        return std::make_unique<ProfileUseSips>(*tu.getAnalysis<analysis::ProfileUseAnalysis>());
 
     // default is all-bound
     return getSipsFunction("all-bound", tu);

@@ -41,7 +41,6 @@ public:
         return new ReorderLiteralsTransformer();
     }
 
-    // TODO: eventually move to SipsMetric
     /** Returns a SIPS cost evaluator based on the SIPS option provided. */
     static std::unique_ptr<SipsMetric> getSipsFunction(
             const std::string& sipsChosen, const TranslationUnit& tu);
