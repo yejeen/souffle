@@ -219,12 +219,6 @@ bool isRule(const Clause& clause);
 bool isProposition(const Atom* atom);
 
 /**
- * Returns whether the given atom is a delta relation
- * @return true iff the atom is a delta relation
- */
-bool isDeltaRelation(const QualifiedName& name);
-
-/**
  * Returns a clause which contains head of the given clause
  * @param clause the clause which head to be cloned
  * @return pointer to clause which has head cloned from given clause
