@@ -18,10 +18,10 @@
 #pragma once
 
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <getopt.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 
 namespace souffle {
@@ -124,19 +124,11 @@ public:
         std::string fact_dir = input_dir;
         std::string out_dir = output_dir;
 
-// avoid warning due to Solaris getopt.h
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-#endif  // __GNUC__
         // long options
         option longOptions[] = {{"facts", true, nullptr, 'F'}, {"output", true, nullptr, 'D'},
                 {"profile", true, nullptr, 'p'}, {"jobs", true, nullptr, 'j'}, {"index", true, nullptr, 'i'},
                 // the terminal option -- needs to be null
                 {nullptr, false, nullptr, 0}};
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif  // __GNUC__
 
         // check whether all options are fine
         bool ok = true;
