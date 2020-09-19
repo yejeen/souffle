@@ -1670,7 +1670,7 @@ void AstToRamTranslator::translateProgram(const ast::TranslationUnit& translatio
 
 Own<ram::TranslationUnit> AstToRamTranslator::translateUnit(ast::TranslationUnit& tu) {
     auto ram_start = std::chrono::high_resolution_clock::now();
-    program = tu.getProgram();
+    program = &tu.getProgram();
 
     translateProgram(tu);
     SymbolTable& symTab = getSymbolTable();

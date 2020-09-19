@@ -82,7 +82,7 @@ Clause* ReorderLiteralsTransformer::reorderClauseWithSips(const SipsMetric& sips
 
 bool ReorderLiteralsTransformer::transform(TranslationUnit& translationUnit) {
     bool changed = false;
-    Program& program = *translationUnit.getProgram();
+    Program& program = translationUnit.getProgram();
 
     // --- SIPS-based static reordering ---
     // ordering is based on the given SIPS
