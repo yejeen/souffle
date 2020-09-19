@@ -1,0 +1,7 @@
+<map id="souffle::ast::SipsMetric::getReordering" name="souffle::ast::SipsMetric::getReordering">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_binding_store.html#ab4e6155afcf06e3bf222533621196a41" title="Mark the given variable as strongly bound. " alt="" coords="223,5,408,47"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1_sips_metric.html#a9f1df3b167e83e4010bfe19db736967f" title="Evaluates the cost of choosing each atom next in the current schedule. " alt="" coords="231,71,400,112"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1_binding_store.html#a9437db80e5dd371034346c6f5e834a98" title="Reduce the full set of dependencies for all tracked variables, binding whatever needs to be bound..." alt="" coords="456,5,641,47"/>
+<area shape="rect" id="node4" href="$namespacesouffle.html#af3295dd83a588d612cf777e600beac4a" title="A utility to check generically whether a given element is contained in a given container. " alt="" coords="923,13,1052,39"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_binding_store.html#a756367f4c817ffaceb0f309cd33f2688" title="Reduce a conjunctive set of dependencies based on the current bound variable set. ..." alt="" coords="689,35,875,76"/>
+</map>

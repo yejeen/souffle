@@ -1,0 +1,10 @@
+<map id="souffle::ast::transform::UniqueAggregationVariablesTransformer::clone" name="souffle::ast::transform::UniqueAggregationVariablesTransformer::clone">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1transform_1_1_unique_aggregation_variables_transformer.html#acb2fd0d93a6819d985f5776f1e37b00e" title="souffle::ast::transform\l::UniqueAggregationVariables\lTransformer::transform" alt="" coords="268,115,483,171"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1_translation_unit.html#a8f0d6c64ddd338b8a9372a63d950b45c" title="Return the program. " alt="" coords="531,5,705,47"/>
+<area shape="rect" id="node4" href="$namespacesouffle_1_1ast.html#a5960a86f605f8b9c72e6ff2234804f96" title="A utility function visiting all nodes within the ast rooted by the given node recursively in a depth&#45;..." alt="" coords="753,79,923,120"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1_aggregator.html#a203b5ea0577d579860486fac56342b96" title="Return target expression. " alt="" coords="531,123,705,164"/>
+<area shape="rect" id="node7" href="$namespacesouffle_1_1ast.html#a0bf6b9bdf0a8866bd27dde18442ab43d" title="A utility function visiting all nodes within the ast rooted by the given node recursively in a depth&#45;..." alt="" coords="533,188,703,229"/>
+<area shape="rect" id="node9" href="$namespacesouffle.html#aecc08c83ad9634fc515b7aa094702949" title="A generic function converting strings into strings (trivial case). " alt="" coords="555,254,681,281"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_node.html#a332720bacd0c374ab8ff3977f0d00210" title="Obtain a list of all embedded AST child nodes. " alt="" coords="971,127,1107,168"/>
+<area shape="rect" id="node8" href="$namespacesouffle_1_1ast.html#a5a45867d4cbfd053ffd30af4b4e1dd9e" title="A utility function visiting all nodes within the ast rooted by the given node recursively in a depth&#45;..." alt="" coords="753,159,923,200"/>
+</map>

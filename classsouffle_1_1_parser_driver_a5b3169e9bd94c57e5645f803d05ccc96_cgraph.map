@@ -1,0 +1,9 @@
+<map id="souffle::ParserDriver::addRelation" name="souffle::ParserDriver::addRelation">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_program.html#a0b0ce5dd1c7904f562e6840dc9d117a9" title="souffle::ast::Program\l::addRelation" alt="" coords="217,64,375,105"/>
+<area shape="rect" id="node7" href="$namespacesouffle_1_1ast.html#af59ed6a7c649aec10999baea2f2c8b35" title="Returns the relation with the given name in the program. " alt="" coords="208,13,384,39"/>
+<area shape="rect" id="node8" href="$namespacesouffle.html#aecc08c83ad9634fc515b7aa094702949" title="A generic function converting strings into strings (trivial case). " alt="" coords="233,130,359,157"/>
+<area shape="rect" id="node3" href="$namespacesouffle.html#a62f80c157a6a365d78a43592732a8efa" title="Returns the first element in a container that satisfies a given predicate, nullptr otherwise..." alt="" coords="459,71,563,98"/>
+<area shape="rect" id="node4" href="$classsouffle_1_1ast_1_1_program.html#a89bc64ed82fbb346ff8fcb922386c196" title="Return relations. " alt="" coords="432,5,589,47"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1_relation.html#aec7a180cc23c066453f1e97e9957ccfe" title="Get qualified relation name. " alt="" coords="433,123,588,164"/>
+<area shape="rect" id="node5" href="$namespacesouffle.html#ad62d4e824a9d74c7462da546a21780fe" title="A utility function enabling the creation of a vector of pointers. " alt="" coords="637,13,784,39"/>
+</map>

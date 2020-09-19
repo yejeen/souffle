@@ -1,0 +1,10 @@
+<map id="souffle::ast::SipsMetric" name="souffle::ast::SipsMetric">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_all_bound_sips.html" title="Goal: Prioritise atoms with all arguments bound. " alt="" coords="5,160,192,252"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1_least_free_sips.html" title="Goal: choose the atom with the least number of unbound arguments. " alt="" coords="217,160,407,252"/>
+<area shape="rect" id="node4" href="$classsouffle_1_1ast_1_1_least_free_vars_sips.html" title="Goal: choose the atom with the least amount of unbound variables. " alt="" coords="432,160,651,252"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_max_bound_sips.html" title="Goal: prioritise (1) all&#45;bound, then (2) max number of bound vars, then (3) left&#45;most. " alt="" coords="675,160,872,252"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1_max_ratio_sips.html" title="Goal: prioritise max ratio of bound args. " alt="" coords="897,160,1087,252"/>
+<area shape="rect" id="node7" href="$classsouffle_1_1ast_1_1_naive_sips.html" title="Goal: Prioritise (1) all bound, then (2) atoms with at least one bound argument, then (3) left&#45;most..." alt="" coords="1111,160,1278,252"/>
+<area shape="rect" id="node8" href="$classsouffle_1_1ast_1_1_profile_use_sips.html" title="Goal: reorder based on the given profiling information Metric: cost(atom_R) = log(|atom_R|) * #free/#..." alt="" coords="1303,160,1497,252"/>
+<area shape="rect" id="node9" href="$classsouffle_1_1ast_1_1_strict_sips.html" title="Goal: Always choose the left&#45;most atom. " alt="" coords="1521,160,1684,252"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="souffle::ast::ProfileUseSips" name="souffle::ast::ProfileUseSips">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_sips_metric.html" title="Class for SIPS cost&#45;metric functions Each subclass represents a different heuristic used for evaluati..." alt="" coords="5,381,175,487"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1analysis_1_1_profile_use_analysis.html" title="Analysis that loads profile data and has a profile query interface. " alt="" coords="199,359,367,509"/>
+<area shape="rect" id="node4" href="$classsouffle_1_1ast_1_1analysis_1_1_analysis.html" title="Abstract class for a AST Analysis. " alt="" coords="77,145,233,296"/>
+</map>

@@ -1,0 +1,23 @@
+<map id="souffle::AstToRamTranslator::ClauseTranslator::getReorderedClause" name="souffle::AstToRamTranslator::ClauseTranslator::getReorderedClause">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_clause.html#a559bfba3b467f0512a9e292e250c30c1" title="Create a clone (i.e. " alt="" coords="799,71,946,112"/>
+<area shape="rect" id="node8" href="$classsouffle_1_1ast_1_1_clause.html#aa14e0157716ca749fd1416c597f2f839" title="Obtains the execution plan associated to this clause or null if there is none. " alt="" coords="1033,493,1179,535"/>
+<area shape="rect" id="node9" href="$classsouffle_1_1ast_1_1_execution_plan.html#a98ee104f4e93305585ccb0b6d3e40701" title="Get orders. " alt="" coords="293,603,487,644"/>
+<area shape="rect" id="node10" href="$namespacesouffle_1_1ast.html#a2781f1f43ac535fd77728c0ea35ea4af" title="Reorders the atoms of a clause to be in the given order. " alt="" coords="541,279,732,306"/>
+<area shape="rect" id="node16" href="$classsouffle_1_1ast_1_1transform_1_1_reorder_literals_transformer.html#a0399d41bd475e68d5fccfd5bd93caa26" title="Reorder the clause based on a given SIPS function. " alt="" coords="287,395,493,451"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1_clause.html#a8f9e7d317c2b0082e72ef4357e01dd00" title="souffle::ast::Clause\l::Clause" alt="" coords="1033,5,1179,47"/>
+<area shape="rect" id="node6" href="$namespacesouffle.html#a1dd578fbaf92e67ee52ebdd8cf364584" title="souffle::clone" alt="" coords="1051,137,1161,163"/>
+<area shape="rect" id="node7" href="$classsouffle_1_1ast_1_1_node.html#ac87a64ccec4ee0e470effeef0c6f3a0b" title="Return source location of the Node. " alt="" coords="1038,71,1174,112"/>
+<area shape="rect" id="node4" href="$classsouffle_1_1ast_1_1_node.html#a2317760f042742653d90496a6d4dfa2d" title="souffle::ast::Node\l::Node" alt="" coords="1271,5,1407,47"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_node.html#ab6ffbc606765b82b0c511df3760e642b" title="souffle::ast::Node\l::~Node" alt="" coords="1480,5,1616,47"/>
+<area shape="rect" id="node11" href="$classsouffle_1_1ast_1_1_clause.html#a199bb0fc53e3f9980967d67b8dfb68a5" title="Obtains a copy of the internally maintained body literals. " alt="" coords="799,304,946,345"/>
+<area shape="rect" id="node13" href="$namespacesouffle_1_1ast.html#a29de8c1720372f7c78dcfabe84767118" title="Returns a clause which contains head of the given clause. " alt="" coords="787,187,958,214"/>
+<area shape="rect" id="node15" href="$classsouffle_1_1ast_1_1_clause.html#a7d36da64e75437f63fcaea9b5bdba5e8" title="Add a literal to the body of the clause. " alt="" coords="799,239,946,280"/>
+<area shape="rect" id="node12" href="$namespacesouffle.html#ad62d4e824a9d74c7462da546a21780fe" title="A utility function enabling the creation of a vector of pointers. " alt="" coords="1033,311,1179,338"/>
+<area shape="rect" id="node14" href="$classsouffle_1_1ast_1_1_clause.html#a92a6ca9ea20fe63f074d597d81d07c08" title="Return the atom that represents the head of the clause. " alt="" coords="1033,188,1179,229"/>
+<area shape="rect" id="node17" href="$classsouffle_1_1ast_1_1_sips_metric.html#a3851be10b08488bff16c678bf8c0b93a" title="Determines the new ordering of a clause after the SIPS is applied. " alt="" coords="552,403,721,444"/>
+<area shape="rect" id="node18" href="$classsouffle_1_1ast_1_1_sips_metric.html#a9f1df3b167e83e4010bfe19db736967f" title="Evaluates the cost of choosing each atom next in the current schedule. " alt="" coords="788,435,957,476"/>
+<area shape="rect" id="node19" href="$classsouffle_1_1ast_1_1_binding_store.html#ab4e6155afcf06e3bf222533621196a41" title="Mark the given variable as strongly bound. " alt="" coords="780,369,965,411"/>
+<area shape="rect" id="node20" href="$classsouffle_1_1ast_1_1_binding_store.html#a9437db80e5dd371034346c6f5e834a98" title="Reduce the full set of dependencies for all tracked variables, binding whatever needs to be bound..." alt="" coords="1013,369,1199,411"/>
+<area shape="rect" id="node21" href="$namespacesouffle.html#af3295dd83a588d612cf777e600beac4a" title="A utility to check generically whether a given element is contained in a given container. " alt="" coords="1483,377,1613,403"/>
+<area shape="rect" id="node22" href="$classsouffle_1_1ast_1_1_binding_store.html#a756367f4c817ffaceb0f309cd33f2688" title="Reduce a conjunctive set of dependencies based on the current bound variable set. ..." alt="" coords="1247,399,1432,440"/>
+</map>

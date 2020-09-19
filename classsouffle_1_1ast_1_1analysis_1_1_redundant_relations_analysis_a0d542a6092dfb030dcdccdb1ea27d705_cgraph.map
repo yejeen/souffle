@@ -1,0 +1,7 @@
+<map id="souffle::ast::analysis::RedundantRelationsAnalysis::run" name="souffle::ast::analysis::RedundantRelationsAnalysis::run">
+<area shape="rect" id="node2" href="$classsouffle_1_1ast_1_1_translation_unit.html#a19431bc77b4a4e05d5a24e7b3807703d" title="get analysis: analysis is generated on the fly if not present " alt="" coords="309,35,482,76"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_translation_unit.html#a8f0d6c64ddd338b8a9372a63d950b45c" title="Return the program. " alt="" coords="309,100,482,141"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1analysis_1_1_precedence_graph_analysis.html#a7bc037361ff9de496a473935e3dc9724" title="souffle::ast::analysis\l::PrecedenceGraphAnalysis\l::graph" alt="" coords="296,166,495,222"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1_debug_report.html#ac0feb8780d23c2ca5d7700e4857b10c4" title="souffle::DebugReport\l::addSection" alt="" coords="545,5,703,47"/>
+<area shape="rect" id="node4" href="$classsouffle_1_1_global.html#a2dcb257b0f98d0b882862427cc965640" title="souffle::Global::config" alt="" coords="543,71,705,98"/>
+</map>

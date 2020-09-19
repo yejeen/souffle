@@ -1,0 +1,7 @@
+<map id="souffle::ast::transform::MinimiseProgramTransformer::removeRedundantClauses" name="souffle::ast::transform::MinimiseProgramTransformer::removeRedundantClauses">
+<area shape="rect" id="node2" href="$namespacesouffle.html#a1dd578fbaf92e67ee52ebdd8cf364584" title="souffle::clone" alt="" coords="308,5,417,32"/>
+<area shape="rect" id="node3" href="$classsouffle_1_1ast_1_1_program.html#a529839d448f4139ce2e4e87bcfe3201f" title="Return clauses. " alt="" coords="284,57,441,98"/>
+<area shape="rect" id="node5" href="$classsouffle_1_1ast_1_1_translation_unit.html#a8f0d6c64ddd338b8a9372a63d950b45c" title="Return the program. " alt="" coords="276,122,449,163"/>
+<area shape="rect" id="node6" href="$classsouffle_1_1ast_1_1_program.html#a2d97408e345d7b58598a90f655eb49fd" title="Remove a clause. " alt="" coords="284,187,441,229"/>
+<area shape="rect" id="node4" href="$namespacesouffle.html#ad62d4e824a9d74c7462da546a21780fe" title="A utility function enabling the creation of a vector of pointers. " alt="" coords="497,64,644,91"/>
+</map>
