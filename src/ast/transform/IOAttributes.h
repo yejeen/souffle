@@ -98,7 +98,7 @@ private:
             json11::Json params = json11::Json::object{
                     {"relation", relJson}, {"records", getRecordsParams(translationUnit)}};
 
-            io->addDirective("params", params.dump());
+            io->addParameter("params", params.dump());
             changed = true;
         }
         return changed;
@@ -111,13 +111,13 @@ private:
             if (io->getType() == ast::DirectiveType::limitsize) {
                 continue;
             }
-            if (io->hasDirective("attributeNames")) {
+            if (io->hasParameter("attributeNames")) {
                 continue;
             }
             Relation* rel = getRelation(program, io->getQualifiedName());
             std::string delimiter("\t");
-            if (io->hasDirective("delimiter")) {
-                delimiter = io->getDirective("delimiter");
+            if (io->hasParameter("delimiter")) {
+                delimiter = io->getParameter("delimiter");
             }
 
             std::vector<std::string> attributeNames;
@@ -129,9 +129,9 @@ private:
                 auto auxArityAnalysis = translationUnit.getAnalysis<analysis::AuxiliaryArityAnalysis>();
                 std::vector<std::string> originalAttributeNames(
                         attributeNames.begin(), attributeNames.end() - auxArityAnalysis->getArity(rel));
-                io->addDirective("attributeNames", toString(join(originalAttributeNames, delimiter)));
+                io->addParameter("attributeNames", toString(join(originalAttributeNames, delimiter)));
             } else {
-                io->addDirective("attributeNames", toString(join(attributeNames, delimiter)));
+                io->addParameter("attributeNames", toString(join(attributeNames, delimiter)));
             }
             changed = true;
         }
@@ -167,7 +167,7 @@ private:
                     json11::Json::object{{"relation", relJson}, {"records", getRecordsTypes(translationUnit)},
                             {"ADTs", getAlgebraicDataTypes(translationUnit)}};
 
-            io->addDirective("types", types.dump());
+            io->addParameter("types", types.dump());
             changed = true;
         }
         return changed;
