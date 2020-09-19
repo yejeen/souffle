@@ -34,6 +34,8 @@ class Clause;
  */
 class SipsMetric {
 public:
+    virtual ~SipsMetric() = default;
+
     /**
      * Determines the new ordering of a clause after the SIPS is applied.
      * @param clause clause to reorder
