@@ -168,7 +168,7 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDire
         }
 
         std::map<std::string, std::string> directives;
-        for (const auto& currentPair : load->getDirectives()) {
+        for (const auto& currentPair : load->getParameters()) {
             directives.insert(std::make_pair(currentPair.first, unescape(currentPair.second)));
         }
         inputDirectives.push_back(directives);
@@ -193,7 +193,7 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDir
         }
 
         std::map<std::string, std::string> directives;
-        for (const auto& currentPair : store->getDirectives()) {
+        for (const auto& currentPair : store->getParameters()) {
             directives.insert(std::make_pair(currentPair.first, unescape(currentPair.second)));
         }
         outputDirectives.push_back(directives);
